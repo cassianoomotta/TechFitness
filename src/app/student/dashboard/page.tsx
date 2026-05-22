@@ -82,6 +82,7 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState<"fichas" | "dupla">("fichas");
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState("");
+  const [partnerSearchQuery, setPartnerSearchQuery] = useState("");
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
@@ -204,6 +205,14 @@ export default function StudentDashboard() {
     }
   };
 
+  const filteredPartners = partners.filter((p) => {
+    const query = partnerSearchQuery.toLowerCase();
+    return (
+      (p.name && p.name.toLowerCase().includes(query)) ||
+      (p.email && p.email.toLowerCase().includes(query))
+    );
+  });
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
       {/* Header */}
@@ -247,14 +256,6 @@ export default function StudentDashboard() {
                 Assessoria Esportiva: <span className="text-[#0F172A] font-semibold">{trainer.name}</span>
               </p>
             )}
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:from-[#1E40AF] hover:to-[#6D28D9] text-white font-bold text-xs transition-all cursor-pointer shadow-md shadow-purple-500/10 w-fit"
-              title="Em breve: gerar treino personalizado com inteligência artificial"
-            >
-              <Sparkles className="w-4 h-4" />
-              Criar treino com IA
-            </button>
           </div>
         </section>
 
@@ -392,24 +393,39 @@ export default function StudentDashboard() {
                 Selecione um parceiro de treino da mesma assessoria para comparar seu volume, consistência e recordes de carga em tempo real!
               </p>
 
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">Escolha seu Parceiro de Treino</label>
-                {partners.length === 0 ? (
-                  <p className="text-xs text-[#94A3B8] italic">Buscando parceiros cadastrados na assessoria...</p>
-                ) : (
-                  <select
-                    value={selectedPartnerId}
-                    onChange={(e) => handleSelectPartner(e.target.value)}
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">Buscar Parceiro (Nome ou E-mail)</label>
+                  <input
+                    type="text"
+                    placeholder="Digite o nome ou e-mail..."
+                    value={partnerSearchQuery}
+                    onChange={(e) => setPartnerSearchQuery(e.target.value)}
                     className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
-                  >
-                    <option value="">-- Selecionar Parceiro --</option>
-                    {partners.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.email})
-                      </option>
-                    ))}
-                  </select>
-                )}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">Escolha seu Parceiro de Treino</label>
+                  {partners.length === 0 ? (
+                    <p className="text-xs text-[#94A3B8] italic">Buscando parceiros cadastrados na assessoria...</p>
+                  ) : filteredPartners.length === 0 ? (
+                    <p className="text-xs text-red-500 font-semibold italic">Nenhum parceiro encontrado.</p>
+                  ) : (
+                    <select
+                      value={selectedPartnerId}
+                      onChange={(e) => handleSelectPartner(e.target.value)}
+                      className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                    >
+                      <option value="">-- Selecionar Parceiro --</option>
+                      {filteredPartners.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name || "Sem Nome"} ({p.email})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </div>
             </div>
 

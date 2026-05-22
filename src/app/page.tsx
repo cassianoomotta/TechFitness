@@ -33,7 +33,7 @@ export default async function Home() {
             </Link>
             <Link
               href="/register"
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-800 text-white font-semibold text-sm transition-all duration-300 shadow-md shadow-zinc-900/10 cursor-pointer active:scale-95"
+              className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 shadow-md shadow-blue-500/10 cursor-pointer active:scale-95"
             >
               Começar Agora
             </Link>

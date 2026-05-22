@@ -118,8 +118,9 @@ Gere em português, use formatação Markdown elegante e badges de impacto visua
 
     // 4. Se houver chave API do Gemini, faz a chamada real
     const apiKey = process.env.GEMINI_API_KEY;
+    let analysisText = "";
 
-    if (apiKey && apiKey !== "SUA_CHAVE_AQUI") {
+    if (apiKey && apiKey !== "SUA_CHAVE_AQUI" && apiKey !== "") {
       try {
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -144,14 +145,52 @@ Gere em português, use formatação Markdown elegante e badges de impacto visua
 
         if (response.ok) {
           const data = await response.json();
-          const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (analysisText) {
-            return NextResponse.json({ analysis: analysisText });
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            analysisText = text;
           }
         }
       } catch (err) {
-        console.error("Erro na chamada da API do Gemini, caindo no gerador local simulado:", err);
+        console.error("Erro na chamada da API do Gemini:", err);
       }
+    }
+
+    // Fallback para OpenAI se Gemini falhou ou não tem chave
+    const openAiKey = process.env.OPENAI_API_KEY;
+    if (!analysisText && openAiKey && openAiKey !== "SUA_CHAVE_AQUI" && openAiKey !== "") {
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${openAiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "user",
+                content: promptText,
+              },
+            ],
+            temperature: 0.7,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data.choices?.[0]?.message?.content;
+          if (text) {
+            analysisText = text;
+          }
+        }
+      } catch (err) {
+        console.error("Erro na chamada da API do OpenAI:", err);
+      }
+    }
+
+    if (analysisText) {
+      return NextResponse.json({ analysis: analysisText });
     }
 
     // 5. Fallback Inteligente (Modo Demo Offline) - Gera relatório simulado rico em Markdown

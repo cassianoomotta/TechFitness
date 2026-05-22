@@ -80,6 +80,12 @@ export default function NewPlanPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  // Estados da IA
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiGoal, setAiGoal] = useState("");
+  const [aiNotes, setAiNotes] = useState("");
+  const [generatingAi, setGeneratingAi] = useState(false);
+
   // Carregar dados do aluno
   useEffect(() => {
     const fetchStudent = async () => {
@@ -216,6 +222,65 @@ export default function NewPlanPage() {
       setError("Erro de rede. Verifique sua conexão.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateAiWorkout = async () => {
+    setGeneratingAi(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/trainer/students/${studentId}/ai-workout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goal: aiGoal,
+          notes: aiNotes,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Erro ao gerar treino por IA.");
+        setGeneratingAi(false);
+        setShowAiModal(false);
+        return;
+      }
+
+      if (data.workoutPlan) {
+        const { name, division, description, weekDays: days, exercises } = data.workoutPlan;
+        setWorkoutName(name || "");
+        setDivision(division || "A");
+        setDescription(description || "");
+        if (Array.isArray(days)) {
+          setWeekDays(days);
+        } else if (typeof days === "string") {
+          setWeekDays(days.split(",").map((d: string) => d.trim()));
+        }
+        
+        const mappedExercises = exercises.map((ex: any) => ({
+          exerciseId: ex.exerciseId,
+          name: ex.name,
+          muscleGroup: ex.muscleGroup,
+          equipment: ex.equipment,
+          sets: Number(ex.sets) || 4,
+          reps: String(ex.reps) || "10",
+          restSeconds: Number(ex.restSeconds) || 60,
+          method: ex.method || "Normal",
+          recommendedRpe: ex.recommendedRpe ? Number(ex.recommendedRpe) : null,
+          recommendedWeight: ex.recommendedWeight ? Number(ex.recommendedWeight) : null,
+          notes: ex.notes || "",
+        }));
+
+        setSelectedExercises(mappedExercises);
+      }
+      
+      setShowAiModal(false);
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao se conectar com o servidor.");
+    } finally {
+      setGeneratingAi(false);
     }
   };
 
@@ -372,8 +437,9 @@ export default function NewPlanPage() {
                 </h3>
                 <button
                   type="button"
+                  onClick={() => setShowAiModal(true)}
                   className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:from-[#1E40AF] hover:to-[#6D28D9] text-white font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-purple-500/10"
-                  title="Em breve: gerar treino completo com inteligência artificial"
+                  title="Gerar um treino completo utilizando inteligência artificial"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   Criar treino com IA
@@ -593,6 +659,72 @@ export default function NewPlanPage() {
           </section>
 
         </main>
+      )}
+
+      {/* Modal de Criação de Treino com IA */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#2563EB]" />
+                <h4 className="font-bold text-[#0F172A] text-sm">Criar Treino com Inteligência Artificial</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiModal(false)}
+                className="text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">Objetivo do Treino</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Hipertrofia de Braços, Emagrecimento, etc."
+                  value={aiGoal}
+                  onChange={(e) => setAiGoal(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">Observações / Limitações do Aluno</label>
+                <textarea
+                  placeholder="Ex: Aluno tem dor no joelho esquerdo, evitar agachamento livre. Foco em cadência lenta."
+                  value={aiNotes}
+                  onChange={(e) => setAiNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                disabled={generatingAi}
+                onClick={handleGenerateAiWorkout}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:from-[#1E40AF] hover:to-[#6D28D9] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {generatingAi ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Gerando Treino...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Gerar Ficha Completa
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
