@@ -1,5 +1,7 @@
 # 🏋️ TechFitness
 
+![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=flat&logo=vercel) ![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=flat&logo=supabase)
+
 **O seu parceiro digital para treinos de alta performance.**
 
 O **TechFitness** é uma plataforma moderna e inteligente para gestão de treinamentos físicos, desenhada para conectar personal trainers aos seus alunos através de uma experiência fluida, interativa e impulsionada por Inteligência Artificial.
