@@ -119,14 +119,14 @@ export default function StudentProgressPage() {
     return text.split("\n").map((line, idx) => {
       if (line.startsWith("## ")) {
         return (
-          <h3 key={idx} className="font-display font-extrabold text-sm text-zinc-900 mt-5 mb-2.5 tracking-tight border-b border-zinc-200 pb-1">
+          <h3 key={idx} className="font-display font-extrabold text-sm text-zinc-100 mt-5 mb-2.5 tracking-tight border-b border-zinc-800 pb-1">
             {line.replace("## ", "")}
           </h3>
         );
       }
       if (line.startsWith("### ")) {
         return (
-          <h4 key={idx} className="font-display font-bold text-xs text-emerald-600 mt-4 mb-2">
+          <h4 key={idx} className="font-display font-bold text-xs text-cyan-400 mt-4 mb-2">
             {line.replace("### ", "")}
           </h4>
         );
@@ -136,7 +136,7 @@ export default function StudentProgressPage() {
       }
       if (line.startsWith("> ")) {
         return (
-          <div key={idx} className="p-3.5 rounded-xl bg-zinc-50 border border-emerald-500/20 text-zinc-700 text-xs italic my-3 leading-relaxed">
+          <div key={idx} className="p-3.5 rounded-xl bg-zinc-50 border border-cyan-500/20 text-zinc-350 text-xs italic my-3 leading-relaxed">
             {line.replace("> ", "")}
           </div>
         );
@@ -144,7 +144,7 @@ export default function StudentProgressPage() {
       if (line.startsWith("* ") || line.startsWith("- ")) {
         const cleanLine = line.replace(/^[\*\-]\s+/, "");
         return (
-          <li key={idx} className="text-xs text-zinc-600 list-disc ml-5 mt-1">
+          <li key={idx} className="text-xs text-zinc-500 list-disc ml-5 mt-1">
             {cleanLine}
           </li>
         );
@@ -159,17 +159,17 @@ export default function StudentProgressPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-zinc-900">
+    <div className="min-h-screen bg-zinc-950 flex flex-col text-zinc-100">
       {/* Header */}
-      <header className="border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-tr from-emerald-500 to-lime-500 p-2 rounded-xl shadow-lg shadow-emerald-500/10">
+              <div className="bg-gradient-to-tr from-cyan-500 to-indigo-500 p-2 rounded-xl shadow-lg shadow-cyan-500/10">
                 <Dumbbell className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-900">
-                Tech<span className="text-emerald-500">Fitness</span>
+              <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-100">
+                Tech<span className="text-cyan-500">Fitness</span>
               </span>
             </div>
 
@@ -191,16 +191,16 @@ export default function StudentProgressPage() {
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-zinc-800">
+              <p className="text-sm font-semibold text-zinc-200">
                 {session?.user?.name || "Professor"}
               </p>
-              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
+              <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">
                 Personal Trainer
               </p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-zinc-200 hover:border-red-500/30 hover:bg-red-550/5 text-zinc-550 hover:text-red-600 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-zinc-800 hover:border-red-500/30 hover:bg-red-550/5 text-zinc-550 hover:text-red-600 transition-all cursor-pointer"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -209,17 +209,17 @@ export default function StudentProgressPage() {
       </header>
 
       {/* Header Contexto */}
-      <section className="bg-zinc-100/60 border-b border-zinc-200 py-6">
+      <section className="bg-zinc-900/60 border-b border-zinc-800 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
             <Link
               href="/trainer/dashboard"
-              className="p-2 rounded-lg border border-zinc-200 bg-white hover:border-zinc-300 text-zinc-550 hover:text-zinc-950 transition-all"
+              className="p-2 rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-300 text-zinc-550 hover:text-zinc-950 transition-all"
             >
               <ChevronLeft className="w-4 h-4" />
             </Link>
             <div>
-              <h2 className="font-display text-xl font-bold text-zinc-900">
+              <h2 className="font-display text-xl font-bold text-zinc-100">
                 {loading ? "Carregando evolução..." : `Evolução de Cargas: ${studentName}`}
               </h2>
               <p className="text-xs text-zinc-500 mt-0.5">{studentEmail}</p>
@@ -231,7 +231,7 @@ export default function StudentProgressPage() {
             <button
               onClick={handleRequestCopilot}
               disabled={copilotLoading}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+              className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xs transition-all shadow-lg shadow-cyan-500/10 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
             >
               {copilotLoading ? (
                 <>
@@ -250,8 +250,8 @@ export default function StudentProgressPage() {
       </section>
 
       {loading ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
+        <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-cyan-500 mb-2" />
           <p className="text-sm">Buscando métricas de evolução...</p>
         </div>
       ) : (
@@ -260,21 +260,21 @@ export default function StudentProgressPage() {
           {/* Sessão de exibição do Copilot IA */}
           {(copilotLoading || copilotAnalysis) && (
             <section className="animate-slide-down">
-              <div className="glass-card rounded-2xl p-6 border border-emerald-250 bg-white relative overflow-hidden shadow-sm">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="glass-card rounded-2xl p-6 border border-cyan-500/30 bg-zinc-900 relative overflow-hidden shadow-sm">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
                 
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                  <div className="p-1.5 rounded-lg bg-cyan-950/20 text-cyan-400">
                     <Cpu className="w-4 h-4" />
                   </div>
-                  <h3 className="font-display font-bold text-sm text-zinc-900 uppercase tracking-wider">
+                  <h3 className="font-display font-bold text-sm text-zinc-100 uppercase tracking-wider">
                     TechFitness Copilot IA — Recomendação de Periodização
                   </h3>
                 </div>
 
                 {copilotLoading ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-zinc-400">
-                    <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mb-2" />
+                  <div className="flex flex-col items-center justify-center py-10 text-zinc-500">
+                    <Loader2 className="w-6 h-6 animate-spin text-cyan-500 mb-2" />
                     <p className="text-xs">O Copilot está analisando as dobras físicas, cargas e presenças do aluno...</p>
                   </div>
                 ) : (
@@ -289,12 +289,12 @@ export default function StudentProgressPage() {
           {/* Bloco 1: Sugestões de Progressão Inteligente de Carga */}
           <section>
             <h3 className="text-xs font-bold text-zinc-550 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-500 fill-emerald-500/10" /> Recomendações de Carga Inteligentes
+              <Sparkles className="w-4 h-4 text-cyan-500 fill-cyan-500/10" /> Recomendações de Carga Inteligentes
             </h3>
 
             {suggestions.length === 0 ? (
-              <div className="glass-card rounded-2xl p-6 text-zinc-500 border border-zinc-200 bg-white shadow-sm flex items-center gap-3">
-                <Info className="w-5 h-5 text-emerald-500" />
+              <div className="glass-card rounded-2xl p-6 text-zinc-500 border border-zinc-800 bg-zinc-900 shadow-sm flex items-center gap-3">
+                <Info className="w-5 h-5 text-cyan-500" />
                 <p className="text-xs">
                   Sem recomendações de progressão ativas no momento. O aluno precisa bater o topo de repetições prescrito em 2 treinos seguidos para o algoritmo sugerir um aumento.
                 </p>
@@ -304,23 +304,23 @@ export default function StudentProgressPage() {
                 {suggestions.map((s) => (
                   <div
                     key={s.exerciseId}
-                    className="glass-card rounded-2xl p-5 border border-zinc-200 bg-white relative overflow-hidden shadow-sm hover:border-emerald-500/30 transition-all duration-300"
+                    className="glass-card rounded-2xl p-5 border border-zinc-800 bg-zinc-900 relative overflow-hidden shadow-sm hover:border-cyan-500/30 transition-all duration-300"
                   >
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl" />
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/5 rounded-full blur-xl" />
                     
                     <h4 className="font-display font-semibold text-sm text-zinc-950 leading-tight mb-2">
                       {s.exerciseName}
                     </h4>
 
-                    <div className="flex items-center gap-4 py-3 my-3 border-y border-zinc-100">
+                    <div className="flex items-center gap-4 py-3 my-3 border-y border-zinc-900">
                       <div>
-                        <span className="text-[9px] text-zinc-400 uppercase tracking-wider block font-semibold">Carga Anterior</span>
+                        <span className="text-[9px] text-zinc-500 uppercase tracking-wider block font-semibold">Carga Anterior</span>
                         <span className="text-base font-mono font-bold text-zinc-500">{s.currentWeight}kg</span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-emerald-500 stroke-[3px] mt-3" />
+                      <ArrowRight className="w-4 h-4 text-cyan-500 stroke-[3px] mt-3" />
                       <div>
-                        <span className="text-[9px] text-emerald-500 uppercase tracking-wider block font-semibold">Nova Carga Sugerida</span>
-                        <span className="text-base font-mono font-bold text-emerald-600">{s.suggestedWeight}kg</span>
+                        <span className="text-[9px] text-cyan-500 uppercase tracking-wider block font-semibold">Nova Carga Sugerida</span>
+                        <span className="text-base font-mono font-bold text-cyan-400">{s.suggestedWeight}kg</span>
                       </div>
                     </div>
 
@@ -339,26 +339,26 @@ export default function StudentProgressPage() {
             {/* Coluna Direita / Frequência */}
             <section className="lg:col-span-4 space-y-6">
               <h3 className="text-xs font-bold text-zinc-550 uppercase tracking-widest flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-emerald-500" /> Histórico de Presença
+                <Calendar className="w-4 h-4 text-cyan-500" /> Histórico de Presença
               </h3>
 
-              <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex justify-between items-center pb-3 border-b border-zinc-100">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-zinc-900">
                   <span className="text-xs font-semibold text-zinc-650">Total de Treinos Feitos</span>
-                  <span className="font-mono text-xs font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+                  <span className="font-mono text-xs font-bold text-zinc-100 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
                     {totalSessions} treinos
                   </span>
                 </div>
 
                 <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
                   {recentSessions.length === 0 ? (
-                    <p className="text-xs text-zinc-450 text-center py-6">Nenhum treino concluído ainda.</p>
+                    <p className="text-xs text-zinc-500 text-center py-6">Nenhum treino concluído ainda.</p>
                   ) : (
                     recentSessions.map((session) => (
-                      <div key={session.id} className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between border border-zinc-200 text-xs">
+                      <div key={session.id} className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between border border-zinc-800 text-xs">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                          <span className="font-semibold text-zinc-800">
+                          <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                          <span className="font-semibold text-zinc-200">
                             {new Date(session.date).toLocaleDateString("pt-BR")}
                           </span>
                         </div>
@@ -366,7 +366,7 @@ export default function StudentProgressPage() {
                           <span className="font-mono text-[10px] text-zinc-500 bg-zinc-200/50 px-1.5 py-0.5 rounded">
                             {session.durationMinutes} min
                           </span>
-                          <span className="font-mono text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                          <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/20 px-1.5 py-0.5 rounded border border-cyan-900/50">
                             RPE {session.satisfaction}/10
                           </span>
                         </div>
@@ -380,20 +380,20 @@ export default function StudentProgressPage() {
             {/* Coluna Esquerda / Histórico de Força por Exercício */}
             <section className="lg:col-span-8 space-y-6">
               <h3 className="text-xs font-bold text-zinc-550 uppercase tracking-widest flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-500" /> Histórico de Progressão de Força
+                <Activity className="w-4 h-4 text-cyan-500" /> Histórico de Progressão de Força
               </h3>
 
-              <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-6">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-sm space-y-6">
                 {progressData.length === 0 ? (
-                  <p className="text-xs text-zinc-450 text-center py-12">Nenhum registro de progressão encontrado.</p>
+                  <p className="text-xs text-zinc-500 text-center py-12">Nenhum registro de progressão encontrado.</p>
                 ) : (
                   <div className="space-y-6">
                     {progressData.map((exercise) => (
-                      <div key={exercise.exerciseId} className="space-y-3 pb-6 border-b border-zinc-100 last:border-b-0 last:pb-0">
+                      <div key={exercise.exerciseId} className="space-y-3 pb-6 border-b border-zinc-900 last:border-b-0 last:pb-0">
                         <div className="flex justify-between items-center">
                           <div>
-                            <h4 className="text-xs font-bold text-zinc-900">{exercise.name}</h4>
-                            <span className="text-[9px] text-zinc-400 uppercase font-semibold">{exercise.muscleGroup}</span>
+                            <h4 className="text-xs font-bold text-zinc-100">{exercise.name}</h4>
+                            <span className="text-[9px] text-zinc-500 uppercase font-semibold">{exercise.muscleGroup}</span>
                           </div>
                           
                           {/* Recorde Histórico */}
@@ -410,9 +410,9 @@ export default function StudentProgressPage() {
                         {/* Linha do Tempo de Peso */}
                         <div className="flex gap-2 overflow-x-auto py-2 pr-2">
                           {exercise.history.map((pt, ptIdx) => (
-                            <div key={ptIdx} className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex flex-col min-w-24 text-center items-center justify-center flex-shrink-0">
-                              <span className="text-[8px] text-zinc-400 font-semibold">{new Date(pt.date).toLocaleDateString("pt-BR", { day: "numeric", month: "short" })}</span>
-                              <span className="text-sm font-mono font-bold text-zinc-800 mt-1">{pt.maxWeight}kg</span>
+                            <div key={ptIdx} className="bg-zinc-50 border border-zinc-800 rounded-xl p-3 flex flex-col min-w-24 text-center items-center justify-center flex-shrink-0">
+                              <span className="text-[8px] text-zinc-500 font-semibold">{new Date(pt.date).toLocaleDateString("pt-BR", { day: "numeric", month: "short" })}</span>
+                              <span className="text-sm font-mono font-bold text-zinc-200 mt-1">{pt.maxWeight}kg</span>
                               <span className="text-[9px] text-zinc-500 font-medium font-mono mt-0.5">{pt.repsAtMaxWeight} reps</span>
                             </div>
                           ))}

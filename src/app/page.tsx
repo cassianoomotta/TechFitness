@@ -17,23 +17,23 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 text-zinc-900 selection:bg-emerald-500/20 selection:text-emerald-800">
+    <div className="flex-1 flex flex-col bg-zinc-950 text-zinc-100 selection:bg-cyan-500/20 selection:text-cyan-200">
       {/* Header */}
-      <header className="border-b border-zinc-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-zinc-800/80 bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-emerald-500 to-lime-500 p-2 rounded-xl shadow-lg shadow-emerald-500/10">
+            <div className="bg-gradient-to-tr from-cyan-500 to-indigo-500 p-2 rounded-xl shadow-lg shadow-cyan-500/10">
               <Dumbbell className="w-5 h-5 text-white" />
             </div>
-            <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-900">
-              Tech<span className="text-emerald-500">Fitness</span>
+            <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-100">
+              Tech<span className="text-cyan-500">Fitness</span>
             </span>
           </div>
 
           <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="text-sm font-semibold text-zinc-500 hover:text-zinc-900 transition-colors"
+              className="text-sm font-semibold text-zinc-500 hover:text-zinc-100 transition-colors"
             >
               Entrar
             </Link>
@@ -48,17 +48,17 @@ export default async function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden flex-1 flex flex-col justify-center bg-white">
+      <section className="relative py-20 md:py-32 overflow-hidden flex-1 flex flex-col justify-center bg-zinc-900">
         {/* Glows de background esportivos */}
-        <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-emerald-500/5 blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-[10%] right-[-15%] w-[600px] h-[600px] rounded-full bg-lime-500/5 blur-[130px] pointer-events-none" />
+        <div className="absolute top-[10%] left-[-15%] w-[600px] h-[600px] rounded-full bg-cyan-500/5 blur-[130px] pointer-events-none" />
+        <div className="absolute bottom-[10%] right-[-15%] w-[600px] h-[600px] rounded-full bg-indigo-500/5 blur-[130px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100 border border-zinc-200/80 text-emerald-600 text-xs font-semibold mb-6 tracking-wide uppercase">
-            <Zap className="w-3.5 h-3.5 fill-emerald-500/10" /> A evolução digital do treino
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800/80 text-cyan-400 text-xs font-semibold mb-6 tracking-wide uppercase">
+            <Zap className="w-3.5 h-3.5 fill-cyan-500/10" /> A evolução digital do treino
           </div>
 
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold text-zinc-900 tracking-tight leading-none mb-6">
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold text-zinc-100 tracking-tight leading-none mb-6">
             Prescrição inteligente. <br />
             <span className="text-gradient">Evolução constante.</span>
           </h1>
@@ -70,14 +70,14 @@ export default async function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-16">
             <Link
               href="/register"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer active:scale-[0.98]"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/10 cursor-pointer active:scale-[0.98]"
             >
               Criar Conta Grátis
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               href="/login"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl border border-zinc-800 bg-zinc-50 hover:bg-zinc-900 text-zinc-200 font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               Ver Demonstração
             </Link>
@@ -86,30 +86,30 @@ export default async function Home() {
           {/* Features Preview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 text-left">
             <div className="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-              <div className="bg-emerald-500/10 p-3 rounded-xl w-fit text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
+              <div className="bg-cyan-500/10 p-3 rounded-xl w-fit text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
                 <Shield className="w-6 h-6" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-zinc-900 mb-2">Painel do Treinador</h3>
+              <h3 className="font-display text-lg font-semibold text-zinc-100 mb-2">Painel do Treinador</h3>
               <p className="text-sm text-zinc-500">
                 Monte treinos personalizados com divisão ABCDE, controle templates e acompanhe a consistência e métricas físicas de todos os seus alunos de forma centralizada.
               </p>
             </div>
 
             <div className="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-              <div className="bg-lime-500/10 p-3 rounded-xl w-fit text-lime-600 mb-4 group-hover:scale-110 transition-transform">
+              <div className="bg-indigo-500/10 p-3 rounded-xl w-fit text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
                 <Activity className="w-6 h-6" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-zinc-900 mb-2">Progressão de Carga Inteligente</h3>
+              <h3 className="font-display text-lg font-semibold text-zinc-100 mb-2">Progressão de Carga Inteligente</h3>
               <p className="text-sm text-zinc-500">
                 Nosso algoritmo inteligente sugere progressão de peso para o aluno quando metas de repetição são atingidas por 2 treinos seguidos, evitando estagnação.
               </p>
             </div>
 
             <div className="glass-card rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-              <div className="bg-zinc-100 p-3 rounded-xl w-fit text-zinc-700 mb-4 group-hover:scale-110 transition-transform">
+              <div className="bg-zinc-900 p-3 rounded-xl w-fit text-zinc-350 mb-4 group-hover:scale-110 transition-transform">
                 <Trophy className="w-6 h-6" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-zinc-900 mb-2">Treino em Dupla</h3>
+              <h3 className="font-display text-lg font-semibold text-zinc-100 mb-2">Treino em Dupla</h3>
               <p className="text-sm text-zinc-500">
                 Os alunos podem comparar o seu desempenho e cargas máximas diretamente com seus parceiros de treino, promovendo motivação mútua e engajamento.
               </p>
@@ -119,15 +119,15 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 py-8 bg-zinc-50 mt-auto">
+      <footer className="border-t border-zinc-800 py-8 bg-zinc-50 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-zinc-500">
             &copy; {new Date().getFullYear()} TechFitness. Desenvolvido com foco em alta performance.
           </p>
           <div className="flex gap-6">
-            <span className="text-xs text-zinc-400 hover:text-zinc-500 transition-colors cursor-pointer">Termos</span>
-            <span className="text-xs text-zinc-400 hover:text-zinc-500 transition-colors cursor-pointer">Privacidade</span>
-            <span className="text-xs text-zinc-400 hover:text-zinc-500 transition-colors cursor-pointer">Suporte</span>
+            <span className="text-xs text-zinc-500 hover:text-zinc-500 transition-colors cursor-pointer">Termos</span>
+            <span className="text-xs text-zinc-500 hover:text-zinc-500 transition-colors cursor-pointer">Privacidade</span>
+            <span className="text-xs text-zinc-500 hover:text-zinc-500 transition-colors cursor-pointer">Suporte</span>
           </div>
         </div>
       </footer>

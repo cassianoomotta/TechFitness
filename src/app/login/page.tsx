@@ -50,29 +50,29 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-zinc-100 relative overflow-hidden text-zinc-900 min-h-screen">
+    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-zinc-900 relative overflow-hidden text-zinc-100 min-h-screen">
       {/* Imagem de Fundo Premium */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none"
         style={{ backgroundImage: "url('/login_bg.png')" }}
       />
       {/* Background gradients decorativos */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-lime-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md glass-card rounded-2xl p-6 md:p-10 shadow-2xl relative z-10 animate-fade-in transition-all bg-white/95 backdrop-blur-sm border border-zinc-200/50">
+      <div className="w-full max-w-md glass-card rounded-2xl p-6 md:p-10 shadow-2xl relative z-10 animate-fade-in transition-all bg-zinc-900/95 backdrop-blur-sm border border-zinc-800/50">
         {/* Logo */}
         <div className="flex items-center gap-2 justify-center mb-6">
-          <div className="bg-gradient-to-tr from-emerald-500 to-lime-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/10">
+          <div className="bg-gradient-to-tr from-cyan-500 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-cyan-500/10">
             <Dumbbell className="w-6 h-6 text-white" />
           </div>
-          <span className="font-display font-bold text-2xl tracking-wider uppercase text-zinc-900">
-            Tech<span className="text-emerald-500">Fitness</span>
+          <span className="font-display font-bold text-2xl tracking-wider uppercase text-zinc-100">
+            Tech<span className="text-cyan-500">Fitness</span>
           </span>
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="font-display text-2xl font-semibold text-zinc-900 tracking-tight md:text-3xl">
+          <h1 className="font-display text-2xl font-semibold text-zinc-100 tracking-tight md:text-3xl">
             Bem-vindo de volta
           </h1>
           <p className="text-sm text-zinc-500 mt-2">
@@ -93,14 +93,14 @@ export default function LoginPage() {
               Endereço de E-mail
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@exemplo.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-zinc-200 focus:border-emerald-500 outline-none text-sm text-zinc-800 placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-sm text-zinc-200 placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
@@ -111,14 +111,14 @@ export default function LoginPage() {
               Sua Senha
             </label>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-zinc-200 focus:border-emerald-500 outline-none text-sm text-zinc-800 placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-sm text-zinc-200 placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -141,12 +141,12 @@ export default function LoginPage() {
         </form>
 
         {/* Link para Cadastro */}
-        <div className="text-center mt-8 pt-6 border-t border-zinc-200">
+        <div className="text-center mt-8 pt-6 border-t border-zinc-800">
           <p className="text-sm text-zinc-500">
             Não possui uma conta ainda?{" "}
             <Link
               href="/register"
-              className="text-emerald-600 font-semibold hover:underline"
+              className="text-cyan-400 font-semibold hover:underline"
             >
               Criar Conta Grátis
             </Link>

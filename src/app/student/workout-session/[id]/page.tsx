@@ -243,8 +243,8 @@ export default function WorkoutSessionPlayer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-zinc-500">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-500">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-500 mb-2" />
         <p className="text-sm">Carregando player de treino...</p>
       </div>
     );
@@ -253,27 +253,27 @@ export default function WorkoutSessionPlayer() {
   if (!plan) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col max-w-md mx-auto relative border-x border-zinc-200 shadow-2xl text-zinc-900">
+    <div className="min-h-screen bg-zinc-950 flex flex-col max-w-md mx-auto relative border-x border-zinc-800 shadow-2xl text-zinc-100">
       
       {/* Header Fixo */}
-      <header className="border-b border-zinc-200 bg-white/95 sticky top-0 z-30 px-4 py-4 flex items-center justify-between">
+      <header className="border-b border-zinc-800 bg-zinc-900/95 sticky top-0 z-30 px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             href="/student/dashboard"
-            className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-500"
+            className="p-2 rounded-lg border border-zinc-800 hover:bg-zinc-900 text-zinc-500"
           >
             <ChevronLeft className="w-4.5 h-4.5" />
           </Link>
           <div>
-            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded block w-fit">
+            <span className="text-[9px] font-bold text-cyan-400 bg-cyan-950/20 px-1.5 py-0.5 rounded block w-fit">
               Treino {plan.division}
             </span>
-            <h2 className="text-sm font-bold text-zinc-900 mt-1 leading-none">{plan.name}</h2>
+            <h2 className="text-sm font-bold text-zinc-100 mt-1 leading-none">{plan.name}</h2>
           </div>
         </div>
 
         {/* Cronômetro Geral do Treino */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-800 font-mono text-xs font-semibold">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 font-mono text-xs font-semibold">
           <Clock className="w-4 h-4 text-emerald-655 animate-pulse" />
           {formatTime(totalSeconds)}
         </div>
@@ -284,17 +284,17 @@ export default function WorkoutSessionPlayer() {
         {plan.exercises.map((exercise, exIndex) => (
           <div
             key={exercise.id}
-            className="glass-card rounded-2xl p-4 border border-zinc-200 bg-white space-y-4 shadow-sm"
+            className="glass-card rounded-2xl p-4 border border-zinc-800 bg-zinc-900 space-y-4 shadow-sm"
           >
             {/* Título do Exercício */}
             <div className="flex justify-between items-start gap-4">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900 leading-tight">{exercise.name}</h3>
+                <h3 className="text-sm font-bold text-zinc-100 leading-tight">{exercise.name}</h3>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <span className="text-[8px] font-bold bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">
+                  <span className="text-[8px] font-bold bg-cyan-950/20 text-cyan-400 px-1.5 py-0.5 rounded">
                     {exercise.equipment}
                   </span>
-                  <span className="text-[8px] font-bold bg-zinc-100 border border-zinc-200 text-zinc-650 px-1.5 py-0.5 rounded">
+                  <span className="text-[8px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-650 px-1.5 py-0.5 rounded">
                     Descanso: {exercise.restSeconds}s
                   </span>
                   <span className="text-[8px] font-bold bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded">
@@ -308,7 +308,7 @@ export default function WorkoutSessionPlayer() {
                   href={exercise.videoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-1.5 rounded-lg bg-zinc-100 text-zinc-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                  className="p-1.5 rounded-lg bg-zinc-900 text-zinc-500 hover:text-cyan-400 hover:bg-cyan-950/20 transition-colors"
                   title="Ver vídeo demonstrativo"
                 >
                   <Tv className="w-4 h-4" />
@@ -317,14 +317,14 @@ export default function WorkoutSessionPlayer() {
             </div>
 
             {exercise.notes && (
-              <p className="text-[10px] text-zinc-500 leading-relaxed bg-zinc-50 border border-zinc-100 p-2 rounded-lg">
+              <p className="text-[10px] text-zinc-500 leading-relaxed bg-zinc-50 border border-zinc-900 p-2 rounded-lg">
                 <strong>Obs:</strong> {exercise.notes}
               </p>
             )}
 
             {/* Listagem de Séries do Exercício */}
             <div className="space-y-2">
-              <div className="grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-400 uppercase tracking-wider text-center">
+              <div className="grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 uppercase tracking-wider text-center">
                 <span className="col-span-2 text-left">Série</span>
                 <span className="col-span-4">Carga (kg)</span>
                 <span className="col-span-4">Reps</span>
@@ -337,12 +337,12 @@ export default function WorkoutSessionPlayer() {
                   key={setIndex}
                   className={`grid grid-cols-12 gap-2 items-center text-xs p-1 rounded-lg transition-all ${
                     set.completed
-                      ? "bg-emerald-50 border border-emerald-200/50"
+                      ? "bg-cyan-950/20 border border-emerald-200/50"
                       : "bg-zinc-50/50 border border-transparent"
                   }`}
                 >
                   {/* Número */}
-                  <span className="col-span-2 font-semibold text-zinc-400 text-center">
+                  <span className="col-span-2 font-semibold text-zinc-500 text-center">
                     {setIndex + 1}ª
                   </span>
 
@@ -357,7 +357,7 @@ export default function WorkoutSessionPlayer() {
                       onChange={(e) =>
                         handleUpdateSetField(exIndex, setIndex, "weight", e.target.value)
                       }
-                      className="w-full text-center py-1.5 rounded-lg bg-white border border-zinc-200 disabled:opacity-50 text-zinc-800 font-mono text-xs focus:border-emerald-500 outline-none transition-all"
+                      className="w-full text-center py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 disabled:opacity-50 text-zinc-200 font-mono text-xs focus:border-cyan-500 outline-none transition-all"
                     />
                   </div>
 
@@ -371,7 +371,7 @@ export default function WorkoutSessionPlayer() {
                       onChange={(e) =>
                         handleUpdateSetField(exIndex, setIndex, "reps", e.target.value)
                       }
-                      className="w-full text-center py-1.5 rounded-lg bg-white border border-zinc-200 disabled:opacity-50 text-zinc-800 font-mono text-xs focus:border-emerald-500 outline-none transition-all"
+                      className="w-full text-center py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 disabled:opacity-50 text-zinc-200 font-mono text-xs focus:border-cyan-500 outline-none transition-all"
                     />
                   </div>
 
@@ -384,8 +384,8 @@ export default function WorkoutSessionPlayer() {
                       }
                       className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
                         set.completed
-                          ? "bg-emerald-500 border-emerald-500 text-white"
-                          : "border-zinc-250 hover:border-zinc-350 bg-white"
+                          ? "bg-cyan-500 border-cyan-500 text-white"
+                          : "border-zinc-850 hover:border-zinc-350 bg-zinc-900"
                       }`}
                     >
                       <Check className={`w-4 h-4 stroke-[3px] ${set.completed ? "scale-100" : "scale-0"} transition-transform`} />
@@ -399,10 +399,10 @@ export default function WorkoutSessionPlayer() {
       </main>
 
       {/* Barra de Ação Flutuante na Base */}
-      <footer className="border-t border-zinc-250 bg-white/90 backdrop-blur-md fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30 p-4 flex gap-3">
+      <footer className="border-t border-zinc-850 bg-zinc-900/90 backdrop-blur-md fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30 p-4 flex gap-3">
         <button
           onClick={() => setIsFinishModalOpen(true)}
-          className="flex-1 py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 active:scale-[0.98]"
+          className="flex-1 py-3.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10 active:scale-[0.98]"
         >
           Finalizar Treino
         </button>
@@ -411,24 +411,24 @@ export default function WorkoutSessionPlayer() {
       {/* Temporizador de Descanso Flutuante Overlay */}
       {isResting && (
         <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-40 animate-slide-up">
-          <div className="bg-white border border-emerald-500/20 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4">
+          <div className="bg-zinc-900 border border-cyan-500/20 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="bg-emerald-50 p-2.5 rounded-xl text-emerald-600 animate-pulse">
-                <Zap className="w-5 h-5 fill-emerald-500/10" />
+              <div className="bg-cyan-950/20 p-2.5 rounded-xl text-cyan-400 animate-pulse">
+                <Zap className="w-5 h-5 fill-cyan-500/10" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-zinc-900">Tempo de Descanso</h4>
+                <h4 className="text-xs font-bold text-zinc-100">Tempo de Descanso</h4>
                 <p className="text-[10px] text-zinc-500 mt-0.5">Prepare-se para a próxima série.</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="font-mono text-2xl font-bold text-emerald-600">
+              <div className="font-mono text-2xl font-bold text-cyan-400">
                 {restTime}s
               </div>
               <button
                 onClick={() => setIsResting(false)}
-                className="p-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-zinc-800"
+                className="p-1 rounded bg-zinc-900 hover:bg-zinc-200 text-zinc-500 hover:text-zinc-200"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -436,9 +436,9 @@ export default function WorkoutSessionPlayer() {
           </div>
           
           {/* Barra de Progresso do Descanso */}
-          <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden mt-2 border border-zinc-200/50">
+          <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden mt-2 border border-zinc-800/50">
             <div
-              className="bg-emerald-500 h-full transition-all duration-1000"
+              className="bg-cyan-500 h-full transition-all duration-1000"
               style={{ width: `${(restTime / initialRestTime) * 100}%` }}
             />
           </div>
@@ -448,16 +448,16 @@ export default function WorkoutSessionPlayer() {
       {/* Modal Finalizar Treino */}
       {isFinishModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xs bg-white rounded-2xl p-6 shadow-2xl relative border border-zinc-200 text-center">
+          <div className="w-full max-w-xs bg-zinc-900 rounded-2xl p-6 shadow-2xl relative border border-zinc-800 text-center">
             
             <button
               onClick={() => setIsFinishModalOpen(false)}
-              className="absolute right-4 top-4 p-1 rounded-lg hover:bg-zinc-100 text-zinc-450 hover:text-zinc-800"
+              className="absolute right-4 top-4 p-1 rounded-lg hover:bg-zinc-900 text-zinc-500 hover:text-zinc-200"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="bg-emerald-50 p-3 rounded-full w-fit mx-auto text-emerald-600 mb-4 animate-bounce">
+            <div className="bg-cyan-950/20 p-3 rounded-full w-fit mx-auto text-cyan-400 mb-4 animate-bounce">
               <Dumbbell className="w-6 h-6" />
             </div>
 
@@ -473,7 +473,7 @@ export default function WorkoutSessionPlayer() {
             )}
 
             {finishSuccess && (
-              <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-250 text-emerald-700 text-xs">
+              <div className="mb-4 p-3 rounded-lg bg-cyan-950/20 border border-cyan-500/30 text-cyan-300 text-xs">
                 Treino concluído com sucesso! Bom descanso!
               </div>
             )}
@@ -481,7 +481,7 @@ export default function WorkoutSessionPlayer() {
             <div className="space-y-4">
               {/* Escala de RPE */}
               <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between text-[10px] text-zinc-450 font-semibold px-1">
+                <div className="flex justify-between text-[10px] text-zinc-500 font-semibold px-1">
                   <span>Leve</span>
                   <span>Extremo</span>
                 </div>
@@ -491,9 +491,9 @@ export default function WorkoutSessionPlayer() {
                   max={10}
                   value={satisfaction}
                   onChange={(e) => setSatisfaction(Number(e.target.value))}
-                  className="w-full accent-emerald-500 bg-zinc-100 rounded-lg h-2"
+                  className="w-full accent-emerald-500 bg-zinc-900 rounded-lg h-2"
                 />
-                <span className="font-mono text-xl font-bold text-emerald-600 mt-1 block">
+                <span className="font-mono text-xl font-bold text-cyan-400 mt-1 block">
                   {satisfaction} / 10
                 </span>
               </div>
@@ -501,7 +501,7 @@ export default function WorkoutSessionPlayer() {
               <button
                 onClick={handleFinishWorkout}
                 disabled={finishLoading || finishSuccess}
-                className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
+                className="w-full py-3.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
               >
                 {finishLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
