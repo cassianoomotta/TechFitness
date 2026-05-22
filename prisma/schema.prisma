@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  role          Role      @default(STUDENT) // ADMIN, TRAINER, STUDENT
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  trainerProfile TrainerProfile?
+  studentProfile StudentProfile?
+}
+
+enum Role {
+  ADMIN
+  TRAINER
+  STUDENT
+}
+
+model TrainerProfile {
+  id               String            @id @default(cuid())
+  userId           String            @unique
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialties      String[]
+  cref             String?
+  students         StudentProfile[]
+  workoutTemplates WorkoutTemplate[]
+}
+
+model StudentProfile {
+  id           String            @id @default(cuid())
+  userId       String            @unique
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trainerId    String?
+  trainer      TrainerProfile?   @relation(fields: [trainerId], references: [id])
+  workoutPlans WorkoutPlan[]
+  sessions     WorkoutSession[]
+  measurements BodyMeasurement[]
+  logs         ExerciseLog[]
+}
+
+model Exercise {
+  id                   String                @id @default(cuid())
+  name                 String                @unique
+  muscleGroup          String                // Ex: Peito, Pernas, Costas
+  description          String?
+  videoUrl             String?
+  gifUrl               String?
+  equipment            String                // Ex: Halteres, Barra, Máquina
+  alternatives         String[]              // IDs de exercícios equivalentes para substituição rápida
+  workoutPlanExercises WorkoutPlanExercise[]
+  exerciseLogs         ExerciseLog[]
+}
+
+model WorkoutPlan {
+  id             String                @id @default(cuid())
+  studentId      String
+  student        StudentProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  name           String                // Ex: "Treino Hipertrofia A"
+  description    String?
+  division       String                // Ex: "A", "B", "C", "Push"
+  exercises      WorkoutPlanExercise[]
+  createdAt      DateTime              @default(now())
+}
+
+model WorkoutPlanExercise {
+  id                String      @id @default(cuid())
+  workoutPlanId     String
+  workoutPlan       WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  exerciseId        String
+  exercise          Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sets              Int
+  reps              String      // Ex: "8-10" ou "Até a falha"
+  restSeconds       Int
+  method            String      // Ex: "Normal", "Drop Set", "Rest Pause"
+  recommendedRpe    Int?
+  recommendedWeight Float?
+  notes             String?
+}
+
+model WorkoutSession {
+  id           String         @id @default(cuid())
+  studentId    String
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date         DateTime       @default(now())
+  durationMs   Int
+  satisfaction Int            // RPE geral do treino (1 a 10)
+  completed    Boolean        @default(true)
+  logs         ExerciseLog[]
+}
+
+model ExerciseLog {
+  id               String         @id @default(cuid())
+  studentId        String
+  student          StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId        String
+  session          WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId       String
+  exercise         Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  setNumber        Int
+  weightUsed       Float
+  repsPerformed    Int
+  rpe              Int?
+  failed           Boolean        @default(false)
+}
+
+model BodyMeasurement {
+  id          String         @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date        DateTime       @default(now())
+  weight      Float
+  bodyFat     Float?
+  chest       Float?
+  waist       Float?
+  armLeft     Float?
+  armRight    Float?
+  thighLeft   Float?
+  thighRight  Float?
+  calfLeft    Float?
+  calfRight   Float?
+  photos      String[] // URLs das fotos (Frente, Lado, Costas)
+}
+
+model WorkoutTemplate {
+  id             String          @id @default(cuid())
+  trainerId      String
+  trainer        TrainerProfile  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  division       String
+}
