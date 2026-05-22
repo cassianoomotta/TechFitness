@@ -6,8 +6,9 @@ import { z } from "zod";
 
 const workoutPlanSchema = z.object({
   name: z.string().min(2, "O nome do treino deve ter pelo menos 2 caracteres"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   division: z.string().min(1, "Especifique a divisão do treino (Ex: A, B, C)"),
+  weekDays: z.string().optional().nullable(),
   exercises: z.array(
     z.object({
       exerciseId: z.string().min(1, "Selecione um exercício válido"),
@@ -79,7 +80,7 @@ export async function POST(
       );
     }
 
-    const { name, description, division, exercises } = validation.data;
+    const { name, description, division, weekDays, exercises } = validation.data;
 
     // Transação para persistir o plano de treino e os exercícios associados de forma atômica
     const newPlan = await prisma.$transaction(async (tx) => {
@@ -89,6 +90,7 @@ export async function POST(
           name,
           description,
           division,
+          weekDays: weekDays || null,
         },
       });
 

@@ -1,4 +1,5 @@
 "use client";
+import BrandLogo from "@/components/BrandLogo";
 
 import React, { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
@@ -34,6 +35,8 @@ const MUSCLE_GROUPS = [
   "Braços",
   "Core",
   "Cardio",
+  "Aquecimento e Mobilidade",
+  "Outros",
 ];
 
 const EQUIPMENTS = [
@@ -181,30 +184,23 @@ export default function ExercisesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col text-zinc-100">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
       {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-900/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-tr from-cyan-500 to-indigo-500 p-2 rounded-xl shadow-lg shadow-cyan-500/10">
-                <Dumbbell className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-100">
-                Tech<span className="text-cyan-500">Fitness</span>
-              </span>
-            </div>
+            <BrandLogo size={36} />
 
             <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/trainer/dashboard"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-500 hover:text-zinc-950 transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-[#94A3B8] hover:text-zinc-950 transition-colors"
               >
                 Alunos
               </Link>
               <Link
                 href="/trainer/exercises"
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-zinc-900 text-cyan-400 border border-zinc-800"
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-white text-[#2563EB] border border-[#E2E8F0]"
               >
                 Exercícios
               </Link>
@@ -213,16 +209,16 @@ export default function ExercisesPage() {
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-zinc-200">
+              <p className="text-sm font-semibold text-[#0F172A]">
                 {session?.user?.name || "Professor"}
               </p>
-              <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">
+              <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
                 Personal Trainer
               </p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-zinc-800 hover:border-red-500/30 hover:bg-red-500/5 text-zinc-500 hover:text-red-650 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-650 transition-all cursor-pointer"
               title="Sair"
             >
               <LogOut className="w-5 h-5" />
@@ -237,13 +233,13 @@ export default function ExercisesPage() {
         <div className="flex md:hidden gap-2 mb-6">
           <Link
             href="/trainer/dashboard"
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-transparent text-zinc-500 border border-zinc-800"
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-transparent text-[#94A3B8] border border-[#E2E8F0]"
           >
             Alunos
           </Link>
           <Link
             href="/trainer/exercises"
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-zinc-900 text-cyan-400 border border-zinc-800"
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-white text-[#2563EB] border border-[#E2E8F0]"
           >
             Exercícios
           </Link>
@@ -252,15 +248,15 @@ export default function ExercisesPage() {
         {/* Section Title & Add Button */}
         <section className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
           <div>
-            <h2 className="font-display text-2xl font-bold text-zinc-100">Biblioteca de Exercícios</h2>
-            <p className="text-sm text-zinc-500 mt-1">
+            <h2 className="font-display text-2xl font-bold text-[#0F172A]">Biblioteca de Exercícios</h2>
+            <p className="text-sm text-[#94A3B8] mt-1">
               Visualize, adicione ou edite os exercícios disponíveis para montagem de treino.
             </p>
           </div>
 
           <button
             onClick={handleOpenCreateModal}
-            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-cyan-500/10"
+            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10"
           >
             <Plus className="w-4.5 h-4.5 stroke-[3px]" />
             Adicionar Exercício
@@ -268,16 +264,16 @@ export default function ExercisesPage() {
         </section>
 
         {/* Filter Bar */}
-        <section className="glass-card rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center bg-zinc-900 border border-zinc-800">
+        <section className="glass-card rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center bg-white border border-[#E2E8F0]">
           {/* Search Input */}
           <div className="relative w-full md:flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#94A3B8]" />
             <input
               type="text"
               placeholder="Buscar por nome do exercício..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-xs text-zinc-200 placeholder-zinc-450 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
             />
           </div>
 
@@ -286,7 +282,7 @@ export default function ExercisesPage() {
             <select
               value={selectedMuscle}
               onChange={(e) => setSelectedMuscle(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-350 outline-none focus:border-cyan-500 transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
             >
               <option value="todos">Todos os Músculos</option>
               {MUSCLE_GROUPS.map((group) => (
@@ -302,7 +298,7 @@ export default function ExercisesPage() {
             <select
               value={selectedEquipment}
               onChange={(e) => setSelectedEquipment(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-350 outline-none focus:border-cyan-500 transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
             >
               <option value="todos">Todos Equipamentos</option>
               {EQUIPMENTS.map((eq) => (
@@ -316,14 +312,14 @@ export default function ExercisesPage() {
 
         {/* Exercises Grid */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
-            <Loader2 className="w-8 h-8 animate-spin text-cyan-500 mb-2" />
+          <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
+            <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
             <p className="text-sm">Carregando biblioteca de exercícios...</p>
           </div>
         ) : exercises.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center text-zinc-550 bg-zinc-900 border border-zinc-800">
-            <Dumbbell className="w-12 h-12 mx-auto text-zinc-350 mb-4" />
-            <p className="text-base font-semibold text-zinc-200">Nenhum exercício encontrado</p>
+          <div className="glass-card rounded-2xl p-12 text-center text-[#475569] bg-white border border-[#E2E8F0]">
+            <Dumbbell className="w-12 h-12 mx-auto text-[#475569] mb-4" />
+            <p className="text-base font-semibold text-[#0F172A]">Nenhum exercício encontrado</p>
             <p className="text-xs mt-1">Tente ajustar seus filtros de busca ou crie um novo exercício.</p>
           </div>
         ) : (
@@ -331,40 +327,40 @@ export default function ExercisesPage() {
             {exercises.map((exercise) => (
               <div
                 key={exercise.id}
-                className="glass-card rounded-2xl p-6 flex flex-col justify-between bg-zinc-900 border border-zinc-800 hover:border-cyan-500/30 transition-all duration-300"
+                className="glass-card rounded-2xl p-6 flex flex-col justify-between bg-white border border-[#E2E8F0] hover:border-[#2563EB]/30 transition-all duration-300"
               >
                 <div>
                   <div className="flex justify-between items-start gap-4 mb-3">
-                    <h3 className="font-display font-semibold text-zinc-100 leading-snug group-hover:text-cyan-400 transition-colors">
+                    <h3 className="font-display font-semibold text-[#0F172A] leading-snug group-hover:text-[#2563EB] transition-colors">
                       {exercise.name}
                     </h3>
                   </div>
 
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-cyan-950/20 text-cyan-400 border border-cyan-900/50">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#00C2FF]/10 text-[#2563EB] border border-cyan-900/50">
                       {exercise.muscleGroup}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-zinc-900 text-zinc-500 border border-zinc-800">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-[#94A3B8] border border-[#E2E8F0]">
                       {exercise.equipment}
                     </span>
                   </div>
 
                   {exercise.description && (
-                    <p className="text-xs text-zinc-500 line-clamp-3 mb-6 leading-relaxed">
+                    <p className="text-xs text-[#94A3B8] line-clamp-3 mb-6 leading-relaxed">
                       {exercise.description}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-900 mt-auto">
+                <div className="flex items-center justify-between pt-4 border-t border-[#E2E8F0] mt-auto">
                   <div className="flex gap-2">
                     {exercise.videoUrl && (
                       <a
                         href={exercise.videoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-2 rounded-lg bg-zinc-900 hover:bg-cyan-950/20 text-zinc-550 hover:text-cyan-400 transition-all"
+                        className="p-2 rounded-lg bg-white hover:bg-[#00C2FF]/10 text-[#475569] hover:text-[#2563EB] transition-all"
                         title="Ver vídeo demonstrativo"
                       >
                         <Tv className="w-4 h-4" />
@@ -376,14 +372,14 @@ export default function ExercisesPage() {
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleOpenEditModal(exercise)}
-                      className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-500 hover:text-cyan-400 transition-all cursor-pointer"
+                      className="p-2 rounded-lg hover:bg-white text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer"
                       title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteExercise(exercise.id)}
-                      className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-500 hover:text-red-550 transition-all cursor-pointer"
+                      className="p-2 rounded-lg hover:bg-white text-[#94A3B8] hover:text-red-550 transition-all cursor-pointer"
                       title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -399,20 +395,20 @@ export default function ExercisesPage() {
       {/* Modal Criar/Editar */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg bg-zinc-900 rounded-2xl p-6 shadow-2xl relative border border-zinc-800 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[90vh] overflow-y-auto">
             {/* Fechar */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-lg border border-zinc-800 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-100 transition-all cursor-pointer"
+              className="absolute right-4 top-4 p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-white text-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2 mb-6">
-              <div className="bg-cyan-950/20 p-2 rounded-lg text-cyan-400">
+              <div className="bg-[#00C2FF]/10 p-2 rounded-lg text-[#2563EB]">
                 <Dumbbell className="w-5 h-5" />
               </div>
-              <h3 className="font-display font-semibold text-lg text-zinc-100">
+              <h3 className="font-display font-semibold text-lg text-[#0F172A]">
                 {editingExercise ? "Editar Exercício" : "Adicionar Novo Exercício"}
               </h3>
             </div>
@@ -426,7 +422,7 @@ export default function ExercisesPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Nome */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
                   Nome do Exercício
                 </label>
                 <input
@@ -435,20 +431,20 @@ export default function ExercisesPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Agachamento Livre, Supino Reto"
-                  className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-xs text-zinc-200 placeholder-zinc-450 transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Grupo Muscular */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
                     Grupo Muscular Primário
                   </label>
                   <select
                     value={muscleGroup}
                     onChange={(e) => setMuscleGroup(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-350 outline-none focus:border-cyan-500 transition-all"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
                   >
                     {MUSCLE_GROUPS.map((group) => (
                       <option key={group} value={group}>
@@ -460,13 +456,13 @@ export default function ExercisesPage() {
 
                 {/* Equipamento */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
                     Equipamento
                   </label>
                   <select
                     value={equipment}
                     onChange={(e) => setEquipment(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-350 outline-none focus:border-cyan-500 transition-all"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
                   >
                     {EQUIPMENTS.map((eq) => (
                       <option key={eq} value={eq}>
@@ -479,7 +475,7 @@ export default function ExercisesPage() {
 
               {/* Descrição */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
                   Instruções de Execução (Opcional)
                 </label>
                 <textarea
@@ -487,14 +483,14 @@ export default function ExercisesPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Instruções para posicionamento, execução, respiração, etc."
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-xs text-zinc-200 placeholder-zinc-450 transition-all resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all resize-none"
                 />
               </div>
 
               {/* URLs (Vídeo e GIF) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
                     URL do Vídeo Demonstrativo (Opcional)
                   </label>
                   <input
@@ -502,12 +498,12 @@ export default function ExercisesPage() {
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
                     placeholder="https://youtube.com/watch?v=..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-xs text-zinc-200 placeholder-zinc-450 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
                     URL do GIF de Movimento (Opcional)
                   </label>
                   <input
@@ -515,7 +511,7 @@ export default function ExercisesPage() {
                     value={gifUrl}
                     onChange={(e) => setGifUrl(e.target.value)}
                     placeholder="https://exemplo.com/exercicio.gif"
-                    className="w-full px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-xs text-zinc-200 placeholder-zinc-450 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
                   />
                 </div>
               </div>
@@ -523,7 +519,7 @@ export default function ExercisesPage() {
               <button
                 type="submit"
                 disabled={modalLoading}
-                className="w-full py-3 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
+                className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
               >
                 {modalLoading ? (
                   <Loader2 className="w-4.5 h-4.5 animate-spin" />

@@ -78,6 +78,7 @@ export async function GET() {
         name: plan.name,
         description: plan.description,
         division: plan.division,
+        weekDays: plan.weekDays,
         createdAt: plan.createdAt,
         exercises: plan.exercises.map((pe) => ({
           id: pe.id,

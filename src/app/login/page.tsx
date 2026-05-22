@@ -1,4 +1,5 @@
 "use client";
+import BrandLogo from "@/components/BrandLogo";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -50,32 +51,25 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-zinc-900 relative overflow-hidden text-zinc-100 min-h-screen">
+    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-white relative overflow-hidden text-[#0F172A] min-h-screen">
       {/* Imagem de Fundo Premium */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none"
         style={{ backgroundImage: "url('/login_bg.png')" }}
       />
       {/* Background gradients decorativos */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#2563EB]/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#1E40AF]/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md glass-card rounded-2xl p-6 md:p-10 shadow-2xl relative z-10 animate-fade-in transition-all bg-zinc-900/95 backdrop-blur-sm border border-zinc-800/50">
+      <div className="w-full max-w-md glass-card rounded-2xl p-6 md:p-10 shadow-2xl relative z-10 animate-fade-in transition-all bg-white/95 backdrop-blur-sm border border-[#E2E8F0]/50">
         {/* Logo */}
-        <div className="flex items-center gap-2 justify-center mb-6">
-          <div className="bg-gradient-to-tr from-cyan-500 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-cyan-500/10">
-            <Dumbbell className="w-6 h-6 text-white" />
-          </div>
-          <span className="font-display font-bold text-2xl tracking-wider uppercase text-zinc-100">
-            Tech<span className="text-cyan-500">Fitness</span>
-          </span>
-        </div>
+        <BrandLogo className="justify-center mb-6" size={44} />
 
         <div className="text-center mb-8">
-          <h1 className="font-display text-2xl font-semibold text-zinc-100 tracking-tight md:text-3xl">
+          <h1 className="font-display text-2xl font-semibold text-[#0F172A] tracking-tight md:text-3xl">
             Bem-vindo de volta
           </h1>
-          <p className="text-sm text-zinc-500 mt-2">
+          <p className="text-sm text-[#94A3B8] mt-2">
             Insira suas credenciais para gerenciar seus treinos.
           </p>
         </div>
@@ -89,36 +83,36 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider block">
               Endereço de E-mail
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@exemplo.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-sm text-zinc-200 placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
 
           {/* Senha */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider block">
               Sua Senha
             </label>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-cyan-500 outline-none text-sm text-zinc-200 placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
@@ -127,7 +121,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -141,12 +135,12 @@ export default function LoginPage() {
         </form>
 
         {/* Link para Cadastro */}
-        <div className="text-center mt-8 pt-6 border-t border-zinc-800">
-          <p className="text-sm text-zinc-500">
+        <div className="text-center mt-8 pt-6 border-t border-[#E2E8F0]">
+          <p className="text-sm text-[#94A3B8]">
             Não possui uma conta ainda?{" "}
             <Link
               href="/register"
-              className="text-cyan-400 font-semibold hover:underline"
+              className="text-[#2563EB] font-semibold hover:underline"
             >
               Criar Conta Grátis
             </Link>

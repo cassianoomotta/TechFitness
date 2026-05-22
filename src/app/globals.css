@@ -1,50 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 7.8%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 191 91% 48%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 240 5.9% 10%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 5.9% 10%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 262 83% 58%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 240 5.9% 15%;
-  --input: 240 5.9% 15%;
-  --ring: 191 91% 48%;
+  --background: 210 40% 98%;  /* #F8FAFC */
+  --foreground: 222 47% 11%;  /* #0F172A */
+  --card: 0 0% 100%;          /* #FFFFFF */
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 221 83% 53%;     /* #2563EB */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%; /* #F1F5F9 */
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%; /* #475569 */
+  --accent: 194 100% 50%;     /* #00C2FF */
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84.2% 60.2%; /* #EF4444 */
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;  /* #E2E8F0 */
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221 83% 53%;
 
-  /* TechFitness Brand Colors (Dark Technological Theme) */
-  --tf-primary: 191 91% 48%;
-  --tf-accent: 262 83% 58%;
-  --tf-surface: 240 10% 3.9%;
-  --tf-card: 240 10% 7.8%;
-  --tf-text: 240 10% 98%;
-  --tf-muted: 240 5% 65%;
+  /* TechFitness Brand Colors (Refined Theme) */
+  --tf-primary: 221 83% 53%;
+  --tf-accent: 194 100% 50%;
+  --tf-surface: 210 40% 98%;
+  --tf-card: 0 0% 100%;
+  --tf-text: 222 47% 11%;
+  --tf-muted: 215.4 16.3% 46.9%;
 }
 
-@theme inline {
+@theme {
   --font-sans: var(--font-inter), sans-serif;
   --font-display: var(--font-outfit), sans-serif;
-  --color-tf-primary: oklch(0.68 0.16 201);
-  --color-tf-accent: oklch(0.58 0.22 291);
-  --color-tf-surface: oklch(0.18 0.01 250);
-  --color-tf-card: oklch(0.24 0.01 250);
-  --color-tf-text: oklch(0.97 0.01 250);
-  --color-tf-muted: oklch(0.65 0.01 250);
+  --color-tf-primary: #2563EB;
+  --color-tf-accent: #00C2FF;
+  --color-tf-surface: #F8FAFC;
+  --color-tf-card: #FFFFFF;
+  --color-tf-text: #0F172A;
+  --color-tf-muted: #475569;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: hsl(240 10% 3.9%);
-  color: hsl(0 0% 98%);
+  background-color: #F8FAFC;
+  color: #0F172A;
   overflow-x: hidden;
 }
 
@@ -54,45 +54,45 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(240 10% 3.9%);
+  background: #F8FAFC;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(240 5.9% 20%);
+  background: #CBD5E1;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(240 5.9% 30%);
+  background: #94A3B8;
 }
 
 .font-display {
   font-family: var(--font-display);
 }
 
-/* Glassmorphism card — premium tech dark */
+/* Glassmorphism card — premium tech light */
 .glass-card {
-  background: rgba(20, 20, 25, 0.7);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);
-  border: 1px solid hsl(240 5.9% 15%);
+  border: 1px solid #E2E8F0;
   box-shadow: 
-    0 4px 30px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
   transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .glass-card:hover {
-  border-color: hsl(191 91% 48% / 0.3);
+  border-color: rgba(37, 99, 235, 0.3);
   box-shadow:
-    0 10px 30px -5px rgba(0, 0, 0, 0.5),
-    0 0 0 1px hsl(191 91% 48% / 0.15);
+    0 10px 15px -3px rgba(37, 99, 235, 0.08),
+    0 4px 6px -2px rgba(37, 99, 235, 0.04);
 }
 
 /* High-tech glows */
 .glow-primary {
-  box-shadow: 0 0 32px -4px hsl(191 91% 48% / 0.15);
+  box-shadow: 0 0 32px -4px rgba(37, 99, 235, 0.1);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(191 91% 48%) 100%);
+  background: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #00C2FF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

@@ -72,6 +72,7 @@ model WorkoutPlan {
   name           String                // Ex: "Treino Hipertrofia A"
   description    String?
   division       String                // Ex: "A", "B", "C", "Push"
+  weekDays       String?               // Ex: "Seg,Qua,Sex" ou JSON
   exercises      WorkoutPlanExercise[]
   createdAt      DateTime              @default(now())
 }
