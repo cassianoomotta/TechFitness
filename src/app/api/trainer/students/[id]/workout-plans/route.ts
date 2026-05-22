@@ -123,3 +123,188 @@ export async function POST(
     );
   }
 }
+
+// PUT: Atualizar um plano de treino existente
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "TRAINER") {
+      return NextResponse.json(
+        { error: "Não autorizado." },
+        { status: 401 }
+      );
+    }
+
+    const { id: studentId } = await params;
+    const body = await request.json();
+    const { planId, ...planData } = body;
+
+    if (!planId) {
+      return NextResponse.json(
+        { error: "ID do plano de treino é obrigatório para edição." },
+        { status: 400 }
+      );
+    }
+
+    const validation = workoutPlanSchema.safeParse(planData);
+    if (!validation.success) {
+      return NextResponse.json(
+        { errors: validation.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    // Buscar perfil do personal logado
+    const trainerProfile = await prisma.trainerProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!trainerProfile) {
+      return NextResponse.json(
+        { error: "Perfil de treinador não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    // Validar se o aluno pertence a este personal
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student || student.trainerId !== trainerProfile.id) {
+      return NextResponse.json(
+        { error: "Acesso negado ou aluno não encontrado." },
+        { status: 403 }
+      );
+    }
+
+    // Verificar se o plano pertence a este aluno
+    const existingPlan = await prisma.workoutPlan.findFirst({
+      where: { id: planId, studentId },
+    });
+
+    if (!existingPlan) {
+      return NextResponse.json(
+        { error: "Plano de treino não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    const { name, description, division, weekDays, exercises } = validation.data;
+
+    // Transação para atualizar o plano
+    const updatedPlan = await prisma.$transaction(async (tx) => {
+      // 1. Atualizar dados principais
+      const plan = await tx.workoutPlan.update({
+        where: { id: planId },
+        data: {
+          name,
+          description,
+          division,
+          weekDays: weekDays || null,
+        },
+      });
+
+      // 2. Apagar exercícios antigos da ficha
+      await tx.workoutPlanExercise.deleteMany({
+        where: { workoutPlanId: planId },
+      });
+
+      // 3. Criar os novos exercícios da ficha
+      const exercisesPayload = exercises.map((ex) => ({
+        workoutPlanId: planId,
+        exerciseId: ex.exerciseId,
+        sets: Number(ex.sets),
+        reps: ex.reps,
+        restSeconds: Number(ex.restSeconds),
+        method: ex.method,
+        recommendedRpe: ex.recommendedRpe || null,
+        recommendedWeight: ex.recommendedWeight || null,
+        notes: ex.notes || null,
+      }));
+
+      await tx.workoutPlanExercise.createMany({
+        data: exercisesPayload,
+      });
+
+      return plan;
+    });
+
+    return NextResponse.json(updatedPlan);
+  } catch (error) {
+    console.error("ERRO AO ATUALIZAR PLANO DE TREINO:", error);
+    return NextResponse.json(
+      { error: "Ocorreu um erro interno ao atualizar o plano de treino." },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Excluir um plano de treino
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "TRAINER") {
+      return NextResponse.json(
+        { error: "Não autorizado." },
+        { status: 401 }
+      );
+    }
+
+    const { id: studentId } = await params;
+    const { searchParams } = new URL(request.url);
+    const planId = searchParams.get("planId");
+
+    if (!planId) {
+      return NextResponse.json(
+        { error: "ID do plano de treino é obrigatório." },
+        { status: 400 }
+      );
+    }
+
+    // Buscar perfil do personal logado
+    const trainerProfile = await prisma.trainerProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!trainerProfile) {
+      return NextResponse.json(
+        { error: "Perfil de treinador não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    // Validar se o aluno pertence a este personal
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student || student.trainerId !== trainerProfile.id) {
+      return NextResponse.json(
+        { error: "Acesso negado." },
+        { status: 403 }
+      );
+    }
+
+    await prisma.workoutPlan.delete({
+      where: { id: planId, studentId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("ERRO AO EXCLUIR PLANO DE TREINO:", error);
+    return NextResponse.json(
+      { error: "Ocorreu um erro interno ao excluir o plano de treino." },
+      { status: 500 }
+    );
+  }
+}
+

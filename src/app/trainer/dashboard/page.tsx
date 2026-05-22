@@ -49,6 +49,13 @@ export default function TrainerDashboard() {
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState(false);
 
+  // Busca e Vinculação de Alunos Existentes
+  const [activeTab, setActiveTab] = useState<"create" | "link">("create");
+  const [searchExistingQuery, setSearchExistingQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [linkingId, setLinkingId] = useState<string | null>(null);
+
   // Buscar alunos
   const fetchStudents = async () => {
     try {
@@ -67,6 +74,59 @@ export default function TrainerDashboard() {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  const handleSearchExisting = async (queryVal: string) => {
+    if (queryVal.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    setModalError("");
+    try {
+      const response = await fetch(`/api/trainer/students/search?q=${encodeURIComponent(queryVal)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data);
+      } else {
+        const data = await response.json();
+        setModalError(data.error || "Erro ao buscar alunos.");
+      }
+    } catch (err) {
+      setModalError("Erro de conexão ao buscar alunos.");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleLinkStudent = async (studentId: string) => {
+    setLinkingId(studentId);
+    setModalError("");
+    setModalSuccess(false);
+    try {
+      const response = await fetch("/api/trainer/students/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setModalSuccess(true);
+        // Remover o aluno da lista de resultados de busca
+        setSearchResults((prev) => prev.filter((s) => s.id !== studentId));
+        // Recarregar os alunos do treinador
+        fetchStudents();
+        setTimeout(() => {
+          setModalSuccess(false);
+        }, 3000);
+      } else {
+        setModalError(data.error || "Erro ao vincular o aluno.");
+      }
+    } catch (err) {
+      setModalError("Erro de conexão com o servidor.");
+    } finally {
+      setLinkingId(null);
+    }
+  };
 
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -357,12 +417,44 @@ export default function TrainerDashboard() {
               <div className="bg-[#00C2FF]/10 p-2 rounded-lg text-[#2563EB]">
                 <Users className="w-5 h-5" />
               </div>
-              <h3 className="font-display font-semibold text-lg text-[#0F172A]">Cadastrar Novo Aluno</h3>
+              <h3 className="font-display font-semibold text-lg text-[#0F172A]">
+                {activeTab === "create" ? "Cadastrar Novo Aluno" : "Vincular Aluno Existente"}
+              </h3>
             </div>
 
-            <p className="text-xs text-[#94A3B8] mb-6 leading-relaxed">
-              O aluno será criado com o papel de Aluno (STUDENT) e ficará imediatamente vinculado ao seu perfil para prescrição de treinos.
-            </p>
+            {/* Abas */}
+            <div className="flex border-b border-[#E2E8F0] mb-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("create");
+                  setModalError("");
+                  setModalSuccess(false);
+                }}
+                className={`flex-1 pb-2 text-xs font-semibold text-center border-b-2 transition-all cursor-pointer ${
+                  activeTab === "create"
+                    ? "border-[#2563EB] text-[#2563EB]"
+                    : "border-transparent text-[#94A3B8] hover:text-[#0F172A]"
+                }`}
+              >
+                Cadastrar Novo
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("link");
+                  setModalError("");
+                  setModalSuccess(false);
+                }}
+                className={`flex-1 pb-2 text-xs font-semibold text-center border-b-2 transition-all cursor-pointer ${
+                  activeTab === "link"
+                    ? "border-[#2563EB] text-[#2563EB]"
+                    : "border-transparent text-[#94A3B8] hover:text-[#0F172A]"
+                }`}
+              >
+                Buscar no Sistema
+              </button>
+            </div>
 
             {modalError && (
               <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-750 text-xs text-center">
@@ -372,80 +464,146 @@ export default function TrainerDashboard() {
 
             {modalSuccess && (
               <div className="mb-4 p-3 rounded-lg bg-[#00C2FF]/10 border border-[#2563EB]/30 text-[#1E40AF] text-xs text-center">
-                Aluno cadastrado com sucesso!
+                {activeTab === "create" ? "Aluno cadastrado com sucesso!" : "Aluno vinculado com sucesso!"}
               </div>
             )}
 
-            <form onSubmit={handleCreateStudent} className="space-y-4">
-              {/* Nome */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                  Nome do Aluno
-                </label>
+            {activeTab === "create" ? (
+              <>
+                <p className="text-xs text-[#94A3B8] mb-5 leading-relaxed">
+                  O aluno será criado com o papel de Aluno e ficará imediatamente vinculado ao seu perfil para prescrição de treinos.
+                </p>
+                <form onSubmit={handleCreateStudent} className="space-y-4">
+                  {/* Nome */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      Nome do Aluno
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                      <input
+                        type="text"
+                        required
+                        value={newStudentName}
+                        onChange={(e) => setNewStudentName(e.target.value)}
+                        placeholder="Ex: Pedro Henrique"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      E-mail de Login
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                      <input
+                        type="email"
+                        required
+                        value={newStudentEmail}
+                        onChange={(e) => setNewStudentEmail(e.target.value)}
+                        placeholder="aluno@exemplo.com"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Senha */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      Senha Temporária (Mínimo 6 caracteres)
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                      <input
+                        type="text"
+                        required
+                        value={newStudentPassword}
+                        onChange={(e) => setNewStudentPassword(e.target.value)}
+                        placeholder="Defina a senha"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={modalLoading || modalSuccess}
+                    className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {modalLoading ? (
+                      <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                    ) : (
+                      <>
+                        Confirmar Cadastro
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-[#94A3B8] mb-1 leading-relaxed">
+                  Busque pelo nome ou e-mail de um aluno que já possui cadastro no TechFitness.
+                </p>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
                   <input
                     type="text"
-                    required
-                    value={newStudentName}
-                    onChange={(e) => setNewStudentName(e.target.value)}
-                    placeholder="Ex: Pedro Henrique"
+                    placeholder="Buscar por nome ou e-mail..."
+                    value={searchExistingQuery}
+                    onChange={(e) => {
+                      setSearchExistingQuery(e.target.value);
+                      handleSearchExisting(e.target.value);
+                    }}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
                   />
                 </div>
-              </div>
 
-              {/* Email */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                  E-mail de Login
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                  <input
-                    type="email"
-                    required
-                    value={newStudentEmail}
-                    onChange={(e) => setNewStudentEmail(e.target.value)}
-                    placeholder="aluno@exemplo.com"
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Senha */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                  Senha Temporária (Mínimo 6 caracteres)
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
-                  <input
-                    type="text"
-                    required
-                    value={newStudentPassword}
-                    onChange={(e) => setNewStudentPassword(e.target.value)}
-                    placeholder="Defina a senha"
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={modalLoading || modalSuccess}
-                className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {modalLoading ? (
-                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
-                ) : (
-                  <>
-                    Confirmar Cadastro
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                {searchLoading && (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
+                  </div>
                 )}
-              </button>
-            </form>
+
+                {!searchLoading && searchResults.length === 0 && searchExistingQuery.trim().length >= 2 && (
+                  <p className="text-center text-xs text-[#94A3B8] py-4">Nenhum aluno encontrado no sistema.</p>
+                )}
+
+                {!searchLoading && searchResults.length > 0 && (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {searchResults.map((student) => (
+                      <div key={student.id} className="flex items-center justify-between p-3 rounded-xl border border-[#E2E8F0] hover:bg-slate-50 transition-colors">
+                        <div className="overflow-hidden mr-2">
+                          <p className="text-xs font-semibold text-[#0F172A] truncate">{student.name}</p>
+                          <p className="text-[10px] text-[#94A3B8] truncate">{student.email}</p>
+                          {student.currentTrainer && (
+                            <p className="text-[9px] text-[#2563EB] font-medium mt-0.5 truncate">
+                              Treinador atual: {student.currentTrainer}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          disabled={linkingId === student.id}
+                          onClick={() => handleLinkStudent(student.id)}
+                          className="py-1.5 px-3 rounded-lg bg-[#2563EB] hover:bg-[#1E40AF] disabled:bg-slate-350 disabled:pointer-events-none text-white text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          {linkingId === student.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            "Adicionar"
+                          )}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

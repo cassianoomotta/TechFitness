@@ -33,7 +33,7 @@ export default async function Home() {
             </Link>
             <Link
               href="/register"
-              className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 shadow-md shadow-blue-500/10 cursor-pointer active:scale-95"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-800 text-white font-semibold text-sm transition-all duration-300 shadow-md shadow-blue-500/10 cursor-pointer active:scale-95"
             >
               Começar Agora
             </Link>
@@ -64,7 +64,7 @@ export default async function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-16">
             <Link
               href="/register"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 cursor-pointer active:scale-[0.98]"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-800 text-white font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 cursor-pointer active:scale-[0.98]"
             >
               Criar Conta Grátis
               <ArrowRight className="w-5 h-5" />

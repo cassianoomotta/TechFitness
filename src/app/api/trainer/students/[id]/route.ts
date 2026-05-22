@@ -48,7 +48,11 @@ export async function GET(
             createdAt: "desc",
           },
           include: {
-            exercises: true,
+            exercises: {
+              include: {
+                exercise: true,
+              },
+            },
           },
         },
       },

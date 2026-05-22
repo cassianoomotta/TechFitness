@@ -53,6 +53,7 @@ export default function NewPlanPage() {
   // Estados do Aluno
   const [studentName, setStudentName] = useState("");
   const [studentLoading, setStudentLoading] = useState(true);
+  const [workoutPlans, setWorkoutPlans] = useState<any[]>([]);
 
   // Estados dos Exercícios da Biblioteca
   const [library, setLibrary] = useState<Exercise[]>([]);
@@ -61,6 +62,7 @@ export default function NewPlanPage() {
   const [selectedMuscle, setSelectedMuscle] = useState("todos");
 
   // Estados do Formulário de Treino
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [workoutName, setWorkoutName] = useState("");
   const [description, setDescription] = useState("");
   const [division, setDivision] = useState("A");
@@ -87,25 +89,26 @@ export default function NewPlanPage() {
   const [generatingAi, setGeneratingAi] = useState(false);
 
   // Carregar dados do aluno
-  useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        const response = await fetch(`/api/trainer/students/${studentId}`);
-        if (!response.ok) {
-          router.push("/trainer/dashboard");
-          return;
-        }
-        const data = await response.json();
-        setStudentName(data.name);
-      } catch (err) {
-        console.error("Erro ao buscar dados do aluno:", err);
-      } finally {
-        setStudentLoading(false);
+  const fetchStudentDetails = async () => {
+    try {
+      const response = await fetch(`/api/trainer/students/${studentId}`);
+      if (!response.ok) {
+        router.push("/trainer/dashboard");
+        return;
       }
-    };
+      const data = await response.json();
+      setStudentName(data.name);
+      setWorkoutPlans(data.workoutPlans || []);
+    } catch (err) {
+      console.error("Erro ao buscar dados do aluno:", err);
+    } finally {
+      setStudentLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (studentId) {
-      fetchStudent();
+      fetchStudentDetails();
     }
   }, [studentId, router]);
 
@@ -173,6 +176,67 @@ export default function NewPlanPage() {
     setSelectedExercises(updated);
   };
 
+  // Carregar um treino existente para edição no construtor
+  const handleEditPlan = (plan: any) => {
+    setEditingPlanId(plan.id);
+    setWorkoutName(plan.name);
+    setDescription(plan.description || "");
+    setDivision(plan.division);
+    setWeekDays(plan.weekDays ? plan.weekDays.split(",") : []);
+    
+    // Mapear os exercícios do plano para o formato do formulário
+    const mapped = plan.exercises.map((pe: any) => ({
+      exerciseId: pe.exerciseId,
+      name: pe.exercise?.name || "Exercício Desconhecido",
+      muscleGroup: pe.exercise?.muscleGroup || "Outros",
+      equipment: pe.exercise?.equipment || "Nenhum",
+      sets: pe.sets,
+      reps: pe.reps,
+      restSeconds: pe.restSeconds,
+      method: pe.method,
+      recommendedRpe: pe.recommendedRpe,
+      recommendedWeight: pe.recommendedWeight,
+      notes: pe.notes || "",
+    }));
+    setSelectedExercises(mapped);
+    setError("");
+    setSuccess(false);
+  };
+
+  // Resetar o formulário para criar um novo treino
+  const handleResetForm = () => {
+    setEditingPlanId(null);
+    setWorkoutName("");
+    setDescription("");
+    setDivision("A");
+    setWeekDays([]);
+    setSelectedExercises([]);
+    setError("");
+    setSuccess(false);
+  };
+
+  // Excluir um treino existente
+  const handleDeletePlan = async (planId: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta ficha de treino?")) return;
+    setError("");
+    try {
+      const response = await fetch(`/api/trainer/students/${studentId}/workout-plans?planId=${planId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setWorkoutPlans((prev) => prev.filter((p) => p.id !== planId));
+        if (editingPlanId === planId) {
+          handleResetForm();
+        }
+      } else {
+        const data = await response.json();
+        setError(data.error || "Erro ao excluir o treino.");
+      }
+    } catch (err) {
+      setError("Erro ao se conectar com o servidor.");
+    }
+  };
+
   // Enviar formulário
   const handleSavePlan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,10 +250,13 @@ export default function NewPlanPage() {
     setSuccess(false);
 
     try {
-      const response = await fetch(`/api/trainer/students/${studentId}/workout-plans`, {
-        method: "POST",
+      const url = `/api/trainer/students/${studentId}/workout-plans`;
+      const method = editingPlanId ? "PUT" : "POST";
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          planId: editingPlanId,
           name: workoutName,
           description,
           division,
@@ -210,13 +277,21 @@ export default function NewPlanPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Ocorreu um erro ao salvar o treino.");
+        setError(data.error || `Ocorreu um erro ao ${editingPlanId ? "atualizar" : "salvar"} o treino.`);
         return;
       }
 
       setSuccess(true);
+      
+      // Recarregar os treinos
+      await fetchStudentDetails();
+
       setTimeout(() => {
-        router.push("/trainer/dashboard");
+        setSuccess(false);
+        if (!editingPlanId) {
+          // Se for criação de um novo treino, limpa o formulário
+          handleResetForm();
+        }
       }, 1500);
     } catch (err) {
       setError("Erro de rede. Verifique sua conexão.");
@@ -353,8 +428,9 @@ export default function NewPlanPage() {
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
           
-          {/* Coluna Esquerda: Biblioteca de Exercícios */}
-          <section className="w-full lg:w-5/12 flex flex-col gap-4">
+          {/* Coluna Esquerda: Biblioteca de Exercícios & Treinos Salvos */}
+          <section className="w-full lg:w-5/12 flex flex-col gap-6">
+            {/* Biblioteca de Exercícios */}
             <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm space-y-4">
               <h3 className="text-xs font-bold text-[#475569] uppercase tracking-widest">
                 Biblioteca de Exercícios
@@ -391,7 +467,7 @@ export default function NewPlanPage() {
               </div>
 
               {/* Lista */}
-              <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
                 {libraryLoading ? (
                   <div className="flex items-center justify-center py-10 text-[#94A3B8]">
                     <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] mr-2" />
@@ -426,24 +502,103 @@ export default function NewPlanPage() {
                 )}
               </div>
             </div>
-          </section>
 
+            {/* Treinos Salvos */}
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-[#475569] uppercase tracking-widest">
+                Treinos Salvos do Aluno
+              </h3>
+              
+              {workoutPlans.length === 0 ? (
+                <p className="text-xs text-[#94A3B8] text-center py-6">
+                  Nenhum treino salvo para este aluno.
+                </p>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                  {workoutPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className={`p-3 border rounded-xl flex items-center justify-between gap-4 transition-all ${
+                        editingPlanId === plan.id
+                          ? "bg-[#2563EB]/5 border-[#2563EB] shadow-sm"
+                          : "bg-zinc-50 border-[#E2E8F0] hover:border-zinc-300"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-[#0F172A] truncate">
+                            {plan.name}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded bg-zinc-200 text-[#475569] font-mono text-[9px] font-bold">
+                            Divisão {plan.division}
+                          </span>
+                        </div>
+                        {plan.description && (
+                          <p className="text-[10px] text-[#94A3B8] truncate mt-0.5">
+                            {plan.description}
+                          </p>
+                        )}
+                        <p className="text-[9px] text-[#94A3B8] mt-1 font-semibold">
+                          {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleEditPlan(plan)}
+                          className="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB] hover:bg-white text-[#2563EB] text-[10px] font-bold transition-all cursor-pointer"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePlan(plan.id)}
+                          className="p-1.5 rounded-lg border border-[#E2E8F0] hover:border-red-500 hover:bg-red-50 text-red-500 transition-all cursor-pointer"
+                          title="Excluir ficha"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
           {/* Coluna Direita: Construtor da Ficha */}
           <section className="w-full lg:w-7/12">
             <form onSubmit={handleSavePlan} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-[#475569] uppercase tracking-widest">
-                  Estrutura do Treino
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowAiModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:from-[#1E40AF] hover:to-[#6D28D9] text-white font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-purple-500/10"
-                  title="Gerar um treino completo utilizando inteligência artificial"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Criar treino com IA
-                </button>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-[#475569] uppercase tracking-widest">
+                    {editingPlanId ? "Editar Treino" : "Estrutura do Treino"}
+                  </h3>
+                  {editingPlanId && (
+                    <span className="px-2 py-0.5 rounded-lg bg-[#2563EB]/10 text-[#2563EB] text-[9px] font-bold uppercase tracking-wider">
+                      Modo Edição
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {editingPlanId && (
+                    <button
+                      type="button"
+                      onClick={handleResetForm}
+                      className="px-3 py-2 rounded-xl border border-[#E2E8F0] hover:border-red-500 hover:bg-red-50 text-[#475569] hover:text-red-650 text-[10px] font-bold transition-all cursor-pointer"
+                    >
+                      Cancelar Edição
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowAiModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:from-[#1E40AF] hover:to-[#6D28D9] text-white font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-purple-500/10"
+                    title="Gerar um treino completo utilizando inteligência artificial"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Criar treino com IA
+                  </button>
+                </div>
               </div>
 
               {error && (
@@ -454,7 +609,7 @@ export default function NewPlanPage() {
 
               {success && (
                 <div className="p-3 rounded-lg bg-[#00C2FF]/10 border border-[#2563EB]/30 text-[#1E40AF] text-xs text-center font-semibold animate-pulse">
-                  Ficha criada e vinculada com sucesso! Redirecionando...
+                  {editingPlanId ? "Treino atualizado com sucesso!" : "Ficha criada e vinculada com sucesso!"}
                 </div>
               )}
 
@@ -650,7 +805,7 @@ export default function NewPlanPage() {
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    Salvar e Atribuir Treino
+                    {editingPlanId ? "Salvar Alterações no Treino" : "Salvar e Atribuir Treino"}
                     <CheckCircle className="w-4 h-4" />
                   </>
                 )}
