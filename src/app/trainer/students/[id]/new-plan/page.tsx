@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   Info,
   CheckCircle,
-  HelpCircle,
 } from "lucide-react";
 
 interface Exercise {
@@ -119,8 +118,6 @@ export default function NewPlanPage() {
 
   // Adicionar exercício à ficha ativa
   const handleAddExercise = (exercise: Exercise) => {
-    // Evitar duplicar no mesmo treino se necessário, ou permitir se quiser prescrever bi-sets do mesmo.
-    // Vamos apenas adicionar à lista.
     const newWorkoutExercise: WorkoutExerciseInput = {
       exerciseId: exercise.id,
       name: exercise.name,
@@ -211,30 +208,30 @@ export default function NewPlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col text-zinc-900">
       {/* Header */}
-      <header className="border-b border-zinc-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-tr from-emerald-500 to-cyan-500 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
-                <Dumbbell className="w-5 h-5 text-slate-950" />
+              <div className="bg-gradient-to-tr from-emerald-500 to-lime-500 p-2 rounded-xl shadow-lg shadow-emerald-500/10">
+                <Dumbbell className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-bold text-xl tracking-wider uppercase text-white">
-                Pulse<span className="text-emerald-400">SaaS</span>
+              <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-900">
+                Tech<span className="text-emerald-500">Fitness</span>
               </span>
             </div>
 
             <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/trainer/dashboard"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-550 hover:text-zinc-950 transition-colors"
               >
                 Alunos
               </Link>
               <Link
                 href="/trainer/exercises"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-550 hover:text-zinc-950 transition-colors"
               >
                 Exercícios
               </Link>
@@ -243,16 +240,16 @@ export default function NewPlanPage() {
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-zinc-800">
                 {session?.user?.name || "Professor"}
               </p>
-              <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
                 Personal Trainer
               </p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-zinc-800 hover:border-red-500/30 hover:bg-red-500/5 text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-zinc-200 hover:border-red-500/30 hover:bg-red-550/5 text-zinc-550 hover:text-red-600 transition-all cursor-pointer"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -260,356 +257,305 @@ export default function NewPlanPage() {
         </div>
       </header>
 
-      {/* Page Title Context */}
-      <section className="bg-slate-900/40 border-b border-zinc-900 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/trainer/dashboard"
-              className="p-2 rounded-lg border border-zinc-850 hover:border-zinc-750 text-zinc-400 hover:text-white transition-all"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Link>
-            <div>
-              <h2 className="font-display text-xl font-bold text-white">
-                {studentLoading ? "Carregando Aluno..." : `Prescrever Treino: ${studentName}`}
-              </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">Monte um plano de treino focado em progressão.</p>
-            </div>
+      {/* Header Contexto */}
+      <section className="bg-zinc-100/60 border-b border-zinc-200 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3">
+          <Link
+            href="/trainer/dashboard"
+            className="p-2 rounded-lg border border-zinc-200 bg-white hover:border-zinc-300 text-zinc-550 hover:text-zinc-950 transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <h2 className="font-display text-xl font-bold text-zinc-900">
+              {studentLoading ? "Carregando..." : `Prescrever Treino: ${studentName}`}
+            </h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Monte uma ficha de exercícios personalizada.</p>
           </div>
         </div>
       </section>
 
-      {/* Content Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
-        
-        {/* Coluna Esquerda: Biblioteca de Exercícios */}
-        <section className="w-full lg:w-5/12 flex flex-col gap-6">
-          <div className="glass-card rounded-2xl p-5 border border-zinc-900">
-            <h3 className="font-display font-semibold text-sm text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Dumbbell className="w-4 h-4 text-emerald-400" /> Biblioteca de Exercícios
-            </h3>
+      {studentLoading ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
+          <p className="text-sm">Carregando dados do aluno...</p>
+        </div>
+      ) : (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+          
+          {/* Coluna Esquerda: Biblioteca de Exercícios */}
+          <section className="w-full lg:w-5/12 flex flex-col gap-4">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-zinc-700 uppercase tracking-widest">
+                Biblioteca de Exercícios
+              </h3>
 
-            {/* Filtros rápidos da Biblioteca */}
-            <div className="space-y-3 mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Pesquisar exercício..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-950 border border-zinc-900 focus:border-emerald-500 outline-none text-xs text-white placeholder-zinc-650 transition-all"
-                />
+              {/* Filtros */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-zinc-200 text-xs focus:border-emerald-500 outline-none text-zinc-800 transition-all placeholder-zinc-400"
+                  />
+                </div>
+                <select
+                  value={selectedMuscle}
+                  onChange={(e) => setSelectedMuscle(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-white border border-zinc-200 text-xs text-zinc-650 outline-none focus:border-emerald-500 transition-all"
+                >
+                  <option value="todos">Todos Músculos</option>
+                  <option value="Peito">Peito</option>
+                  <option value="Costas">Costas</option>
+                  <option value="Pernas">Pernas</option>
+                  <option value="Ombros">Ombros</option>
+                  <option value="Braços">Braços</option>
+                  <option value="Core">Core</option>
+                </select>
               </div>
 
-              <select
-                value={selectedMuscle}
-                onChange={(e) => setSelectedMuscle(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-zinc-900 text-xs text-zinc-300 outline-none focus:border-emerald-500 transition-all"
-              >
-                <option value="todos">Todos os Músculos</option>
-                <option value="Peito">Peito</option>
-                <option value="Costas">Costas</option>
-                <option value="Pernas">Pernas</option>
-                <option value="Ombros">Ombros</option>
-                <option value="Braços">Braços</option>
-                <option value="Core">Core</option>
-                <option value="Cardio">Cardio</option>
-              </select>
-            </div>
-
-            {/* Lista dos Exercícios */}
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-              {libraryLoading ? (
-                <div className="flex justify-center py-10">
-                  <Loader2 className="w-6 h-6 animate-spin text-zinc-600" />
-                </div>
-              ) : library.length === 0 ? (
-                <p className="text-xs text-zinc-500 text-center py-10">Nenhum exercício encontrado.</p>
-              ) : (
-                library.map((exercise) => (
-                  <div
-                    key={exercise.id}
-                    className="flex justify-between items-center p-3.5 rounded-xl bg-slate-950/40 border border-zinc-900/60 hover:border-zinc-800 transition-all"
-                  >
-                    <div>
-                      <h4 className="text-xs font-semibold text-white leading-tight">{exercise.name}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                          {exercise.muscleGroup}
-                        </span>
-                        <span className="text-[9px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
-                          {exercise.equipment}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleAddExercise(exercise)}
-                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-emerald-500/10 text-emerald-400 border border-zinc-800 hover:border-emerald-500/30 transition-all cursor-pointer"
-                      title="Adicionar ao treino"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+              {/* Lista */}
+              <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                {libraryLoading ? (
+                  <div className="flex items-center justify-center py-10 text-zinc-400">
+                    <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mr-2" />
+                    <span className="text-xs">Carregando biblioteca...</span>
                   </div>
-                ))
-              )}
+                ) : library.length === 0 ? (
+                  <p className="text-xs text-zinc-450 text-center py-10">Nenhum exercício encontrado.</p>
+                ) : (
+                  library.map((exercise) => (
+                    <div
+                      key={exercise.id}
+                      className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl flex items-center justify-between gap-4 hover:border-emerald-500/30 transition-all group"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-zinc-900 truncate group-hover:text-emerald-600 transition-colors">
+                          {exercise.name}
+                        </p>
+                        <p className="text-[10px] text-zinc-500 mt-0.5">
+                          {exercise.muscleGroup} • {exercise.equipment}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddExercise(exercise)}
+                        className="p-1.5 rounded-lg border border-zinc-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 text-zinc-500 transition-all cursor-pointer flex-shrink-0"
+                        title="Adicionar à ficha"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Coluna Direita: Ficha de Treino Ativa */}
-        <section className="w-full lg:w-7/12 flex flex-col gap-6">
-          <form onSubmit={handleSavePlan} className="space-y-6">
-            <div className="glass-card rounded-2xl p-6 border border-zinc-900">
-              
+          {/* Coluna Direita: Construtor da Ficha */}
+          <section className="w-full lg:w-7/12">
+            <form onSubmit={handleSavePlan} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm space-y-6">
+              <h3 className="text-xs font-bold text-zinc-700 uppercase tracking-widest">
+                Estrutura do Treino
+              </h3>
+
               {error && (
-                <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-500/20 text-red-200 text-xs text-center">
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-750 text-xs text-center font-semibold">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="mb-4 p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-emerald-200 text-xs text-center">
-                  Treino salvo e atribuído com sucesso! Redirecionando...
+                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-250 text-emerald-700 text-xs text-center font-semibold animate-pulse">
+                  Ficha criada e vinculada com sucesso! Redirecionando...
                 </div>
               )}
 
-              {/* Informações Básicas do Treino */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="col-span-2 space-y-1">
-                  <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
-                    Nome do Treino (Ficha)
-                  </label>
+              {/* Informações Básicas da Ficha */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Nome do Treino / Ficha</label>
                   <input
                     type="text"
                     required
+                    placeholder="Ex: Treino A - Peito & Tríceps"
                     value={workoutName}
                     onChange={(e) => setWorkoutName(e.target.value)}
-                    placeholder="Ex: Treino A - Hipertrofia de Peito"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-zinc-900 focus:border-emerald-500 outline-none text-xs text-white placeholder-zinc-650 transition-all"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-zinc-200 focus:border-emerald-500 outline-none text-xs text-zinc-800 placeholder-zinc-400 transition-all"
                   />
                 </div>
-
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
-                    Divisão
-                  </label>
+                  <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Divisão (Letra)</label>
                   <select
                     value={division}
                     onChange={(e) => setDivision(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-zinc-900 text-xs text-zinc-300 outline-none focus:border-emerald-500 transition-all"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-xs text-zinc-750 outline-none focus:border-emerald-500 transition-all"
                   >
-                    <option value="A">Treino A</option>
-                    <option value="B">Treino B</option>
-                    <option value="C">Treino C</option>
-                    <option value="D">Treino D</option>
-                    <option value="E">Treino E</option>
-                    <option value="F">Treino F</option>
+                    {["A", "B", "C", "D", "E", "F"].map((l) => (
+                      <option key={l} value={l}>
+                        Ficha {l}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
 
-              <div className="space-y-1 mb-6">
-                <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
-                  Descrição ou Foco do Treino (Opcional)
-                </label>
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Descrição / Foco do Treino (Opcional)</label>
                 <input
                   type="text"
+                  placeholder="Ex: Foco em hipertrofia de peitoral, ênfase em porção superior."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Ex: Foco em força na fase concêntrica, descanso controlado"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-zinc-900 focus:border-emerald-500 outline-none text-xs text-white placeholder-zinc-650 transition-all"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-zinc-200 focus:border-emerald-500 outline-none text-xs text-zinc-800 placeholder-zinc-400 transition-all"
                 />
               </div>
 
-              {/* Título Exercícios Ativos */}
-              <div className="flex justify-between items-center mb-4 pt-4 border-t border-zinc-900">
-                <h4 className="font-display font-semibold text-sm text-white">
-                  Exercícios na Ficha ({selectedExercises.length})
-                </h4>
-              </div>
-
-              {/* Lista dos Exercícios Adicionados */}
-              {selectedExercises.length === 0 ? (
-                <div className="p-8 border border-dashed border-zinc-800 rounded-xl text-center text-zinc-500">
-                  <Info className="w-8 h-8 mx-auto text-zinc-700 mb-2" />
-                  <p className="text-xs font-medium">Ficha vazia</p>
-                  <p className="text-[10px] mt-0.5">Selecione exercícios na biblioteca à esquerda para começar.</p>
-                </div>
-              ) : (
-                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
-                  {selectedExercises.map((exercise, index) => (
-                    <div
-                      key={index}
-                      className="p-4 rounded-xl bg-slate-950 border border-zinc-900 space-y-4 relative group"
-                    >
-                      {/* Título & Botão Remover */}
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <h5 className="text-xs font-bold text-white">
-                            {index + 1}. {exercise.name}
-                          </h5>
-                          <p className="text-[9px] text-zinc-500 mt-0.5">
-                            {exercise.muscleGroup} • {exercise.equipment}
-                          </p>
-                        </div>
+              {/* Lista de Exercícios Selecionados */}
+              <div className="space-y-4">
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Exercícios Adicionados ({selectedExercises.length})</span>
+                
+                {selectedExercises.length === 0 ? (
+                  <div className="p-8 border border-dashed border-zinc-200 rounded-xl text-center text-zinc-450 bg-zinc-50">
+                    <Info className="w-6 h-6 mx-auto text-zinc-350 mb-2" />
+                    <p className="text-xs">Nenhum exercício adicionado ainda.</p>
+                    <p className="text-[10px] mt-0.5 text-zinc-400">Selecione exercícios na biblioteca ao lado.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                    {selectedExercises.map((exercise, index) => (
+                      <div
+                        key={index}
+                        className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl space-y-3 relative group"
+                      >
                         <button
                           type="button"
                           onClick={() => handleRemoveExercise(index)}
-                          className="p-1 rounded hover:bg-red-500/10 text-zinc-500 hover:text-red-400 transition-all cursor-pointer"
+                          className="absolute right-4 top-4 p-1.5 rounded-lg border border-zinc-250 hover:border-red-400 hover:bg-red-50 text-zinc-400 hover:text-red-650 transition-all cursor-pointer"
                           title="Remover exercício"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+
+                        <div className="pr-10">
+                          <p className="text-xs font-bold text-zinc-900">{exercise.name}</p>
+                          <p className="text-[9px] text-zinc-500 mt-0.5 uppercase font-semibold">
+                            {exercise.muscleGroup} • {exercise.equipment}
+                          </p>
+                        </div>
+
+                        {/* Parâmetros do Exercício */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">Séries</label>
+                            <input
+                              type="number"
+                              value={exercise.sets}
+                              onChange={(e) => handleUpdateExerciseParam(index, "sets", Number(e.target.value))}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-800 font-mono font-bold focus:border-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">Reps</label>
+                            <input
+                              type="text"
+                              value={exercise.reps}
+                              onChange={(e) => handleUpdateExerciseParam(index, "reps", e.target.value)}
+                              placeholder="Ex: 8-12, Falha"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-800 font-mono font-bold focus:border-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">Descanso (s)</label>
+                            <input
+                              type="number"
+                              value={exercise.restSeconds}
+                              onChange={(e) => handleUpdateExerciseParam(index, "restSeconds", Number(e.target.value))}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-800 font-mono font-bold focus:border-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">Método</label>
+                            <select
+                              value={exercise.method}
+                              onChange={(e) => handleUpdateExerciseParam(index, "method", e.target.value)}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-700 focus:border-emerald-500"
+                            >
+                              {METHODS.map((m) => (
+                                <option key={m} value={m}>
+                                  {m}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Parâmetros Avançados (Peso / RPE recomendados e notas) */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">Peso Sugerido (kg)</label>
+                            <input
+                              type="number"
+                              step="any"
+                              placeholder="Ex: 24"
+                              value={exercise.recommendedWeight || ""}
+                              onChange={(e) => handleUpdateExerciseParam(index, "recommendedWeight", e.target.value ? Number(e.target.value) : null)}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-800 font-mono focus:border-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">RPE Alvo (1-10)</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              placeholder="Ex: 8"
+                              value={exercise.recommendedRpe || ""}
+                              onChange={(e) => handleUpdateExerciseParam(index, "recommendedRpe", e.target.value ? Number(e.target.value) : null)}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-800 font-mono focus:border-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-1 col-span-2 sm:col-span-1">
+                            <label className="text-[8px] font-bold text-zinc-450 uppercase block">Anotação Rápida</label>
+                            <input
+                              type="text"
+                              placeholder="Foco na cadência..."
+                              value={exercise.notes}
+                              onChange={(e) => handleUpdateExerciseParam(index, "notes", e.target.value)}
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 outline-none text-xs text-zinc-800 focus:border-emerald-500"
+                            />
+                          </div>
+                        </div>
+
                       </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                      {/* Parâmetros do Exercício */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {/* Séries */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Séries</label>
-                          <input
-                            type="number"
-                            required
-                            min={1}
-                            value={exercise.sets}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(index, "sets", Number(e.target.value))
-                            }
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-xs text-white text-center focus:border-emerald-500"
-                          />
-                        </div>
-
-                        {/* Repetições */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Repetições</label>
-                          <input
-                            type="text"
-                            required
-                            value={exercise.reps}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(index, "reps", e.target.value)
-                            }
-                            placeholder="Ex: 8-10, 12, Falha"
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-xs text-white text-center focus:border-emerald-500"
-                          />
-                        </div>
-
-                        {/* Descanso */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Descanso (s)</label>
-                          <input
-                            type="number"
-                            required
-                            min={0}
-                            value={exercise.restSeconds}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(index, "restSeconds", Number(e.target.value))
-                            }
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-xs text-white text-center focus:border-emerald-500"
-                          />
-                        </div>
-
-                        {/* Método */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Método</label>
-                          <select
-                            value={exercise.method}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(index, "method", e.target.value)
-                            }
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-[10px] text-zinc-300 focus:border-emerald-500"
-                          >
-                            {METHODS.map((m) => (
-                              <option key={m} value={m}>
-                                {m}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Parâmetros Opcionais (RPE, Carga, Notas) */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-zinc-900/60">
-                        {/* Carga Inicial */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Carga Sugerida (kg)</label>
-                          <input
-                            type="number"
-                            step="any"
-                            value={exercise.recommendedWeight || ""}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(
-                                index,
-                                "recommendedWeight",
-                                e.target.value ? Number(e.target.value) : null
-                              )
-                            }
-                            placeholder="Opcional"
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-xs text-white focus:border-emerald-500"
-                          />
-                        </div>
-
-                        {/* RPE */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">RPE Recomendado (1-10)</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={exercise.recommendedRpe || ""}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(
-                                index,
-                                "recommendedRpe",
-                                e.target.value ? Number(e.target.value) : null
-                              )
-                            }
-                            placeholder="Ex: 8"
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-xs text-white focus:border-emerald-500"
-                          />
-                        </div>
-
-                        {/* Observações específicas */}
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Instruções Extras</label>
-                          <input
-                            type="text"
-                            value={exercise.notes}
-                            onChange={(e) =>
-                              handleUpdateExerciseParam(index, "notes", e.target.value)
-                            }
-                            placeholder="Ex: Pegada aberta"
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-zinc-850 outline-none text-xs text-white focus:border-emerald-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Botão de Envio */}
+              {/* Botão Salvar Treino */}
               <button
                 type="submit"
-                disabled={loading || success || selectedExercises.length === 0}
-                className="w-full py-4 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950 font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 disabled:opacity-50 disabled:pointer-events-none mt-8"
+                disabled={loading || success}
+                className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
                     Salvar e Atribuir Treino
-                    <CheckCircle className="w-4.5 h-4.5" />
+                    <CheckCircle className="w-4 h-4" />
                   </>
                 )}
               </button>
-            </div>
-          </form>
-        </section>
-      </main>
+            </form>
+          </section>
+
+        </main>
+      )}
     </div>
   );
 }

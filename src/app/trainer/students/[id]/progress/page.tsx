@@ -13,10 +13,10 @@ import {
   Award,
   Calendar,
   Sparkles,
-  TrendingUp,
   ArrowRight,
-  TrendingDown,
   Clock,
+  Cpu,
+  Info,
 } from "lucide-react";
 
 interface SessionLog {
@@ -63,6 +63,10 @@ export default function StudentProgressPage() {
   
   const [loading, setLoading] = useState(true);
 
+  // Estados do Copilot IA
+  const [copilotAnalysis, setCopilotAnalysis] = useState("");
+  const [copilotLoading, setCopilotLoading] = useState(false);
+
   useEffect(() => {
     const fetchProgress = async () => {
       try {
@@ -91,41 +95,94 @@ export default function StudentProgressPage() {
     }
   }, [studentId, router]);
 
-  // Formatar Data
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
+  // Função para chamar o Copilot IA
+  const handleRequestCopilot = async () => {
+    setCopilotLoading(true);
+    setCopilotAnalysis("");
+    try {
+      const response = await fetch(`/api/trainer/students/${studentId}/copilot`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCopilotAnalysis(data.analysis);
+      }
+    } catch (err) {
+      console.error("Erro ao acionar o Copilot IA:", err);
+    } finally {
+      setCopilotLoading(false);
+    }
+  };
+
+  // Mini Renderizador Nativo de Markdown Estilizado
+  const renderMarkdown = (text: string) => {
+    return text.split("\n").map((line, idx) => {
+      if (line.startsWith("## ")) {
+        return (
+          <h3 key={idx} className="font-display font-extrabold text-sm text-zinc-900 mt-5 mb-2.5 tracking-tight border-b border-zinc-200 pb-1">
+            {line.replace("## ", "")}
+          </h3>
+        );
+      }
+      if (line.startsWith("### ")) {
+        return (
+          <h4 key={idx} className="font-display font-bold text-xs text-emerald-600 mt-4 mb-2">
+            {line.replace("### ", "")}
+          </h4>
+        );
+      }
+      if (line.startsWith("> [!NOTE]")) {
+        return null;
+      }
+      if (line.startsWith("> ")) {
+        return (
+          <div key={idx} className="p-3.5 rounded-xl bg-zinc-50 border border-emerald-500/20 text-zinc-700 text-xs italic my-3 leading-relaxed">
+            {line.replace("> ", "")}
+          </div>
+        );
+      }
+      if (line.startsWith("* ") || line.startsWith("- ")) {
+        const cleanLine = line.replace(/^[\*\-]\s+/, "");
+        return (
+          <li key={idx} className="text-xs text-zinc-600 list-disc ml-5 mt-1">
+            {cleanLine}
+          </li>
+        );
+      }
+      if (line.trim() === "") return <div key={idx} className="h-2" />;
+      return (
+        <p key={idx} className="text-xs text-zinc-650 leading-relaxed mt-1">
+          {line}
+        </p>
+      );
     });
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col text-zinc-900">
       {/* Header */}
-      <header className="border-b border-zinc-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-tr from-emerald-500 to-cyan-500 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
-                <Dumbbell className="w-5 h-5 text-slate-950" />
+              <div className="bg-gradient-to-tr from-emerald-500 to-lime-500 p-2 rounded-xl shadow-lg shadow-emerald-500/10">
+                <Dumbbell className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-bold text-xl tracking-wider uppercase text-white">
-                Pulse<span className="text-emerald-400">SaaS</span>
+              <span className="font-display font-bold text-xl tracking-wider uppercase text-zinc-900">
+                Tech<span className="text-emerald-500">Fitness</span>
               </span>
             </div>
 
             <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/trainer/dashboard"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-550 hover:text-zinc-950 transition-colors"
               >
                 Alunos
               </Link>
               <Link
                 href="/trainer/exercises"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-550 hover:text-zinc-950 transition-colors"
               >
                 Exercícios
               </Link>
@@ -134,16 +191,16 @@ export default function StudentProgressPage() {
 
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-zinc-800">
                 {session?.user?.name || "Professor"}
               </p>
-              <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
                 Personal Trainer
               </p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-zinc-800 hover:border-red-500/30 hover:bg-red-500/5 text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-zinc-200 hover:border-red-500/30 hover:bg-red-550/5 text-zinc-550 hover:text-red-600 transition-all cursor-pointer"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -152,42 +209,94 @@ export default function StudentProgressPage() {
       </header>
 
       {/* Header Contexto */}
-      <section className="bg-slate-900/40 border-b border-zinc-900 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3">
-          <Link
-            href="/trainer/dashboard"
-            className="p-2 rounded-lg border border-zinc-850 hover:border-zinc-750 text-zinc-400 hover:text-white transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <h2 className="font-display text-xl font-bold text-white">
-              {loading ? "Carregando evolução..." : `Evolução de Cargas: ${studentName}`}
-            </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">{studentEmail}</p>
+      <section className="bg-zinc-100/60 border-b border-zinc-200 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/trainer/dashboard"
+              className="p-2 rounded-lg border border-zinc-200 bg-white hover:border-zinc-300 text-zinc-550 hover:text-zinc-950 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Link>
+            <div>
+              <h2 className="font-display text-xl font-bold text-zinc-900">
+                {loading ? "Carregando evolução..." : `Evolução de Cargas: ${studentName}`}
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">{studentEmail}</p>
+            </div>
           </div>
+
+          {/* Botão Copilot IA */}
+          {!loading && (
+            <button
+              onClick={handleRequestCopilot}
+              disabled={copilotLoading}
+              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {copilotLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analisando dados...
+                </>
+              ) : (
+                <>
+                  <Cpu className="w-4 h-4" />
+                  Análise Copilot IA
+                </>
+              )}
+            </button>
+          )}
         </div>
       </section>
 
       {loading ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mb-2" />
+        <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
           <p className="text-sm">Buscando métricas de evolução...</p>
         </div>
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           
+          {/* Sessão de exibição do Copilot IA */}
+          {(copilotLoading || copilotAnalysis) && (
+            <section className="animate-slide-down">
+              <div className="glass-card rounded-2xl p-6 border border-emerald-250 bg-white relative overflow-hidden shadow-sm">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                    <Cpu className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-display font-bold text-sm text-zinc-900 uppercase tracking-wider">
+                    TechFitness Copilot IA — Recomendação de Periodização
+                  </h3>
+                </div>
+
+                {copilotLoading ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-zinc-400">
+                    <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mb-2" />
+                    <p className="text-xs">O Copilot está analisando as dobras físicas, cargas e presenças do aluno...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-w-none">
+                    {renderMarkdown(copilotAnalysis)}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Bloco 1: Sugestões de Progressão Inteligente de Carga */}
           <section>
-            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-400 fill-emerald-500/10" /> Recomendações de Carga Inteligentes
+            <h3 className="text-xs font-bold text-zinc-550 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-500 fill-emerald-500/10" /> Recomendações de Carga Inteligentes
             </h3>
 
             {suggestions.length === 0 ? (
-              <div className="glass-card rounded-2xl p-6 text-zinc-400 border border-zinc-900 flex items-center gap-3">
-                <InfoIcon className="w-5 h-5 text-emerald-500/80" />
+              <div className="glass-card rounded-2xl p-6 text-zinc-500 border border-zinc-200 bg-white shadow-sm flex items-center gap-3">
+                <Info className="w-5 h-5 text-emerald-500" />
                 <p className="text-xs">
-                  Sem recomendações de progressão ativas no momento. O aluno precisa bater o topo de repetições prescrito em 2 treinos seguidos para o algoritmo ativar.
+                  Sem recomendações de progressão ativas no momento. O aluno precisa bater o topo de repetições prescrito em 2 treinos seguidos para o algoritmo sugerir um aumento.
                 </p>
               </div>
             ) : (
@@ -195,27 +304,27 @@ export default function StudentProgressPage() {
                 {suggestions.map((s) => (
                   <div
                     key={s.exerciseId}
-                    className="glass-card rounded-2xl p-5 border border-emerald-500/20 bg-gradient-to-br from-slate-900/60 to-emerald-950/5 relative overflow-hidden shadow-lg shadow-emerald-500/5"
+                    className="glass-card rounded-2xl p-5 border border-zinc-200 bg-white relative overflow-hidden shadow-sm hover:border-emerald-500/30 transition-all duration-300"
                   >
                     <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl" />
                     
-                    <h4 className="font-display font-semibold text-sm text-white leading-tight mb-2">
+                    <h4 className="font-display font-semibold text-sm text-zinc-950 leading-tight mb-2">
                       {s.exerciseName}
                     </h4>
 
-                    <div className="flex items-center gap-4 py-3 my-3 border-y border-zinc-900">
+                    <div className="flex items-center gap-4 py-3 my-3 border-y border-zinc-100">
                       <div>
-                        <span className="text-[9px] text-zinc-500 uppercase tracking-wider block font-semibold">Carga Anterior</span>
-                        <span className="text-base font-mono font-bold text-zinc-400">{s.currentWeight}kg</span>
+                        <span className="text-[9px] text-zinc-400 uppercase tracking-wider block font-semibold">Carga Anterior</span>
+                        <span className="text-base font-mono font-bold text-zinc-500">{s.currentWeight}kg</span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-emerald-400 stroke-[3px] mt-3" />
+                      <ArrowRight className="w-4 h-4 text-emerald-500 stroke-[3px] mt-3" />
                       <div>
-                        <span className="text-[9px] text-emerald-400 uppercase tracking-wider block font-semibold">Nova Carga Sugerida</span>
-                        <span className="text-base font-mono font-bold text-emerald-400">{s.suggestedWeight}kg</span>
+                        <span className="text-[9px] text-emerald-500 uppercase tracking-wider block font-semibold">Nova Carga Sugerida</span>
+                        <span className="text-base font-mono font-bold text-emerald-600">{s.suggestedWeight}kg</span>
                       </div>
                     </div>
 
-                    <p className="text-[10px] text-zinc-400 leading-relaxed">
+                    <p className="text-[10px] text-zinc-500 leading-relaxed">
                       <strong>Motivo:</strong> {s.reason}
                     </p>
                   </div>
@@ -227,94 +336,86 @@ export default function StudentProgressPage() {
           {/* Grid de Duas Colunas */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Coluna Direita / Frequência (4/12) */}
+            {/* Coluna Direita / Frequência */}
             <section className="lg:col-span-4 space-y-6">
-              <div className="glass-card rounded-2xl p-6 border border-zinc-900">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-cyan-400" /> Histórico de Presença
-                </h3>
+              <h3 className="text-xs font-bold text-zinc-550 uppercase tracking-widest flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-emerald-500" /> Histórico de Presença
+              </h3>
 
-                <div className="flex items-center justify-between py-3 border-b border-zinc-900/60 mb-5">
-                  <span className="text-xs text-zinc-400 font-medium">Sessões Realizadas</span>
-                  <span className="text-base font-bold text-white">{totalSessions} no total</span>
+              <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-zinc-100">
+                  <span className="text-xs font-semibold text-zinc-650">Total de Treinos Feitos</span>
+                  <span className="font-mono text-xs font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+                    {totalSessions} treinos
+                  </span>
                 </div>
 
-                {recentSessions.length === 0 ? (
-                  <p className="text-xs text-zinc-500 text-center py-6">Nenhuma sessão registrada pelo aluno.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {recentSessions.map((session) => (
-                      <div
-                        key={session.id}
-                        className="flex justify-between items-center p-3 rounded-xl bg-slate-950/50 border border-zinc-900"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="bg-zinc-900 p-2 rounded-lg text-zinc-400">
-                            <Clock className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-white">{formatDate(session.date)}</p>
-                            <p className="text-[9px] text-zinc-500 mt-0.5">{session.durationMinutes} minutos de treino</p>
-                          </div>
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                  {recentSessions.length === 0 ? (
+                    <p className="text-xs text-zinc-450 text-center py-6">Nenhum treino concluído ainda.</p>
+                  ) : (
+                    recentSessions.map((session) => (
+                      <div key={session.id} className="p-3 bg-zinc-50 rounded-xl flex items-center justify-between border border-zinc-200 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                          <span className="font-semibold text-zinc-800">
+                            {new Date(session.date).toLocaleDateString("pt-BR")}
+                          </span>
                         </div>
-
-                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/5 px-2 py-0.5 rounded font-mono font-bold">
-                          RPE {session.satisfaction}/10
-                        </span>
+                        <div className="flex gap-2">
+                          <span className="font-mono text-[10px] text-zinc-500 bg-zinc-200/50 px-1.5 py-0.5 rounded">
+                            {session.durationMinutes} min
+                          </span>
+                          <span className="font-mono text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                            RPE {session.satisfaction}/10
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  )}
+                </div>
               </div>
             </section>
 
-            {/* Coluna Esquerda / Histórico de Cargas (8/12) */}
+            {/* Coluna Esquerda / Histórico de Força por Exercício */}
             <section className="lg:col-span-8 space-y-6">
-              <div className="glass-card rounded-2xl p-6 border border-zinc-900">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Curva de Progressão por Exercício
-                </h3>
+              <h3 className="text-xs font-bold text-zinc-550 uppercase tracking-widest flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-500" /> Histórico de Progressão de Força
+              </h3>
 
+              <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-6">
                 {progressData.length === 0 ? (
-                  <p className="text-xs text-zinc-500 text-center py-12">O aluno ainda não registrou logs de cargas em nenhum exercício.</p>
+                  <p className="text-xs text-zinc-450 text-center py-12">Nenhum registro de progressão encontrado.</p>
                 ) : (
                   <div className="space-y-6">
                     {progressData.map((exercise) => (
-                      <div
-                        key={exercise.exerciseId}
-                        className="p-5 rounded-2xl bg-slate-950/40 border border-zinc-900/60"
-                      >
-                        <div className="flex justify-between items-start mb-4">
+                      <div key={exercise.exerciseId} className="space-y-3 pb-6 border-b border-zinc-100 last:border-b-0 last:pb-0">
+                        <div className="flex justify-between items-center">
                           <div>
-                            <h4 className="text-xs font-bold text-white">{exercise.name}</h4>
-                            <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded inline-block mt-1">
-                              {exercise.muscleGroup}
-                            </span>
+                            <h4 className="text-xs font-bold text-zinc-900">{exercise.name}</h4>
+                            <span className="text-[9px] text-zinc-400 uppercase font-semibold">{exercise.muscleGroup}</span>
                           </div>
+                          
+                          {/* Recorde Histórico */}
+                          {exercise.history.length > 0 && (
+                            <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-lg">
+                              <Award className="w-3.5 h-3.5" />
+                              <span className="font-bold font-mono">
+                                PR: {Math.max(...exercise.history.map(h => h.maxWeight))}kg
+                              </span>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Barra de Evolução Gráfica Customizada */}
-                        <div className="space-y-2">
-                          {exercise.history.slice(-5).map((point, idx) => {
-                            // Calcula largura da barra proporcional com base no maior valor de peso do histórico
-                            const maxPossibleWeight = Math.max(...exercise.history.map((h) => h.maxWeight));
-                            const percentage = maxPossibleWeight > 0 ? (point.maxWeight / maxPossibleWeight) * 100 : 0;
-
-                            return (
-                              <div key={idx} className="flex items-center gap-3 text-xs">
-                                <span className="w-20 text-[10px] text-zinc-500">{formatDate(point.date)}</span>
-                                <div className="flex-1 bg-slate-950 h-5.5 rounded-lg overflow-hidden border border-zinc-900/60 relative flex items-center px-2">
-                                  <div
-                                    className="bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 h-full rounded-lg absolute left-0 top-0 transition-all duration-1000"
-                                    style={{ width: `${percentage}%` }}
-                                  />
-                                  <span className="relative z-10 font-mono text-[10px] font-bold text-white">
-                                    {point.maxWeight}kg <span className="text-zinc-500 font-semibold">({point.repsAtMaxWeight} reps)</span>
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
+                        {/* Linha do Tempo de Peso */}
+                        <div className="flex gap-2 overflow-x-auto py-2 pr-2">
+                          {exercise.history.map((pt, ptIdx) => (
+                            <div key={ptIdx} className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex flex-col min-w-24 text-center items-center justify-center flex-shrink-0">
+                              <span className="text-[8px] text-zinc-400 font-semibold">{new Date(pt.date).toLocaleDateString("pt-BR", { day: "numeric", month: "short" })}</span>
+                              <span className="text-sm font-mono font-bold text-zinc-800 mt-1">{pt.maxWeight}kg</span>
+                              <span className="text-[9px] text-zinc-500 font-medium font-mono mt-0.5">{pt.repsAtMaxWeight} reps</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -322,28 +423,10 @@ export default function StudentProgressPage() {
                 )}
               </div>
             </section>
+
           </div>
         </main>
       )}
     </div>
-  );
-}
-
-// Pequeno ícone auxiliar
-function InfoIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
   );
 }

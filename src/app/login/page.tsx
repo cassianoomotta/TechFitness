@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
-import { Dumbbell, Lock, Mail, LogIn, Loader2, ArrowRight } from "lucide-react";
+import { Dumbbell, Lock, Mail, LogIn, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,7 +41,6 @@ export default function LoginPage() {
       } else if (session?.user?.role === "STUDENT") {
         router.push("/student/dashboard");
       } else {
-        // Fallback genérico caso role seja indefinido
         router.push("/");
       }
     } catch (err) {
@@ -51,33 +50,38 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-slate-950 relative overflow-hidden">
+    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-zinc-100 relative overflow-hidden text-zinc-900 min-h-screen">
+      {/* Imagem de Fundo Premium */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none"
+        style={{ backgroundImage: "url('/login_bg.png')" }}
+      />
       {/* Background gradients decorativos */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-lime-500/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md glass-card rounded-2xl p-6 md:p-10 shadow-2xl relative z-10 animate-fade-in transition-all">
+      <div className="w-full max-w-md glass-card rounded-2xl p-6 md:p-10 shadow-2xl relative z-10 animate-fade-in transition-all bg-white/95 backdrop-blur-sm border border-zinc-200/50">
         {/* Logo */}
         <div className="flex items-center gap-2 justify-center mb-6">
-          <div className="bg-gradient-to-tr from-emerald-500 to-cyan-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/20">
-            <Dumbbell className="w-6 h-6 text-slate-950" />
+          <div className="bg-gradient-to-tr from-emerald-500 to-lime-500 p-2.5 rounded-xl shadow-lg shadow-emerald-500/10">
+            <Dumbbell className="w-6 h-6 text-white" />
           </div>
-          <span className="font-display font-bold text-2xl tracking-wider uppercase text-white">
-            Pulse<span className="text-emerald-400">SaaS</span>
+          <span className="font-display font-bold text-2xl tracking-wider uppercase text-zinc-900">
+            Tech<span className="text-emerald-500">Fitness</span>
           </span>
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="font-display text-2xl font-semibold text-white tracking-tight md:text-3xl">
+          <h1 className="font-display text-2xl font-semibold text-zinc-900 tracking-tight md:text-3xl">
             Bem-vindo de volta
           </h1>
-          <p className="text-sm text-slate-400 mt-2">
+          <p className="text-sm text-zinc-500 mt-2">
             Insira suas credenciais para gerenciar seus treinos.
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-950/50 border border-red-500/30 text-red-200 text-sm text-center animate-shake">
+          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm text-center">
             {error}
           </div>
         )}
@@ -85,38 +89,36 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
               Endereço de E-mail
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@exemplo.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/40 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm text-white placeholder-slate-500 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-zinc-200 focus:border-emerald-500 outline-none text-sm text-zinc-800 placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
 
           {/* Senha */}
           <div className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                Sua Senha
-              </label>
-            </div>
+            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+              Sua Senha
+            </label>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/40 border border-zinc-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm text-white placeholder-slate-500 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-zinc-200 focus:border-emerald-500 outline-none text-sm text-zinc-800 placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
@@ -125,7 +127,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950 font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -139,12 +141,12 @@ export default function LoginPage() {
         </form>
 
         {/* Link para Cadastro */}
-        <div className="text-center mt-8 pt-6 border-t border-zinc-900">
-          <p className="text-sm text-slate-400">
+        <div className="text-center mt-8 pt-6 border-t border-zinc-200">
+          <p className="text-sm text-zinc-500">
             Não possui uma conta ainda?{" "}
             <Link
               href="/register"
-              className="text-emerald-400 font-semibold hover:underline"
+              className="text-emerald-600 font-semibold hover:underline"
             >
               Criar Conta Grátis
             </Link>

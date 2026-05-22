@@ -26,17 +26,17 @@ export async function GET(request: Request) {
 
     if (search) {
       whereClause.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { name: { contains: search } },
+        { description: { contains: search } },
       ];
     }
 
     if (muscle && muscle !== "todos") {
-      whereClause.muscleGroup = { equals: muscle, mode: "insensitive" };
+      whereClause.muscleGroup = { equals: muscle };
     }
 
     if (equipment && equipment !== "todos") {
-      whereClause.equipment = { equals: equipment, mode: "insensitive" };
+      whereClause.equipment = { equals: equipment };
     }
 
     const exercises = await prisma.exercise.findMany({
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         description,
         videoUrl,
         gifUrl,
-        alternatives: alternatives || [],
+        alternatives: JSON.stringify(alternatives || []),
       },
     });
 

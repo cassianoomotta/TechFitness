@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -34,7 +34,7 @@ model TrainerProfile {
   id               String            @id @default(cuid())
   userId           String            @unique
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialties      String[]
+  specialties      String            @default("[]")
   cref             String?
   students         StudentProfile[]
   workoutTemplates WorkoutTemplate[]
@@ -60,7 +60,7 @@ model Exercise {
   videoUrl             String?
   gifUrl               String?
   equipment            String                // Ex: Halteres, Barra, Máquina
-  alternatives         String[]              // IDs de exercícios equivalentes para substituição rápida
+  alternatives         String                @default("[]")
   workoutPlanExercises WorkoutPlanExercise[]
   exerciseLogs         ExerciseLog[]
 }
@@ -132,7 +132,7 @@ model BodyMeasurement {
   thighRight  Float?
   calfLeft    Float?
   calfRight   Float?
-  photos      String[] // URLs das fotos (Frente, Lado, Costas)
+  photos      String         @default("[]")
 }
 
 model WorkoutTemplate {
