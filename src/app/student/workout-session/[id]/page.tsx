@@ -112,7 +112,7 @@ export default function WorkoutSessionPlayer() {
 
   // Modal de Finalização
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
-  const [satisfaction, setSatisfaction] = useState(7); // RPE padrão 7
+  const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
   const [finishLoading, setFinishLoading] = useState(false);
   const [finishSuccess, setFinishSuccess] = useState(false);
   const [finishError, setFinishError] = useState("");
@@ -646,25 +646,43 @@ export default function WorkoutSessionPlayer() {
                 Treino concluído com sucesso! Bom descanso!
               </div>
             )}
-
+            
             <div className="space-y-4">
-              {/* Escala de RPE */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between text-[10px] text-[#94A3B8] font-semibold px-1">
-                  <span>Leve</span>
-                  <span>Extremo</span>
+              {/* Escala de RPE qualitativa */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block text-left">
+                  Selecione a Intensidade:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Pouco Intensa", value: 3 },
+                    { label: "Intensa", value: 6 },
+                    { label: "Muito Intensa", value: 8 },
+                    { label: "Exaustiva", value: 10 }
+                  ].map((option) => {
+                    const isSelected = satisfaction === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setSatisfaction(option.value)}
+                        className={`py-3 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                          isSelected
+                            ? option.value === 3
+                              ? "bg-blue-500 border-blue-500 text-white"
+                              : option.value === 6
+                              ? "bg-emerald-500 border-emerald-500 text-white"
+                              : option.value === 8
+                              ? "bg-amber-500 border-amber-500 text-white"
+                              : "bg-red-500 border-red-500 text-white"
+                            : `bg-white border-[#E2E8F0] text-[#475569] hover:bg-zinc-50`
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={10}
-                  value={satisfaction}
-                  onChange={(e) => setSatisfaction(Number(e.target.value))}
-                  className="w-full accent-emerald-500 bg-white rounded-lg h-2"
-                />
-                <span className="font-mono text-xl font-bold text-[#2563EB] mt-1 block">
-                  {satisfaction} / 10
-                </span>
               </div>
 
               <button
