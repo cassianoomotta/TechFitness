@@ -549,9 +549,6 @@ export default function NewPlanPage() {
                           <span className="font-bold text-xs text-[#0F172A] truncate">
                             {plan.name}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-zinc-200 text-[#475569] font-mono text-[9px] font-bold">
-                            Divisão {plan.division}
-                          </span>
                         </div>
                         {plan.description && (
                           <p className="text-[10px] text-[#94A3B8] truncate mt-0.5">

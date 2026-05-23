@@ -504,42 +504,37 @@ export default function StudentDashboard() {
                     className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80 flex flex-col justify-between group hover:border-[#2563EB]/30 transition-all duration-300 relative overflow-hidden"
                   >
                     <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="min-w-10 h-10 px-2 rounded-xl bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center font-display font-extrabold text-[#2563EB] text-xs whitespace-nowrap">
-                          {plan.division}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
+                            {plan.name}
+                          </h4>
+                          <button
+                            onClick={() => handleOpenEdit(plan)}
+                            className="p-1 rounded-lg text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#2563EB]/5 transition-all cursor-pointer"
+                            title="Editar divisão e dias"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-base font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
-                              {plan.name}
-                            </h4>
-                            <button
-                              onClick={() => handleOpenEdit(plan)}
-                              className="p-1 rounded-lg text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#2563EB]/5 transition-all cursor-pointer"
-                              title="Editar divisão e dias"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
+                        {plan.description && (
+                          <p className="text-xs text-[#94A3B8] mt-0.5 leading-relaxed">{plan.description}</p>
+                        )}
+                        {plan.weekDays && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {plan.weekDays.split(",").map((day) => (
+                              <span
+                                key={day}
+                                className="text-[9px] font-bold bg-[#2563EB]/5 text-[#2563EB] px-1.5 py-0.5 rounded border border-[#2563EB]/10"
+                              >
+                                {day}
+                              </span>
+                            ))}
                           </div>
-                          {plan.description && (
-                            <p className="text-xs text-[#94A3B8] mt-0.5 leading-relaxed">{plan.description}</p>
-                          )}
-                          {plan.weekDays && (
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {plan.weekDays.split(",").map((day) => (
-                                <span
-                                  key={day}
-                                  className="text-[9px] font-bold bg-[#2563EB]/5 text-[#2563EB] px-1.5 py-0.5 rounded border border-[#2563EB]/10"
-                                >
-                                  {day}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {!plan.weekDays && (
-                            <p className="text-[10px] text-[#94A3B8] mt-1.5 italic">Nenhum dia da semana definido</p>
-                          )}
-                        </div>
+                        )}
+                        {!plan.weekDays && (
+                          <p className="text-[10px] text-[#94A3B8] mt-1.5 italic">Nenhum dia da semana definido</p>
+                        )}
                       </div>
 
                       <span className="text-[10px] bg-white border border-[#E2E8F0] px-2 py-1 rounded font-bold text-[#94A3B8] w-fit sm:self-start">
