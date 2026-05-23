@@ -20,6 +20,7 @@ import {
   TrendingUp,
   X,
   Lock,
+  Bell,
 } from "lucide-react";
 
 interface Student {
@@ -56,6 +57,11 @@ export default function TrainerDashboard() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [linkingId, setLinkingId] = useState<string | null>(null);
 
+  // Estados de Notificações
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   // Buscar alunos
   const fetchStudents = async () => {
     try {
@@ -71,8 +77,34 @@ export default function TrainerDashboard() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch("/api/notifications");
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+        setUnreadCount(data.filter((n: any) => !n.read).length);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar notificações:", err);
+    }
+  };
+
+  const handleMarkNotificationsRead = async () => {
+    try {
+      await fetch("/api/notifications", { method: "PUT" });
+      setUnreadCount(0);
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Erro ao ler notificações:", err);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSearchExisting = async (queryVal: string) => {
@@ -202,7 +234,7 @@ export default function TrainerDashboard() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-[#0F172A]">
                 {session?.user?.name || "Professor"}
@@ -211,9 +243,62 @@ export default function TrainerDashboard() {
                 Personal Trainer
               </p>
             </div>
+
+            {/* Bell Icon & Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  if (!showNotifications && unreadCount > 0) {
+                    handleMarkNotificationsRead();
+                  }
+                }}
+                className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#00C2FF]/5 text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer relative"
+                title="Notificações"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl z-50 p-4 space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
+                    <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Notificações</h4>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {notifications.length === 0 ? (
+                      <p className="text-[11px] text-[#94A3B8] text-center py-4">Nenhuma notificação por enquanto.</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <div key={n.id} className={`p-2.5 rounded-xl border text-[11px] space-y-1 transition-all ${n.read ? "bg-zinc-50 border-transparent text-[#94A3B8]" : "bg-blue-50/50 border-[#2563EB]/10 text-[#0F172A] font-semibold"}`}>
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-bold text-[#2563EB]">{n.title}</span>
+                            <span className="text-[9px] text-[#94A3B8] font-normal whitespace-nowrap">
+                              {new Date(n.createdAt).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="leading-relaxed font-normal">{n.message}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-650 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-600 transition-all cursor-pointer"
               title="Sair"
             >
               <LogOut className="w-5 h-5" />

@@ -71,28 +71,75 @@ export async function GET(
       );
     }
 
-    // Mapear retorno
+    // Para cada exercício, buscar os logs da última sessão que o aluno realizou
+    const formattedExercises = await Promise.all(
+      plan.exercises.map(async (pe) => {
+        const lastLog = await prisma.exerciseLog.findFirst({
+          where: {
+            studentId: studentProfile.id,
+            exerciseId: pe.exerciseId,
+          },
+          orderBy: {
+            session: {
+              date: "desc",
+            },
+          },
+          select: {
+            sessionId: true,
+          },
+        });
+
+        let previousWorkoutSets: { setNumber: number; weightUsed: number; repsPerformed: number }[] = [];
+
+        if (lastLog) {
+          const sets = await prisma.exerciseLog.findMany({
+            where: {
+              sessionId: lastLog.sessionId,
+              exerciseId: pe.exerciseId,
+            },
+            orderBy: {
+              setNumber: "asc",
+            },
+            select: {
+              setNumber: true,
+              weightUsed: true,
+              repsPerformed: true,
+            },
+          });
+          previousWorkoutSets = sets.map((s) => ({
+            setNumber: s.setNumber,
+            weightUsed: s.weightUsed,
+            repsPerformed: s.repsPerformed,
+          }));
+        }
+
+        return {
+          id: pe.id,
+          exerciseId: pe.exercise.id,
+          name: pe.customName || pe.exercise.name,
+          customName: pe.customName,
+          muscleGroup: pe.exercise.muscleGroup,
+          equipment: pe.exercise.equipment,
+          description: pe.exercise.description,
+          videoUrl: pe.exercise.videoUrl,
+          sets: pe.sets,
+          reps: pe.reps,
+          restSeconds: pe.restSeconds,
+          method: pe.method,
+          recommendedRpe: pe.recommendedRpe,
+          recommendedWeight: pe.recommendedWeight,
+          notes: pe.notes,
+          previousWorkoutSets,
+        };
+      })
+    );
+
     const formattedPlan = {
       id: plan.id,
       name: plan.name,
       description: plan.description,
       division: plan.division,
-      exercises: plan.exercises.map((pe) => ({
-        id: pe.id,
-        exerciseId: pe.exercise.id,
-        name: pe.exercise.name,
-        muscleGroup: pe.exercise.muscleGroup,
-        equipment: pe.exercise.equipment,
-        description: pe.exercise.description,
-        videoUrl: pe.exercise.videoUrl,
-        sets: pe.sets,
-        reps: pe.reps,
-        restSeconds: pe.restSeconds,
-        method: pe.method,
-        recommendedRpe: pe.recommendedRpe,
-        recommendedWeight: pe.recommendedWeight,
-        notes: pe.notes,
-      })),
+      exercises: formattedExercises,
     };
 
     return NextResponse.json(formattedPlan);

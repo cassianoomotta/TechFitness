@@ -13,6 +13,7 @@ import {
   X,
   Zap,
   Shuffle,
+  Edit,
 } from "lucide-react";
 
 interface Exercise {
@@ -30,6 +31,7 @@ interface Exercise {
   recommendedRpe: number | null;
   recommendedWeight: number | null;
   notes: string | null;
+  previousWorkoutSets?: { setNumber: number; weightUsed: number; repsPerformed: number }[];
 }
 
 interface WorkoutPlan {
@@ -64,7 +66,12 @@ export default function WorkoutSessionPlayer() {
   const [restTime, setRestTime] = useState(0);
   const [initialRestTime, setInitialRestTime] = useState(0);
   const [isResting, setIsResting] = useState(false);
-  const restIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [restEndTime, setRestEndTime] = useState<number | null>(null);
+
+  // Estado para renomear exercício
+  const [renamingExercise, setRenamingExercise] = useState<Exercise | null>(null);
+  const [newCustomName, setNewCustomName] = useState("");
+  const [savingRename, setSavingRename] = useState(false);
 
   // Estado de sugestão de alternativa
   const [alternativeSuggestion, setAlternativeSuggestion] = useState<{
@@ -110,13 +117,53 @@ export default function WorkoutSessionPlayer() {
   const [finishSuccess, setFinishSuccess] = useState(false);
   const [finishError, setFinishError] = useState("");
 
-  // Cronômetro Geral do Treino
+  // Cronômetro Geral do Treino (Timestamp-based)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTotalSeconds((prev) => prev + 1);
-    }, 1000);
+    let startTime = localStorage.getItem(`workout_start_time_${planId}`);
+    if (!startTime) {
+      startTime = String(Date.now());
+      localStorage.setItem(`workout_start_time_${planId}`, startTime);
+    }
+    
+    const startTimestamp = Number(startTime);
+
+    const updateTimer = () => {
+      const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+      setTotalSeconds(elapsed >= 0 ? elapsed : 0);
+    };
+
+    updateTimer(); // executado imediatamente
+
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [planId]);
+
+  const handleRenameExercise = async () => {
+    if (!renamingExercise) return;
+    setSavingRename(true);
+    try {
+      const response = await fetch(`/api/student/workout-plan-exercises/${renamingExercise.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customName: newCustomName }),
+      });
+      if (response.ok) {
+        if (plan) {
+          const updatedExercises = plan.exercises.map((ex) =>
+            ex.id === renamingExercise.id
+              ? { ...ex, name: newCustomName.trim() !== "" ? newCustomName.trim() : renamingExercise.name }
+              : ex
+          );
+          setPlan({ ...plan, exercises: updatedExercises });
+        }
+        setRenamingExercise(null);
+      }
+    } catch (err) {
+      console.error("Erro ao renomear exercício:", err);
+    } finally {
+      setSavingRename(false);
+    }
+  };
 
   // Buscar plano de treino
   useEffect(() => {
@@ -152,31 +199,31 @@ export default function WorkoutSessionPlayer() {
     }
   }, [planId, router]);
 
-  // Gerenciamento do Temporizador de Descanso
+  // Gerenciamento do Temporizador de Descanso (Timestamp-based)
   useEffect(() => {
-    if (isResting && restTime > 0) {
-      restIntervalRef.current = setInterval(() => {
-        setRestTime((prev) => {
-          if (prev <= 1) {
-            clearInterval(restIntervalRef.current!);
-            setIsResting(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    if (isResting && restEndTime !== null) {
+      const updateRest = () => {
+        const remaining = Math.max(0, Math.round((restEndTime - Date.now()) / 1000));
+        if (remaining <= 0) {
+          setIsResting(false);
+          setRestTime(0);
+          setRestEndTime(null);
+        } else {
+          setRestTime(remaining);
+        }
+      };
 
-    return () => {
-      if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-    };
-  }, [isResting, restTime]);
+      updateRest();
+      const timer = setInterval(updateRest, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isResting, restEndTime]);
 
   const startRestTimer = (seconds: number) => {
     if (seconds <= 0) return;
-    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
     setInitialRestTime(seconds);
     setRestTime(seconds);
+    setRestEndTime(Date.now() + seconds * 1000);
     setIsResting(true);
   };
 
@@ -269,6 +316,7 @@ export default function WorkoutSessionPlayer() {
       }
 
       setFinishSuccess(true);
+      localStorage.removeItem(`workout_start_time_${planId}`);
       setTimeout(() => {
         router.push("/student/dashboard");
       }, 1500);
@@ -327,7 +375,20 @@ export default function WorkoutSessionPlayer() {
             {/* Título do Exercício */}
             <div className="flex justify-between items-start gap-4">
               <div>
-                <h3 className="text-sm font-bold text-[#0F172A] leading-tight">{exercise.name}</h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-[#0F172A] leading-tight">{exercise.name}</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRenamingExercise(exercise);
+                      setNewCustomName(exercise.name);
+                    }}
+                    className="p-1 rounded text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#2563EB]/5 transition-colors cursor-pointer"
+                    title="Renomear exercício para este treino"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                   <span className="text-[8px] font-bold bg-[#00C2FF]/10 text-[#2563EB] px-1.5 py-0.5 rounded">
                     {exercise.equipment}
@@ -445,7 +506,7 @@ export default function WorkoutSessionPlayer() {
                   </span>
 
                   {/* Carga Real */}
-                  <div className="col-span-4 flex items-center">
+                  <div className="col-span-4 flex flex-col items-center">
                     <input
                       type="number"
                       step="any"
@@ -457,10 +518,15 @@ export default function WorkoutSessionPlayer() {
                       }
                       className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
+                    {exercise.previousWorkoutSets && exercise.previousWorkoutSets[setIndex] && (
+                      <span className="text-[9px] text-amber-600 font-semibold mt-1">
+                        Ant: {exercise.previousWorkoutSets[setIndex].weightUsed}kg
+                      </span>
+                    )}
                   </div>
 
                   {/* Repetições Reais */}
-                  <div className="col-span-4 flex items-center">
+                  <div className="col-span-4 flex flex-col items-center">
                     <input
                       type="number"
                       placeholder="--"
@@ -471,6 +537,11 @@ export default function WorkoutSessionPlayer() {
                       }
                       className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
+                    {exercise.previousWorkoutSets && exercise.previousWorkoutSets[setIndex] && (
+                      <span className="text-[9px] text-amber-600 font-semibold mt-1">
+                        Ant: {exercise.previousWorkoutSets[setIndex].repsPerformed}
+                      </span>
+                    )}
                   </div>
 
                   {/* Checkbox */}
@@ -606,6 +677,53 @@ export default function WorkoutSessionPlayer() {
                 ) : (
                   "Confirmar Conclusão"
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Renomear Exercício */}
+      {renamingExercise && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm border border-[#E2E8F0] shadow-2xl space-y-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-base font-bold text-[#0F172A]">Renomear Exercício</h3>
+                <p className="text-xs text-[#94A3B8] mt-1">Dê um apelido ou mude o nome para esta ficha.</p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setRenamingExercise(null)}
+                className="p-1 rounded-lg hover:bg-zinc-100 text-[#94A3B8]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <input
+              type="text"
+              value={newCustomName}
+              onChange={(e) => setNewCustomName(e.target.value)}
+              placeholder={renamingExercise.name}
+              className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] focus:border-[#2563EB] outline-none transition-all"
+            />
+            
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setRenamingExercise(null)}
+                className="flex-1 py-2 px-4 rounded-xl border border-[#E2E8F0] text-[#0F172A] text-xs font-semibold hover:bg-zinc-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleRenameExercise}
+                disabled={savingRename}
+                className="flex-1 py-2 px-4 rounded-xl bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1E40AF] disabled:opacity-50"
+              >
+                {savingRename ? "Salvando..." : "Salvar"}
               </button>
             </div>
           </div>

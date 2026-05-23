@@ -23,6 +23,7 @@ model User {
   
   trainerProfile TrainerProfile?
   studentProfile StudentProfile?
+  notifications  Notification[]
 }
 
 enum Role {
@@ -44,7 +45,7 @@ model TrainerProfile {
 model StudentProfile {
   id           String            @id @default(cuid())
   userId       String            @unique
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   trainerId    String?
   trainer      TrainerProfile?   @relation(fields: [trainerId], references: [id])
   workoutPlans WorkoutPlan[]
@@ -91,6 +92,7 @@ model WorkoutPlanExercise {
   recommendedRpe    Int?
   recommendedWeight Float?
   notes             String?
+  customName        String?     // Custom name for the student's plan
 }
 
 model WorkoutSession {
@@ -144,4 +146,14 @@ model WorkoutTemplate {
   name           String
   description    String?
   division       String
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

@@ -111,6 +111,15 @@ export async function POST(
         data: exercisesPayload,
       });
 
+      // Notificar o aluno sobre o novo treino
+      await tx.notification.create({
+        data: {
+          userId: student.userId,
+          title: "Novo Treino Cadastrado 🏋️‍♂️",
+          message: `Seu treinador ${session.user.name} cadastrou uma nova ficha: ${name} (Divisão ${division}).`,
+        }
+      });
+
       return plan;
     });
 
@@ -231,6 +240,15 @@ export async function PUT(
         data: exercisesPayload,
       });
 
+      // Notificar o aluno sobre a atualização do treino
+      await tx.notification.create({
+        data: {
+          userId: student.userId,
+          title: "Treino Atualizado 🔄",
+          message: `Seu treino "${name}" (Divisão ${division}) foi atualizado pelo treinador ${session.user.name}.`,
+        }
+      });
+
       return plan;
     });
 
@@ -294,8 +312,28 @@ export async function DELETE(
       );
     }
 
+    const existingPlan = await prisma.workoutPlan.findFirst({
+      where: { id: planId, studentId },
+    });
+
+    if (!existingPlan) {
+      return NextResponse.json(
+        { error: "Plano de treino não encontrado." },
+        { status: 404 }
+      );
+    }
+
     await prisma.workoutPlan.delete({
       where: { id: planId, studentId },
+    });
+
+    // Notificar o aluno sobre a remoção do treino
+    await prisma.notification.create({
+      data: {
+        userId: student.userId,
+        title: "Treino Removido 🗑️",
+        message: `Seu treino "${existingPlan.name}" foi removido pelo treinador ${session.user.name}.`,
+      }
     });
 
     return NextResponse.json({ success: true });

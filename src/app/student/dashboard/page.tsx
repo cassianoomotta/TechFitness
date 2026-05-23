@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Edit,
   X,
+  Bell,
 } from "lucide-react";
 
 interface Exercise {
@@ -79,10 +80,28 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
 
   // Estados da Aba e Duelo de Parceiros
-  const [activeTab, setActiveTab] = useState<"fichas" | "dupla">("fichas");
+  const [activeTab, setActiveTab] = useState<"fichas" | "dupla" | "peso">("fichas");
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState("");
   const [partnerSearchQuery, setPartnerSearchQuery] = useState("");
+
+  // Estados de Peso corporal
+  interface WeightMeasurement {
+    id: string;
+    weight: number;
+    date: string;
+  }
+  const [measurements, setMeasurements] = useState<WeightMeasurement[]>([]);
+  const [measurementsLoading, setMeasurementsLoading] = useState(false);
+  const [newWeight, setNewWeight] = useState("");
+  const [newWeightDate, setNewWeightDate] = useState("");
+  const [savingWeight, setSavingWeight] = useState(false);
+  const [weightError, setWeightError] = useState("");
+
+  // Estados de Notificações
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
@@ -205,6 +224,89 @@ export default function StudentDashboard() {
     }
   };
 
+  const fetchMeasurements = async () => {
+    setMeasurementsLoading(true);
+    try {
+      const response = await fetch("/api/student/measurements");
+      if (response.ok) {
+        const data = await response.json();
+        setMeasurements(data);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar peso:", err);
+    } finally {
+      setMeasurementsLoading(false);
+    }
+  };
+
+  const handleSaveWeight = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newWeight || isNaN(Number(newWeight))) {
+      setWeightError("Insira um valor de peso válido.");
+      return;
+    }
+    setSavingWeight(true);
+    setWeightError("");
+    try {
+      const response = await fetch("/api/student/measurements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weight: Number(newWeight),
+          date: newWeightDate,
+        }),
+      });
+      if (response.ok) {
+        setNewWeight("");
+        fetchMeasurements();
+      } else {
+        const data = await response.json();
+        setWeightError(data.error || "Erro ao salvar.");
+      }
+    } catch (err) {
+      setWeightError("Erro de conexão.");
+    } finally {
+      setSavingWeight(false);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch("/api/notifications");
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+        setUnreadCount(data.filter((n: any) => !n.read).length);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar notificações:", err);
+    }
+  };
+
+  const handleMarkNotificationsRead = async () => {
+    try {
+      await fetch("/api/notifications", { method: "PUT" });
+      setUnreadCount(0);
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Erro ao ler notificações:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "peso") {
+      fetchMeasurements();
+      const today = new Date().toISOString().split("T")[0];
+      setNewWeightDate(today);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const filteredPartners = partners.filter((p) => {
     const query = partnerSearchQuery.toLowerCase();
     return (
@@ -220,7 +322,7 @@ export default function StudentDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <BrandLogo size={36} />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-[#0F172A]">
                 {session?.user?.name || "Aluno"}
@@ -229,6 +331,59 @@ export default function StudentDashboard() {
                 Atleta
               </p>
             </div>
+
+            {/* Bell Icon & Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  if (!showNotifications && unreadCount > 0) {
+                    handleMarkNotificationsRead();
+                  }
+                }}
+                className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#00C2FF]/5 text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer relative"
+                title="Notificações"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl z-50 p-4 space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
+                    <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Notificações</h4>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {notifications.length === 0 ? (
+                      <p className="text-[11px] text-[#94A3B8] text-center py-4">Nenhuma notificação por enquanto.</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <div key={n.id} className={`p-2.5 rounded-xl border text-[11px] space-y-1 transition-all ${n.read ? "bg-zinc-50 border-transparent text-[#94A3B8]" : "bg-blue-50/50 border-[#2563EB]/10 text-[#0F172A] font-semibold"}`}>
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-bold text-[#2563EB]">{n.title}</span>
+                            <span className="text-[9px] text-[#94A3B8] font-normal whitespace-nowrap">
+                              {new Date(n.createdAt).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="leading-relaxed font-normal">{n.message}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
               className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-600 transition-all cursor-pointer"
@@ -282,6 +437,17 @@ export default function StudentDashboard() {
           >
             <Users className="w-4 h-4" />
             Treino em Dupla 🤝
+          </button>
+          <button
+            onClick={() => setActiveTab("peso")}
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "peso"
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            Meu Peso ⚖️
           </button>
         </div>
 
@@ -577,6 +743,108 @@ export default function StudentDashboard() {
                 <p className="text-xs">Selecione um parceiro de treino acima para ver o duelo de performance.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Aba 3: Meu Peso */}
+        {activeTab === "peso" && (
+          <div className="space-y-6">
+            {/* Card Registrar Peso */}
+            <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] bg-white shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[#2563EB]" />
+                Registrar Peso Corporal
+              </h3>
+              <p className="text-xs text-[#94A3B8]">
+                Monitore sua evolução registrando seu peso regularmente. Os registros também ficarão disponíveis para seu treinador.
+              </p>
+              
+              <form onSubmit={handleSaveWeight} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider">Peso (kg)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    placeholder="Ex: 75.5"
+                    value={newWeight}
+                    onChange={(e) => setNewWeight(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] focus:border-[#2563EB] outline-none transition-all"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider">Data</label>
+                  <input
+                    type="date"
+                    required
+                    value={newWeightDate}
+                    onChange={(e) => setNewWeightDate(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] focus:border-[#2563EB] outline-none transition-all"
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={savingWeight}
+                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {savingWeight ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Registrar"
+                  )}
+                </button>
+              </form>
+              
+              {weightError && (
+                <p className="text-[11px] text-red-600 font-semibold">{weightError}</p>
+              )}
+            </div>
+
+            {/* Card Histórico */}
+            <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] bg-white shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-[#0F172A]">Histórico de Registros</h3>
+              
+              {measurementsLoading ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#94A3B8]">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] mb-2" />
+                  <p className="text-xs">Buscando histórico...</p>
+                </div>
+              ) : measurements.length === 0 ? (
+                <p className="text-xs text-[#94A3B8] text-center py-6">Você ainda não registrou nenhum peso.</p>
+              ) : (
+                <div className="divide-y divide-[#E2E8F0] max-h-96 overflow-y-auto pr-1">
+                  {measurements.map((m, idx) => {
+                    const nextMeasurement = measurements[idx + 1];
+                    const diff = nextMeasurement ? m.weight - nextMeasurement.weight : 0;
+                    
+                    return (
+                      <div key={m.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
+                        <div className="space-y-1">
+                          <span className="text-xs font-semibold text-[#0F172A]">
+                            {new Date(m.date).toLocaleDateString("pt-BR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                              timeZone: "UTC",
+                            })}
+                          </span>
+                          {nextMeasurement && (
+                            <span className={`text-[10px] font-bold block ${diff > 0 ? "text-red-500" : diff < 0 ? "text-emerald-500" : "text-[#94A3B8]"}`}>
+                              {diff > 0 ? `+${diff.toFixed(1)} kg 📈` : diff < 0 ? `${diff.toFixed(1)} kg 📉` : "Sem alteração"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-base font-black text-[#2563EB] font-mono">
+                          {m.weight.toFixed(1)} kg
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

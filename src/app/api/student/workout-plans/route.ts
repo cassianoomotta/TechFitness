@@ -83,7 +83,8 @@ export async function GET() {
         exercises: plan.exercises.map((pe) => ({
           id: pe.id,
           exerciseId: pe.exerciseId,
-          name: pe.exercise.name,
+          name: pe.customName || pe.exercise.name,
+          customName: pe.customName,
           muscleGroup: pe.exercise.muscleGroup,
           equipment: pe.exercise.equipment,
           description: pe.exercise.description,

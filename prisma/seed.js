@@ -10,7 +10,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=GKE_laVIxFk"
   },
   {
-    "name": "Abdominal Canivete Com Bola",
+    "name": "Abdominal Canivete com Bola",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
@@ -59,21 +59,21 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=jEn6g6AzoZw"
   },
   {
-    "name": "Abdominal Infra No Banco",
+    "name": "Abdominal Infra no Banco",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Jm9N7T99xkk"
   },
   {
-    "name": "Abdominal Infra No Solo",
+    "name": "Abdominal Infra no Solo",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=jqbGOOArtUc"
   },
   {
-    "name": "Abdominal Infra Vela No Solo",
+    "name": "Abdominal Infra Vela no Solo",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
@@ -87,7 +87,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=ATio7MMIltA"
   },
   {
-    "name": "Abdominal Serrote Na Polia",
+    "name": "Abdominal Serrote na Polia",
     "muscleGroup": "Costas",
     "equipment": "Polia",
     "description": null,
@@ -101,42 +101,42 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=RoUF4-uMy6s"
   },
   {
-    "name": "Abdução de quadril 3 apoios",
+    "name": "Abdução de Quadril 3 Apoios",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=-3qQYNnaMoI"
   },
   {
-    "name": "Abdução De Quadril Com Elástico",
+    "name": "Abdução de Quadril com Elástico",
     "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=LmFM7JxufV0"
   },
   {
-    "name": "Abdução de quadril em pé polia",
+    "name": "Abdução de Quadril em Pé na Polia",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=HI7w-Nw_VKY"
   },
   {
-    "name": "Abdução de quadril no solo",
+    "name": "Abdução de Quadril no Solo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=bnvOjk76rGE"
   },
   {
-    "name": "Abdução de quadril sentado com elástico",
+    "name": "Abdução de Quadril Sentado com Elástico",
     "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=oz573L2s6n4"
   },
   {
-    "name": "Abdução E Extensão De Quadril Com Elástico",
+    "name": "Abdução e Extensão de Quadril com Elástico",
     "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
@@ -150,28 +150,28 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=Zv6-elri_8c"
   },
   {
-    "name": "Abdutora quadril suspenso",
+    "name": "Abdutora Quadril Suspenso",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=dzN_llBOGHo"
   },
   {
-    "name": "Abdutora tronco inclinado",
+    "name": "Abdutora Tronco Inclinado",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Z7qSNTjTE7s"
   },
   {
-    "name": "Abdutora tronco inclinado atrás",
+    "name": "Abdutora Tronco Inclinado Atrás",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=UtBtasGfPug"
   },
   {
-    "name": "Adução na polia",
+    "name": "Adução na Polia",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
@@ -199,98 +199,98 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/BeOtD76Z6nU"
   },
   {
-    "name": "Afundo com step",
+    "name": "Afundo com Step",
     "muscleGroup": "Pernas",
     "equipment": "Step",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=fS7dalFU0qI"
   },
   {
-    "name": "Afundo explosivo",
+    "name": "Afundo Explosivo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Tfe4fqz0UUk"
   },
   {
-    "name": "Afundo na barra guiada",
+    "name": "Afundo na Barra Guiada",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=_U_sX4bIQEE"
   },
   {
-    "name": "Afundo no step",
+    "name": "Afundo no Step",
     "muscleGroup": "Pernas",
     "equipment": "Step",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=1aOQUohr-JY"
   },
   {
-    "name": "Afundo no step (2)",
+    "name": "Afundo no Step (2)",
     "muscleGroup": "Pernas",
     "equipment": "Step",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=SQKu_0b4LYw"
   },
   {
-    "name": "Agachamento afastado com halter",
+    "name": "Agachamento Afastado com Halter",
     "muscleGroup": "Pernas",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=9uhVyihQAH0"
   },
   {
-    "name": "Agachamento barra hexagonal",
+    "name": "Agachamento Barra Hexagonal",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Ha-E7AUmjY0"
   },
   {
-    "name": "Agachamento com halter",
+    "name": "Agachamento com Halter",
     "muscleGroup": "Pernas",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=vcJJQZCZn3E"
   },
   {
-    "name": "Agachamento com salto",
+    "name": "Agachamento com Salto",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=9YeCZsVHGEU"
   },
   {
-    "name": "Agachamento frontal",
+    "name": "Agachamento Frontal",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=z6dmHQOreGE"
   },
   {
-    "name": "Agachamento frontal anilha",
+    "name": "Agachamento Frontal Anilha",
     "muscleGroup": "Pernas",
     "equipment": "Anilha",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=0xPJJLHHiiI"
   },
   {
-    "name": "Agachamento insiste",
+    "name": "Agachamento Insiste",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=-We7g2bgq0A"
   },
   {
-    "name": "Agachamento isométrico na parede",
+    "name": "Agachamento Isométrico na Parede",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=QUw-vetcQN0"
   },
   {
-    "name": "Agachamento livre",
+    "name": "Agachamento Livre",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -304,175 +304,175 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/RQhnPIIk4BU"
   },
   {
-    "name": "Agachamento máquina de costa",
-    "muscleGroup": "Costas",
-    "equipment": "Máquina",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=1LLU2juoFiU"
-  },
-  {
-    "name": "Agachamento máquina de frente",
+    "name": "Agachamento Máquina de Frente",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=rKW0nXteHyY"
   },
   {
-    "name": "Agachamento na barra guiada",
+    "name": "Agachamento na Barra Guiada",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=h2D7nDY_UNY"
   },
   {
-    "name": "Agachamento na polia",
+    "name": "Agachamento na Máquina de Costas",
+    "muscleGroup": "Costas",
+    "equipment": "Máquina",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1LLU2juoFiU"
+  },
+  {
+    "name": "Agachamento na Polia",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=eoQsQ-MnG40"
   },
   {
-    "name": "Agachamento overhead",
+    "name": "Agachamento Overhead",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=ixhShnTJIsY"
   },
   {
-    "name": "Agachamento peso corporal",
+    "name": "Agachamento Peso Corporal",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=1enl54eMLGc"
   },
   {
-    "name": "Agachamento sem carga com elástico",
+    "name": "Agachamento Sem Carga com Elástico",
     "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=tkmUjqYrwOo"
   },
   {
-    "name": "Agachamento sumo",
+    "name": "Agachamento Sumô",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=1qpgAGYSsyU"
   },
   {
-    "name": "Agachamento sumo barra guiada",
+    "name": "Agachamento Sumô na Barra Guiada",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=3CHGWflAgec"
   },
   {
-    "name": "Agachamento taça",
+    "name": "Agachamento Taça",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=wNsszcBSPnQ"
   },
   {
-    "name": "Agachamento tripla extensão",
+    "name": "Agachamento Tripla Extensão",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=eVOHjIlsmUo"
   },
   {
-    "name": "Agachamento tripla extensão barra guiada",
+    "name": "Agachamento Tripla Extensão Barra Guiada",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=JyM46ENseoo"
   },
   {
-    "name": "Alongamento De Adutores Na Parede",
+    "name": "Alongamento de Adutores na Parede",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=kI2lO_Xy6hE"
   },
   {
-    "name": "Alongamento De Adutores No Espaldar",
+    "name": "Alongamento de Adutores no Espaldar",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=cteB1lIkWj8"
   },
   {
-    "name": "Alongamento De Biceps",
+    "name": "Alongamento de Biceps",
     "muscleGroup": "Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=ob6YJyiFdgs"
   },
   {
-    "name": "Alongamento De Iliopsoas",
+    "name": "Alongamento de Iliopsoas",
     "muscleGroup": "Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=9E-sipOFU-g"
   },
   {
-    "name": "Alongamento De Panturrilha No Espaldar",
+    "name": "Alongamento de Panturrilha no Espaldar",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=px9lyqLYlag"
   },
   {
-    "name": "Alongamento De Panturrilha No Kettbell",
+    "name": "Alongamento de Panturrilha no Kettbell",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=gz2BMBP6ybM"
   },
   {
-    "name": "Alongamento De Posterior Bilateral Na Parede",
+    "name": "Alongamento de Posterior Bilateral na Parede",
     "muscleGroup": "Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=LpIUmbKBopk"
   },
   {
-    "name": "Alongamento De Posterior Dinâmico Com Fita",
+    "name": "Alongamento de Posterior Dinâmico com Fita",
     "muscleGroup": "Mobilidade",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=m_VQQY4N4sE"
   },
   {
-    "name": "Anti rotação acima da cabeça",
+    "name": "Anti-Rotação Acima da Cabeça",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=39WS0Cik--s"
   },
   {
-    "name": "Anti rotação acima da cabeça (2)",
+    "name": "Anti-Rotação Acima da Cabeça (2)",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=TBimT5BOQU0"
   },
   {
-    "name": "Anti rotação na polia",
+    "name": "Anti-Rotação na Polia",
     "muscleGroup": "Core",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Br8UrEbZ8nY"
   },
   {
-    "name": "Anti rotação Pallof Press",
+    "name": "Anti-Rotação Pallof Press",
     "muscleGroup": "Core",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=4nZcepfPtK4"
   },
   {
-    "name": "Anti rotação posição de afundo",
+    "name": "Anti-Rotação Posição de Afundo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -486,7 +486,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=l57W92VD5Sw"
   },
   {
-    "name": "Ativação glúteo médio",
+    "name": "Ativação Glúteo Médio",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -500,35 +500,35 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=BcOe805l8uk"
   },
   {
-    "name": "Aviãozinho na polia",
+    "name": "Aviãozinho na Polia",
     "muscleGroup": "Outros",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=XguIB3J9pIQ"
   },
   {
-    "name": "Barra fixa graviton aberta",
+    "name": "Barra Fixa Graviton Aberta",
     "muscleGroup": "Costas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=YRigeNY1QlY"
   },
   {
-    "name": "Barra fixa graviton fechada",
+    "name": "Barra Fixa Graviton Fechada",
     "muscleGroup": "Costas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=X1Lc5yWsQHM"
   },
   {
-    "name": "Barra fixa pronada",
+    "name": "Barra Fixa Pronada",
     "muscleGroup": "Costas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=8JtgV1g2g7k"
   },
   {
-    "name": "Barra fixa supinada",
+    "name": "Barra Fixa Supinada",
     "muscleGroup": "Costas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -542,7 +542,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=rbLBH4CkLoM"
   },
   {
-    "name": "Bom dia",
+    "name": "Bom Dia",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -556,7 +556,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=DmkCSyzVXJc"
   },
   {
-    "name": "Búlgaro explosivo",
+    "name": "Búlgaro Explosivo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -570,56 +570,56 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/Pj4zPwCDLN0"
   },
   {
-    "name": "Cadeira flexora",
+    "name": "Cadeira Flexora",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=3G6G3LXEvUQ"
   },
   {
-    "name": "Cadeira flexora unilateral",
+    "name": "Cadeira Flexora Unilateral",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=aINWvk_g_t4"
   },
   {
-    "name": "Caminhada na esteira",
+    "name": "Caminhada na Esteira",
     "muscleGroup": "Cardio",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=HKaG19T6myg"
   },
   {
-    "name": "Chop rotacional posição de afundo",
+    "name": "Chop Rotacional Posição de Afundo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=9BRs2Gix66s"
   },
   {
-    "name": "Corda naval alternado",
+    "name": "Corda Naval Alternado",
     "muscleGroup": "Cardio",
     "equipment": "Corda Naval",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=r0XLK4E_yDs"
   },
   {
-    "name": "Corda naval bilateral",
+    "name": "Corda Naval Bilateral",
     "muscleGroup": "Cardio",
     "equipment": "Corda Naval",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=KJNiABJBMX4"
   },
   {
-    "name": "Corrida estacionária",
+    "name": "Corrida Estacionária",
     "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=pT-ZCJjdYZc"
   },
   {
-    "name": "Corrida na esteira",
+    "name": "Corrida na Esteira",
     "muscleGroup": "Cardio",
     "equipment": "Máquina",
     "description": null,
@@ -640,14 +640,14 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=_QOrf0oI69Q"
   },
   {
-    "name": "Crucifixo Inverso Com Halter",
+    "name": "Crucifixo Inverso com Halter",
     "muscleGroup": "Peito",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=2e-IGU4T5uY"
   },
   {
-    "name": "Crucifixo Inverso No Cross",
+    "name": "Crucifixo Inverso no Cross",
     "muscleGroup": "Peito",
     "equipment": "Polia",
     "description": null,
@@ -675,7 +675,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=a8euMgeGj7g"
   },
   {
-    "name": "Desenvolvimento Livre Com Halteres",
+    "name": "Desenvolvimento Livre com Halteres",
     "muscleGroup": "Ombros",
     "equipment": "Halteres",
     "description": null,
@@ -696,35 +696,35 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=WEW99wQk_-Y"
   },
   {
-    "name": "Elevação Frontal Com Anilha",
+    "name": "Elevação Frontal com Anilha",
     "muscleGroup": "Ombros",
     "equipment": "Anilha",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=EpiifwInlp8"
   },
   {
-    "name": "Elevação Frontal Com Aproximação",
+    "name": "Elevação Frontal com Aproximação",
     "muscleGroup": "Ombros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=20Q1L7ndbDU"
   },
   {
-    "name": "Elevação Frontal Com Halteres",
+    "name": "Elevação Frontal com Halteres",
     "muscleGroup": "Ombros",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=PNMsAivexFE"
   },
   {
-    "name": "Elevação Frontal Na Polia Com Corda",
+    "name": "Elevação Frontal na Polia com Corda",
     "muscleGroup": "Ombros",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=58nhcBdE6F4"
   },
   {
-    "name": "Elevação Frontal Na Polia Pegada Pronada",
+    "name": "Elevação Frontal na Polia Pegada Pronada",
     "muscleGroup": "Ombros",
     "equipment": "Polia",
     "description": null,
@@ -752,7 +752,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/0WxSGB5cvEw"
   },
   {
-    "name": "Elevação Lateral Na Polia Unilateral",
+    "name": "Elevação Lateral na Polia Unilateral",
     "muscleGroup": "Ombros",
     "equipment": "Polia",
     "description": null,
@@ -766,7 +766,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=iCQpV0WuY30"
   },
   {
-    "name": "Elevação Lateral Peito Apoiado No Banco",
+    "name": "Elevação Lateral Peito Apoiado no Banco",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
     "description": null,
@@ -780,56 +780,56 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=PC9Hmnkd4Ew"
   },
   {
-    "name": "Elevação Lateral Unilateral Inclinado Na Polia",
+    "name": "Elevação Lateral Unilateral Inclinado na Polia",
     "muscleGroup": "Ombros",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=05dtpG6ep_8"
   },
   {
-    "name": "Elevação pélvica",
+    "name": "Elevação Pélvica",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=-d8elW_SqHQ"
   },
   {
-    "name": "Elevação pélvica com elástico solo",
+    "name": "Elevação Pélvica com Elástico Solo",
     "muscleGroup": "Outros",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=rGVsmsIglRQ"
   },
   {
-    "name": "Elevação pélvica isométrica com abdução",
+    "name": "Elevação Pélvica Isométrica com Abdução",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=q2P2y7ujpZA"
   },
   {
-    "name": "Elevação Pélvica na Máquina/Barra",
+    "name": "Elevação Pélvica na Máquina/barra",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": "Apoie as costas no banco e a barra no quadril, faça a extensão do quadril empurrando com os calcanhares.",
     "videoUrl": "https://www.youtube.com/watch?v=KCVEEVzbPIs"
   },
   {
-    "name": "Elevação pélvica unilateral banco",
+    "name": "Elevação Pélvica Unilateral Banco",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=IDEZ77rdD2E"
   },
   {
-    "name": "Elevacao Pélvica Unilateral Com Abdução",
+    "name": "Elevacao Pélvica Unilateral com Abdução",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=OgMgWDV276g"
   },
   {
-    "name": "Elevação pélvica unilateral solo",
+    "name": "Elevação Pélvica Unilateral Solo",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
@@ -843,7 +843,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=LT1bmEr18lA"
   },
   {
-    "name": "Elevação Y Com Elástico",
+    "name": "Elevação Y com Elástico",
     "muscleGroup": "Mobilidade",
     "equipment": "Elástico",
     "description": null,
@@ -857,49 +857,49 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=CFyy1lOWKh8"
   },
   {
-    "name": "Estabilização de escápulas no espaldar",
+    "name": "Estabilização de Escápulas no Espaldar",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=dqT6Oc22b-A"
   },
   {
-    "name": "Extensão de quadril com elástico",
+    "name": "Extensão de Quadril com Elástico",
     "muscleGroup": "Outros",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=x4T_3o3tLI0"
   },
   {
-    "name": "Extensão de quadril na polia (Coice)",
+    "name": "Extensão de Quadril na Polia (Coice)",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=kvz1Knfhvak"
   },
   {
-    "name": "Extensão de quadril na polia perna estendida",
+    "name": "Extensão de Quadril na Polia Perna Estendida",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=lrvcVGDQT0M"
   },
   {
-    "name": "Extensora bilateral",
+    "name": "Extensora Bilateral",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=sHIFVwfbcLA"
   },
   {
-    "name": "Extensora tronco inclinado",
+    "name": "Extensora Tronco Inclinado",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=WsL3F6GYquw"
   },
   {
-    "name": "Extensora unilateral",
+    "name": "Extensora Unilateral",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
@@ -920,63 +920,63 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/dTCO9wDonTE"
   },
   {
-    "name": "Flexão de braços",
+    "name": "Flexão de Braços",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=qVq2_0SBVJs"
   },
   {
-    "name": "Flexão de braços ajoelhado",
+    "name": "Flexão de Braços Ajoelhado",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=hHHx3AqESik"
   },
   {
-    "name": "Flexão de joelho em pé caneleira",
+    "name": "Flexão de Joelho em Pé Caneleira",
     "muscleGroup": "Outros",
     "equipment": "Caneleira",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=RveboRfM0to"
   },
   {
-    "name": "Flexão de joelho em pé na polia",
+    "name": "Flexão de Joelho em Pé na Polia",
     "muscleGroup": "Outros",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=HNr9TY1p-4c"
   },
   {
-    "name": "Flexão De Quadril Com Elástico",
+    "name": "Flexão de Quadril com Elástico",
     "muscleGroup": "Outros",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=VWNJhoEzu7Q"
   },
   {
-    "name": "Flexão nórdica",
+    "name": "Flexão Nórdica",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Kwj_NznO7rE"
   },
   {
-    "name": "Flexão nórdica reversa",
+    "name": "Flexão Nórdica Reversa",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=IbFv9J4o-gI"
   },
   {
-    "name": "Flexão plantar com elástico",
+    "name": "Flexão Plantar com Elástico",
     "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=f85OjocSOrA"
   },
   {
-    "name": "Fly inclinado",
+    "name": "Fly Inclinado",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
     "description": null,
@@ -997,28 +997,28 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=2DXK28kqnfQ"
   },
   {
-    "name": "Glúteo 4 apoios perna estendida",
+    "name": "Glúteo 4 Apoios Perna Estendida",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=6I1vXzcf1zw"
   },
   {
-    "name": "Glúteo 4 apoios perna flexionada",
+    "name": "Glúteo 4 Apoios Perna Flexionada",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=xGWthEoq8KQ"
   },
   {
-    "name": "Glúteo concha",
+    "name": "Glúteo Concha",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=YXvNbClsjA8"
   },
   {
-    "name": "Glúteo estendido cruzado",
+    "name": "Glúteo Estendido Cruzado",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1032,35 +1032,35 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=5ihTyFNWDPw"
   },
   {
-    "name": "Landmine press em pé",
+    "name": "Landmine Press em Pé",
     "muscleGroup": "Ombros",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=OZedIWKaCTA"
   },
   {
-    "name": "Landmine press semi ajoelhado",
+    "name": "Landmine Press Semi Ajoelhado",
     "muscleGroup": "Ombros",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=5v3RHdurh-M"
   },
   {
-    "name": "Leg 180 pés altos",
+    "name": "Leg 180 Pés Altos",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=SNmpBS4robY"
   },
   {
-    "name": "Leg 180 pés baixos",
+    "name": "Leg 180 Pés Baixos",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=jIfL0U-YEcw"
   },
   {
-    "name": "Leg 180 unilateral",
+    "name": "Leg 180 Unilateral",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
@@ -1074,21 +1074,21 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=FsanVfvUcII"
   },
   {
-    "name": "Leg 45 pés abduzidos",
+    "name": "Leg 45 Pés Abduzidos",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=954tc-olxAk"
   },
   {
-    "name": "Leg 45 pés altos",
+    "name": "Leg 45 Pés Altos",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=zl0IoxfuEuU"
   },
   {
-    "name": "Leg 45 pés baixos",
+    "name": "Leg 45 Pés Baixos",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
@@ -1102,18 +1102,11 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/HITlVV4eXSA"
   },
   {
-    "name": "Levantamento sumo",
+    "name": "Levantamento Sumô",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=VmKJ3gect58"
-  },
-  {
-    "name": "Levantamento terra",
-    "muscleGroup": "Pernas",
-    "equipment": "Peso Corporal",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=xjL-ALE9f4s"
   },
   {
     "name": "Levantamento Terra",
@@ -1123,21 +1116,21 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/k6eZCDVNWco"
   },
   {
-    "name": "Levantamento terra barra hexagonal",
+    "name": "Levantamento Terra Barra Hexagonal",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=eSY_fyndzFM"
   },
   {
-    "name": "Liberação na torácica",
+    "name": "Liberação na Torácica",
     "muscleGroup": "Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=-3mgBUY6UUo"
   },
   {
-    "name": "Lift posição de afundo",
+    "name": "Lift Posição de Afundo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1151,13 +1144,6 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/nkhwFKpEhgw"
   },
   {
-    "name": "Mesa flexora",
-    "muscleGroup": "Pernas",
-    "equipment": "Máquina",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=sPw-WEBCVes"
-  },
-  {
     "name": "Mesa Flexora",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
@@ -1165,7 +1151,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/DYfZ_m-yciE"
   },
   {
-    "name": "Mesa flexora unilateral",
+    "name": "Mesa Flexora Unilateral",
     "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": null,
@@ -1200,7 +1186,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=t5zw3_aPIr4"
   },
   {
-    "name": "Mobilidade Torácica E De Ombro Na Parede Semi Ajoelhado",
+    "name": "Mobilidade Torácica e de Ombro na Parede Semi Ajoelhado",
     "muscleGroup": "Ombros",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1221,7 +1207,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=46w7IfkqxYk"
   },
   {
-    "name": "Mobilidade Torácica Na Parede Semi Ajoelhado",
+    "name": "Mobilidade Torácica na Parede Semi Ajoelhado",
     "muscleGroup": "Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1242,42 +1228,42 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=kikubfpx8Zw"
   },
   {
-    "name": "Panturrilha Na Barra Guiada Com Step",
+    "name": "Panturrilha na Barra Guiada com Step",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=54hhKYNu9d8"
   },
   {
-    "name": "Panturrilha Na Maquina De Agachamento",
+    "name": "Panturrilha na Maquina de Agachamento",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=F8agcVvigNc"
   },
   {
-    "name": "Panturrilha No Solo Na Barra Guiada",
+    "name": "Panturrilha no Solo na Barra Guiada",
     "muscleGroup": "Pernas",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=5nOaGAnHlxI"
   },
   {
-    "name": "Panturrilha No Step",
+    "name": "Panturrilha no Step",
     "muscleGroup": "Pernas",
     "equipment": "Step",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=odFX9wkQKWw"
   },
   {
-    "name": "Panturrilha No Step Unilateral",
+    "name": "Panturrilha no Step Unilateral",
     "muscleGroup": "Pernas",
     "equipment": "Step",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=wMH4YZDwb7g"
   },
   {
-    "name": "Passada Caranguejo Com Movimento",
+    "name": "Passada Caranguejo com Movimento",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1305,7 +1291,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=RQlKDwSw7gg"
   },
   {
-    "name": "Prancha Frontal Com Elástico E Movimentação De Pernas",
+    "name": "Prancha Frontal com Elástico e Movimentação de Pernas",
     "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
@@ -1319,14 +1305,14 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/fKkarqjGve8"
   },
   {
-    "name": "Prancha Lateral Com Abdução De Pernas",
+    "name": "Prancha Lateral com Abdução de Pernas",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=wMZKeIB_AWk"
   },
   {
-    "name": "Prancha Lateral Com Glúteo Concha",
+    "name": "Prancha Lateral com Glúteo Concha",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1543,7 +1529,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=sJOQr0mSPFU"
   },
   {
-    "name": "Remada Cavalinho No Suporte",
+    "name": "Remada Cavalinho no Suporte",
     "muscleGroup": "Costas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1599,7 +1585,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=r9Lmo_EX_V8"
   },
   {
-    "name": "Retração De Escapulas No Pulley",
+    "name": "Retração de Escapulas no Pulley",
     "muscleGroup": "Costas",
     "equipment": "Polia",
     "description": null,
@@ -1627,35 +1613,35 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=nmY1EM6WI0w"
   },
   {
-    "name": "Rosca Bíceps Com Giri",
-    "muscleGroup": "Braços",
-    "equipment": "Kettlebell",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=PqShZz6N-xM"
-  },
-  {
-    "name": "Rosca Biceps Com Giro",
+    "name": "Rosca Biceps com Giro",
     "muscleGroup": "Braços",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=cIrUAToYxAY"
   },
   {
-    "name": "Rosca Bíceps Corda Na Polia",
+    "name": "Rosca Bíceps com Giro",
+    "muscleGroup": "Braços",
+    "equipment": "Kettlebell",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=PqShZz6N-xM"
+  },
+  {
+    "name": "Rosca Bíceps Corda na Polia",
     "muscleGroup": "Braços",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=oMTC9Ifm7Vw"
   },
   {
-    "name": "Rosca Bíceps Na Polia Alta",
+    "name": "Rosca Bíceps na Polia Alta",
     "muscleGroup": "Braços",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=KpVkjHSYWvo"
   },
   {
-    "name": "Rosca Com Giro Banco 60°",
+    "name": "Rosca com Giro Banco 60°",
     "muscleGroup": "Braços",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1690,28 +1676,28 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=35BxIpDbLD8"
   },
   {
-    "name": "Rosca Direta Com Desenvolvimento",
+    "name": "Rosca Direta com Desenvolvimento",
     "muscleGroup": "Ombros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=vIDHNQrK3Tg"
   },
   {
-    "name": "Rosca Direta Com Halteres",
+    "name": "Rosca Direta com Halteres",
     "muscleGroup": "Braços",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=jTYbykP91vI"
   },
   {
-    "name": "Rosca Direta Na Polia Barra Reta",
+    "name": "Rosca Direta na Polia Barra Reta",
     "muscleGroup": "Braços",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=_dC7hRgeR9Y"
   },
   {
-    "name": "Rosca Direta No Aparelho Funcional",
+    "name": "Rosca Direta no Aparelho Funcional",
     "muscleGroup": "Braços",
     "equipment": "Máquina",
     "description": null,
@@ -1746,7 +1732,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=gocf3-nePpI"
   },
   {
-    "name": "Rosca Martelo Com Elástico",
+    "name": "Rosca Martelo com Elástico",
     "muscleGroup": "Braços",
     "equipment": "Elástico",
     "description": null,
@@ -1760,7 +1746,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/BH4RDHryDbU"
   },
   {
-    "name": "Rosca Martelo No Scott Unilateral",
+    "name": "Rosca Martelo no Scott Unilateral",
     "muscleGroup": "Braços",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1802,7 +1788,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=gYr2VIIobcw"
   },
   {
-    "name": "Rosca Unilateral Na Polia",
+    "name": "Rosca Unilateral na Polia",
     "muscleGroup": "Braços",
     "equipment": "Polia",
     "description": null,
@@ -1844,7 +1830,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=i4gMHCk5sKY"
   },
   {
-    "name": "Salto No Caixote",
+    "name": "Salto no Caixote",
     "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
@@ -1907,7 +1893,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=GSWxaUuc36I"
   },
   {
-    "name": "Stiff Na Polia",
+    "name": "Stiff na Polia",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
@@ -1928,39 +1914,32 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=xpLsFO1Zhz0"
   },
   {
-    "name": "Subida No Caixote",
+    "name": "Subida no Caixote",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=ra3RcUYVwZ8"
   },
   {
-    "name": "Subida No Caixote Over Burpeer",
+    "name": "Subida no Caixote Over Burpeer",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=eDR0doEfVFE"
   },
   {
-    "name": "Subida No Caixote Over Sprawls",
+    "name": "Subida no Caixote Over Sprawls",
     "muscleGroup": "Outros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=6SXL6T79A2U"
   },
   {
-    "name": "Subida No Caixote Perna Estática",
+    "name": "Subida no Caixote Perna Estática",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=DiSFfxUlh4w"
-  },
-  {
-    "name": "Supino Inclinado  Máquina Funcional",
-    "muscleGroup": "Peito",
-    "equipment": "Máquina",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=CStHJSJFAFY"
   },
   {
     "name": "Supino Inclinado Barra Guiada",
@@ -1970,7 +1949,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=8wyfA27ORKo"
   },
   {
-    "name": "Supino Inclinado Com Barra",
+    "name": "Supino Inclinado com Barra",
     "muscleGroup": "Peito",
     "equipment": "Barra",
     "description": null,
@@ -1982,6 +1961,13 @@ const exercisesData = [
     "equipment": "Halteres",
     "description": "Sentado em banco inclinado a 30-45 graus, empurre os halteres para cima de forma controlada.",
     "videoUrl": "https://www.youtube.com/watch?v=L5mYF7tfl4A"
+  },
+  {
+    "name": "Supino Inclinado Máquina Funcional",
+    "muscleGroup": "Peito",
+    "equipment": "Máquina",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=CStHJSJFAFY"
   },
   {
     "name": "Supino Reto Barra Guiada",
@@ -2019,6 +2005,13 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=NRCBhzkOCwY"
   },
   {
+    "name": "Thruster com Halter",
+    "muscleGroup": "Outros",
+    "equipment": "Halteres",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Ik57T5PQxj0"
+  },
+  {
     "name": "Thruster Ladmine",
     "muscleGroup": "Ombros",
     "equipment": "Peso Corporal",
@@ -2040,7 +2033,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=I8EG9Zz2ynI"
   },
   {
-    "name": "Tibial Anterior Na Parede",
+    "name": "Tibial Anterior na Parede",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
@@ -2082,21 +2075,21 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=am6WQW0iwc8"
   },
   {
-    "name": "Tríceps Arremesso Unilateral Com Corda",
+    "name": "Tríceps Arremesso Unilateral com Corda",
     "muscleGroup": "Braços",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=LtoxYz8yEtM"
   },
   {
-    "name": "Tríceps Coice Com Corda",
+    "name": "Tríceps Coice com Corda",
     "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=N5QDpZ5m_Vo"
   },
   {
-    "name": "Tríceps Coice Com Halter",
+    "name": "Tríceps Coice com Halter",
     "muscleGroup": "Pernas",
     "equipment": "Halteres",
     "description": null,
@@ -2117,7 +2110,7 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=Sa1Go2jK4cY"
   },
   {
-    "name": "Tríceps Francês Com Dumble",
+    "name": "Tríceps Francês com Halter",
     "muscleGroup": "Braços",
     "equipment": "Peso Corporal",
     "description": null,
@@ -2145,14 +2138,14 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=sUZvir4UKvo"
   },
   {
-    "name": "Tríceps Na Polia Barra Reta",
+    "name": "Tríceps na Polia Barra Reta",
     "muscleGroup": "Braços",
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=oWDmzZAh5t0"
   },
   {
-    "name": "Tríceps Na Polia Barra W",
+    "name": "Tríceps na Polia Barra W",
     "muscleGroup": "Braços",
     "equipment": "Barra",
     "description": null,
@@ -2194,14 +2187,14 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/x9lbdH8qbHM"
   },
   {
-    "name": "Tríceps Testa Com Halter",
+    "name": "Tríceps Testa com Halter",
     "muscleGroup": "Braços",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=7Lb3Z1Wvsuo"
   },
   {
-    "name": "Tríceps Testa Na Polia Baixa",
+    "name": "Tríceps Testa na Polia Baixa",
     "muscleGroup": "Braços",
     "equipment": "Polia",
     "description": null,
@@ -2213,13 +2206,6 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=WPPdgxA2bHA"
-  },
-  {
-    "name": "Truster Com Halter",
-    "muscleGroup": "Outros",
-    "equipment": "Halteres",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=Ik57T5PQxj0"
   },
   {
     "name": "Voador",
@@ -2246,14 +2232,7 @@ const exercisesData = [
 
 async function main() {
   console.log("Iniciando seed de banco de dados expandido com links das playlists do YouTube...");
-  
-  // Deletamos apenas os exercícios que não estão vinculados a treinos para evitar quebrar dados dos usuários
-  // Ou se for um ambiente de desenvolvimento limpo, podemos recriar.
-  // Para ser seguro em produção/desenvolvimento, faremos um upsert ou inserção segura:
   console.log("Inserindo/atualizando exercícios na biblioteca...");
-  
-  let createdCount = 0;
-  let updatedCount = 0;
   
   for (const exercise of exercisesData) {
     await prisma.exercise.upsert({
@@ -2274,7 +2253,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error("Erro ao rodar o seed expandido:", e);
+    console.error("Erro ao rodar o seed:", e);
     process.exit(1);
   })
   .finally(async () => {

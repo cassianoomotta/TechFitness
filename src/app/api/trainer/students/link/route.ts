@@ -65,6 +65,15 @@ export async function POST(request: Request) {
       }
     });
 
+    // Notificar o aluno
+    await prisma.notification.create({
+      data: {
+        userId: student.userId,
+        title: "Treinador Vinculado 🤝",
+        message: `Você foi vinculado ao treinador ${session.user.name}.`,
+      }
+    });
+
     return NextResponse.json({
       success: true,
       message: `Aluno ${updatedStudent.user.name} foi adicionado ao seu painel.`,

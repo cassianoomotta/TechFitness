@@ -63,6 +63,22 @@ export async function POST(request: Request) {
             userId: user.id,
           },
         });
+
+        // Notificar todos os treinadores sobre o novo aluno disponível
+        const trainers = await tx.user.findMany({
+          where: { role: "TRAINER" },
+          select: { id: true }
+        });
+
+        if (trainers.length > 0) {
+          await tx.notification.createMany({
+            data: trainers.map((t) => ({
+              userId: t.id,
+              title: "Novo Aluno Registrado 🆕",
+              message: `${name} acabou de se cadastrar no sistema e está disponível para ser vinculado!`,
+            }))
+          });
+        }
       }
 
       return user;
