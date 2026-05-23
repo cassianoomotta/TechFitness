@@ -1590,15 +1590,7 @@ const exercisesData = [
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=aTwQVcizDsA"
-  },
-  {
-    "name": "Rosca biceps 21",
-    "muscleGroup": "Braços",
-    "equipment": "Peso Corporal",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=xcQtEc9ysYM"
-  },
-  {
+  },{
     "name": "Rosca bíceps 21",
     "muscleGroup": "Braços",
     "equipment": "Peso Corporal",
@@ -1611,15 +1603,7 @@ const exercisesData = [
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=nmY1EM6WI0w"
-  },
-  {
-    "name": "Rosca biceps com giro",
-    "muscleGroup": "Braços",
-    "equipment": "Peso Corporal",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=cIrUAToYxAY"
-  },
-  {
+  },{
     "name": "Rosca bíceps com giro",
     "muscleGroup": "Braços",
     "equipment": "Kettlebell",
