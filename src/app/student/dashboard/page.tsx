@@ -72,6 +72,36 @@ interface ComparisonData {
   }[];
 }
 
+const DAY_ORDER: Record<string, number> = {
+  "Seg": 1,
+  "Ter": 2,
+  "Qua": 3,
+  "Qui": 4,
+  "Sex": 5,
+  "Sáb": 6,
+  "Dom": 7
+};
+
+function sortPlansByWeekDays(plansList: WorkoutPlan[]) {
+  return [...plansList].sort((a, b) => {
+    if (!a.weekDays && !b.weekDays) return 0;
+    if (!a.weekDays) return 1;
+    if (!b.weekDays) return -1;
+
+    const aDays = a.weekDays.split(",").map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
+    const bDays = b.weekDays.split(",").map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
+
+    for (let i = 0; i < Math.max(aDays.length, bDays.length); i++) {
+      const aVal = aDays[i] !== undefined ? aDays[i] : 999;
+      const bVal = bDays[i] !== undefined ? bDays[i] : 999;
+      if (aVal !== bVal) {
+        return aVal - bVal;
+      }
+    }
+    return 0;
+  });
+}
+
 export default function StudentDashboard() {
   const { data: session } = useSession();
   
@@ -148,7 +178,8 @@ export default function StudentDashboard() {
 
       if (response.ok) {
         const updated = await response.json();
-        setPlans(plans.map((p) => p.id === editingPlan.id ? { ...p, division: updated.division, weekDays: updated.weekDays } : p));
+        const updatedPlans = plans.map((p) => p.id === editingPlan.id ? { ...p, division: updated.division, weekDays: updated.weekDays } : p);
+        setPlans(sortPlansByWeekDays(updatedPlans));
         setEditingPlan(null);
       } else {
         const data = await response.json();
@@ -167,7 +198,7 @@ export default function StudentDashboard() {
         const response = await fetch("/api/student/workout-plans");
         if (response.ok) {
           const data = await response.json();
-          setPlans(data.plans);
+          setPlans(sortPlansByWeekDays(data.plans));
           setTrainer(data.trainer);
         }
       } catch (error) {

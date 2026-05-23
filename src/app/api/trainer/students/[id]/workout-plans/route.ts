@@ -95,7 +95,7 @@ export async function POST(
       });
 
       // Mapear exercícios
-      const exercisesPayload = exercises.map((ex) => ({
+      const exercisesPayload = exercises.map((ex, index) => ({
         workoutPlanId: plan.id,
         exerciseId: ex.exerciseId,
         sets: ex.sets,
@@ -105,6 +105,7 @@ export async function POST(
         recommendedRpe: ex.recommendedRpe || null,
         recommendedWeight: ex.recommendedWeight || null,
         notes: ex.notes || null,
+        order: index,
       }));
 
       await tx.workoutPlanExercise.createMany({
@@ -224,7 +225,7 @@ export async function PUT(
       });
 
       // 3. Criar os novos exercícios da ficha
-      const exercisesPayload = exercises.map((ex) => ({
+      const exercisesPayload = exercises.map((ex, index) => ({
         workoutPlanId: planId,
         exerciseId: ex.exerciseId,
         sets: Number(ex.sets),
@@ -234,6 +235,7 @@ export async function PUT(
         recommendedRpe: ex.recommendedRpe || null,
         recommendedWeight: ex.recommendedWeight || null,
         notes: ex.notes || null,
+        order: index,
       }));
 
       await tx.workoutPlanExercise.createMany({

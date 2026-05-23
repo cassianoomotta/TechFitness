@@ -45,7 +45,7 @@ export async function GET() {
       include: {
         exercises: {
           orderBy: {
-            id: "asc",
+            order: "asc",
           },
           include: {
             exercise: {
@@ -60,9 +60,34 @@ export async function GET() {
           },
         },
       },
-      orderBy: {
-        division: "asc",
-      },
+    });
+
+    const DAY_ORDER: Record<string, number> = {
+      "Seg": 1,
+      "Ter": 2,
+      "Qua": 3,
+      "Qui": 4,
+      "Sex": 5,
+      "Sáb": 6,
+      "Dom": 7
+    };
+
+    plans.sort((a, b) => {
+      if (!a.weekDays && !b.weekDays) return 0;
+      if (!a.weekDays) return 1;
+      if (!b.weekDays) return -1;
+
+      const aDays = a.weekDays.split(",").map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
+      const bDays = b.weekDays.split(",").map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
+
+      for (let i = 0; i < Math.max(aDays.length, bDays.length); i++) {
+        const aVal = aDays[i] !== undefined ? aDays[i] : 999;
+        const bVal = bDays[i] !== undefined ? bDays[i] : 999;
+        if (aVal !== bVal) {
+          return aVal - bVal;
+        }
+      }
+      return 0;
     });
 
     // Mapear retorno

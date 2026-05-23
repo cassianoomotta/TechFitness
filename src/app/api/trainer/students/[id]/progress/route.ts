@@ -70,6 +70,9 @@ export async function GET(
       where: { studentId },
       include: {
         exercises: {
+          orderBy: {
+            order: "asc",
+          },
           include: {
             exercise: true,
           },

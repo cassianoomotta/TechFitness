@@ -17,6 +17,8 @@ import {
   Info,
   CheckCircle,
   Sparkles,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 interface Exercise {
@@ -159,6 +161,24 @@ export default function NewPlanPage() {
   const handleRemoveExercise = (index: number) => {
     const updated = [...selectedExercises];
     updated.splice(index, 1);
+    setSelectedExercises(updated);
+  };
+
+  const handleMoveExerciseUp = (index: number) => {
+    if (index === 0) return;
+    const updated = [...selectedExercises];
+    const temp = updated[index];
+    updated[index] = updated[index - 1];
+    updated[index - 1] = temp;
+    setSelectedExercises(updated);
+  };
+
+  const handleMoveExerciseDown = (index: number) => {
+    if (index === selectedExercises.length - 1) return;
+    const updated = [...selectedExercises];
+    const temp = updated[index];
+    updated[index] = updated[index + 1];
+    updated[index + 1] = temp;
     setSelectedExercises(updated);
   };
 
@@ -614,29 +634,16 @@ export default function NewPlanPage() {
               )}
 
               {/* Informações Básicas da Ficha */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2 space-y-1">
-                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">Nome do Treino / Ficha</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Treino A - Peito & Tríceps"
-                    value={workoutName}
-                    onChange={(e) => setWorkoutName(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">Divisão (Ex: A, B, Superior)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: A"
-                    value={division}
-                    onChange={(e) => setDivision(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">Nome do Treino / Ficha</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Treino A - Peito & Tríceps"
+                  value={workoutName}
+                  onChange={(e) => setWorkoutName(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                />
               </div>
 
               <div className="space-y-1">
@@ -690,14 +697,34 @@ export default function NewPlanPage() {
                         key={index}
                         className="p-4 bg-zinc-50 border border-[#E2E8F0] rounded-xl space-y-3 relative group"
                       >
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExercise(index)}
-                          className="absolute right-4 top-4 p-1.5 rounded-lg border border-[#E2E8F0] hover:border-red-400 hover:bg-red-50 text-[#94A3B8] hover:text-red-650 transition-all cursor-pointer"
-                          title="Remover exercício"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="absolute right-4 top-4 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => handleMoveExerciseUp(index)}
+                            className="p-1.5 rounded-lg border border-[#E2E8F0] bg-white hover:border-zinc-300 hover:bg-zinc-50 text-[#94A3B8] hover:text-zinc-950 transition-all cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
+                            title="Mover para cima"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === selectedExercises.length - 1}
+                            onClick={() => handleMoveExerciseDown(index)}
+                            className="p-1.5 rounded-lg border border-[#E2E8F0] bg-white hover:border-zinc-300 hover:bg-zinc-50 text-[#94A3B8] hover:text-zinc-950 transition-all cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
+                            title="Mover para baixo"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExercise(index)}
+                            className="p-1.5 rounded-lg border border-[#E2E8F0] bg-white hover:border-red-400 hover:bg-red-50 text-[#94A3B8] hover:text-red-650 transition-all cursor-pointer"
+                            title="Remover exercício"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
 
                         <div className="pr-10">
                           <p className="text-xs font-bold text-[#0F172A]">{exercise.name}</p>
@@ -752,8 +779,8 @@ export default function NewPlanPage() {
                           </div>
                         </div>
 
-                        {/* Parâmetros Avançados (Peso / RPE recomendados e notas) */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {/* Parâmetros Avançados (Peso recomendado e notas) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="space-y-1">
                             <label className="text-[8px] font-bold text-[#94A3B8] uppercase block">Peso Sugerido (kg)</label>
                             <input
@@ -766,18 +793,6 @@ export default function NewPlanPage() {
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[8px] font-bold text-[#94A3B8] uppercase block">RPE Alvo (1-10)</label>
-                            <input
-                              type="number"
-                              min="1"
-                              max="10"
-                              placeholder="Ex: 8"
-                              value={exercise.recommendedRpe || ""}
-                              onChange={(e) => handleUpdateExerciseParam(index, "recommendedRpe", e.target.value ? Number(e.target.value) : null)}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E2E8F0] outline-none text-xs text-[#0F172A] font-mono focus:border-[#2563EB]"
-                            />
-                          </div>
-                          <div className="space-y-1 col-span-2 sm:col-span-1">
                             <label className="text-[8px] font-bold text-[#94A3B8] uppercase block">Anotação Rápida</label>
                             <input
                               type="text"

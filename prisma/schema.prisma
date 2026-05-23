@@ -93,6 +93,7 @@ model WorkoutPlanExercise {
   recommendedWeight Float?
   notes             String?
   customName        String?     // Custom name for the student's plan
+  order             Int         @default(0)
 }
 
 model WorkoutSession {

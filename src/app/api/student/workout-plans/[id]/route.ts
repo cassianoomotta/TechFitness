@@ -38,7 +38,7 @@ export async function GET(
       include: {
         exercises: {
           orderBy: {
-            id: "asc",
+            order: "asc",
           },
           include: {
             exercise: {
