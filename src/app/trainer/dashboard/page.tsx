@@ -21,6 +21,9 @@ import {
   X,
   Lock,
   Bell,
+  Copy,
+  Check,
+  ChevronRight,
 } from "lucide-react";
 
 interface Student {
@@ -56,6 +59,18 @@ export default function TrainerDashboard() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [linkingId, setLinkingId] = useState<string | null>(null);
+
+  // Estados de Duplicar Treino
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const [duplicateSourceStudent, setDuplicateSourceStudent] = useState<Student | null>(null);
+  const [duplicateSourcePlans, setDuplicateSourcePlans] = useState<any[]>([]);
+  const [duplicateSelectedPlanId, setDuplicateSelectedPlanId] = useState<string>("");
+  const [duplicateTargetIds, setDuplicateTargetIds] = useState<string[]>([]);
+  const [duplicateLoading, setDuplicateLoading] = useState(false);
+  const [duplicatePlansLoading, setDuplicatePlansLoading] = useState(false);
+  const [duplicateError, setDuplicateError] = useState("");
+  const [duplicateSuccess, setDuplicateSuccess] = useState("");
+  const [duplicateStep, setDuplicateStep] = useState<1 | 2>(1);
 
   // Estados de Notificações
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -200,6 +215,86 @@ export default function TrainerDashboard() {
       setModalError("Erro de conexão com o servidor.");
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  // Abrir modal de duplicar treino
+  const handleOpenDuplicate = async (student: Student) => {
+    setDuplicateSourceStudent(student);
+    setDuplicateSelectedPlanId("");
+    setDuplicateTargetIds([]);
+    setDuplicateError("");
+    setDuplicateSuccess("");
+    setDuplicateStep(1);
+    setIsDuplicateModalOpen(true);
+    setDuplicatePlansLoading(true);
+
+    try {
+      const response = await fetch(`/api/trainer/students/${student.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDuplicateSourcePlans(data.workoutPlans || []);
+      } else {
+        setDuplicateError("Erro ao carregar os treinos deste aluno.");
+      }
+    } catch {
+      setDuplicateError("Erro de conexão ao carregar treinos.");
+    } finally {
+      setDuplicatePlansLoading(false);
+    }
+  };
+
+  const handleToggleTarget = (studentId: string) => {
+    setDuplicateTargetIds((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const handleSelectAllTargets = () => {
+    const available = students
+      .filter((s) => s.id !== duplicateSourceStudent?.id)
+      .map((s) => s.id);
+    if (duplicateTargetIds.length === available.length) {
+      setDuplicateTargetIds([]);
+    } else {
+      setDuplicateTargetIds(available);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (!duplicateSourceStudent || !duplicateSelectedPlanId || duplicateTargetIds.length === 0) return;
+    setDuplicateLoading(true);
+    setDuplicateError("");
+    setDuplicateSuccess("");
+
+    try {
+      const response = await fetch(`/api/trainer/students/${duplicateSourceStudent.id}/workout-plans/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: duplicateSelectedPlanId,
+          targetStudentIds: duplicateTargetIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setDuplicateSuccess(`Treino duplicado com sucesso para ${data.duplicatedCount} aluno(s)!`);
+        fetchStudents();
+        setTimeout(() => {
+          setIsDuplicateModalOpen(false);
+          setDuplicateSuccess("");
+        }, 2000);
+      } else {
+        setDuplicateError(data.error || "Erro ao duplicar o treino.");
+      }
+    } catch {
+      setDuplicateError("Erro de conexão com o servidor.");
+    } finally {
+      setDuplicateLoading(false);
     }
   };
 
@@ -471,6 +566,13 @@ export default function TrainerDashboard() {
                     >
                       Montar Treino
                     </Link>
+                    <button
+                      onClick={() => handleOpenDuplicate(student)}
+                      className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#94A3B8] hover:text-[#2563EB] text-xs font-semibold flex items-center justify-center transition-all cursor-pointer"
+                      title="Duplicar Treino"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
                     <Link
                       href={`/trainer/students/${student.id}/progress`}
                       className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-zinc-300 hover:bg-white text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold flex items-center justify-center transition-all"
@@ -687,6 +789,217 @@ export default function TrainerDashboard() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Duplicar Treino */}
+      {isDuplicateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[85vh] flex flex-col">
+            {/* Header */}
+            <button
+              onClick={() => setIsDuplicateModalOpen(false)}
+              className="absolute right-4 top-4 p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-white text-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer z-10"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-2">
+              <div className="bg-[#2563EB]/10 p-2 rounded-lg text-[#2563EB]">
+                <Copy className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-display font-semibold text-lg text-[#0F172A]">
+                  Duplicar Treino
+                </h3>
+                <p className="text-[10px] text-[#94A3B8] font-medium">
+                  De: {duplicateSourceStudent?.name}
+                </p>
+              </div>
+            </div>
+
+            {/* Steps indicator */}
+            <div className="flex items-center gap-2 mb-5 mt-2">
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
+                duplicateStep === 1
+                  ? "bg-[#2563EB] text-white"
+                  : "bg-[#2563EB]/10 text-[#2563EB]"
+              }`}>
+                <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[9px]">1</span>
+                Escolher Treino
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8]" />
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
+                duplicateStep === 2
+                  ? "bg-[#2563EB] text-white"
+                  : "bg-zinc-100 text-[#94A3B8]"
+              }`}>
+                <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[9px]">2</span>
+                Selecionar Alunos
+              </div>
+            </div>
+
+            {duplicateError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs text-center">
+                {duplicateError}
+              </div>
+            )}
+
+            {duplicateSuccess && (
+              <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs text-center flex items-center justify-center gap-2">
+                <Check className="w-4 h-4" />
+                {duplicateSuccess}
+              </div>
+            )}
+
+            {/* Step 1: Select plan */}
+            {duplicateStep === 1 && (
+              <div className="flex-1 overflow-y-auto">
+                {duplicatePlansLoading ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-[#94A3B8]">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] mb-2" />
+                    <p className="text-xs">Carregando treinos...</p>
+                  </div>
+                ) : duplicateSourcePlans.length === 0 ? (
+                  <div className="text-center py-10">
+                    <BookOpen className="w-10 h-10 mx-auto text-[#94A3B8] mb-3" />
+                    <p className="text-sm font-semibold text-[#0F172A]">Nenhum treino encontrado</p>
+                    <p className="text-xs text-[#94A3B8] mt-1">Este aluno ainda não possui fichas de treino.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-[#94A3B8] mb-3">Selecione a ficha de treino que deseja duplicar:</p>
+                    {duplicateSourcePlans.map((plan: any) => (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        onClick={() => {
+                          setDuplicateSelectedPlanId(plan.id);
+                          setDuplicateStep(2);
+                        }}
+                        className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer group ${
+                          duplicateSelectedPlanId === plan.id
+                            ? "border-[#2563EB] bg-[#2563EB]/5 shadow-sm"
+                            : "border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] text-xs font-bold">
+                                {plan.division}
+                              </span>
+                              <div>
+                                <p className="text-sm font-semibold text-[#0F172A]">{plan.name}</p>
+                                <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                                  {plan.exercises?.length || 0} exercícios
+                                  {plan.weekDays && ` · ${plan.weekDays}`}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#2563EB] transition-colors" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Select target students */}
+            {duplicateStep === 2 && (
+              <div className="flex-1 overflow-y-auto flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setDuplicateStep(1)}
+                    className="text-xs text-[#2563EB] font-semibold hover:text-[#1E40AF] transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    ← Voltar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSelectAllTargets}
+                    className="text-[10px] text-[#94A3B8] hover:text-[#2563EB] font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    {duplicateTargetIds.length === students.filter(s => s.id !== duplicateSourceStudent?.id).length
+                      ? "Desmarcar Todos"
+                      : "Selecionar Todos"}
+                  </button>
+                </div>
+
+                <p className="text-xs text-[#94A3B8] mb-3">
+                  Treino selecionado: <span className="font-semibold text-[#0F172A]">{duplicateSourcePlans.find((p: any) => p.id === duplicateSelectedPlanId)?.name}</span>
+                </p>
+
+                <div className="space-y-2 flex-1 overflow-y-auto pr-1 mb-4">
+                  {students
+                    .filter((s) => s.id !== duplicateSourceStudent?.id)
+                    .map((student) => {
+                      const isSelected = duplicateTargetIds.includes(student.id);
+                      const initials = student.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase();
+
+                      return (
+                        <button
+                          key={student.id}
+                          type="button"
+                          onClick={() => handleToggleTarget(student.id)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-[#2563EB] bg-[#2563EB]/5"
+                              : "border-[#E2E8F0] hover:border-[#2563EB]/20 hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                            isSelected
+                              ? "bg-[#2563EB] border-[#2563EB]"
+                              : "border-[#CBD5E1]"
+                          }`}>
+                            {isSelected && <Check className="w-3 h-3 text-white stroke-[3px]" />}
+                          </div>
+                          <div className="w-9 h-9 rounded-lg bg-[#00C2FF]/10 border border-cyan-900/30 flex items-center justify-center font-display font-extrabold text-[#2563EB] text-[10px] tracking-wider flex-shrink-0">
+                            {initials}
+                          </div>
+                          <div className="text-left overflow-hidden">
+                            <p className="text-xs font-semibold text-[#0F172A] truncate">{student.name}</p>
+                            <p className="text-[10px] text-[#94A3B8] truncate">{student.email}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                  {students.filter((s) => s.id !== duplicateSourceStudent?.id).length === 0 && (
+                    <div className="text-center py-8">
+                      <Users className="w-8 h-8 mx-auto text-[#94A3B8] mb-2" />
+                      <p className="text-xs text-[#94A3B8]">Não há outros alunos para duplicar o treino.</p>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  disabled={duplicateLoading || duplicateTargetIds.length === 0 || !!duplicateSuccess}
+                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {duplicateLoading ? (
+                    <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Duplicar para {duplicateTargetIds.length} aluno{duplicateTargetIds.length !== 1 ? "s" : ""}
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </div>
