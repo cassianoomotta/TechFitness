@@ -12,23 +12,26 @@ export default function MuscleMap({ muscleGroup, className = "", size = 200 }: M
   // Normalizar grupo muscular
   const group = muscleGroup ? muscleGroup.toUpperCase().trim() : "";
 
-  // Helper para verificar se um grupo muscular deve ser destacado
+  // Helper para verificar correspondência segura (evita falsos positivos como ANTEBRAÇOS conter BRAÇOS)
   const isHighlighted = (muscles: string[]) => {
-    return muscles.some(m => group.includes(m) || m.includes(group));
+    return muscles.some(m => group === m || (group.includes(m) && !group.includes("ANTEBRAÇO") && !group.includes("ANTEBRACO")));
   };
 
-  // Mapeamento preciso de grupos de músculos
+  // Mapeamento preciso e isolado para evitar vazamentos de cor
   const highlightChest = isHighlighted(["PEITO", "CHEST", "PEITORAL"]);
   const highlightUpperBack = isHighlighted(["TRAPÉZIO", "TRAPEZIO", "COSTAS SUPERIOR", "UPPER BACK", "TRAP", "TRAPS"]);
-  const highlightLats = isHighlighted(["DORSAIS", "LAT", "LATS", "COSTAS", "MID BACK"]);
+  const highlightLats = isHighlighted(["DORSAIS", "LAT", "LATS", "COSTAS", "MID BACK"]) && !group.includes("LOMBAR") && !group.includes("TRAP");
   const highlightLombar = isHighlighted(["LOMBAR", "LOWER BACK"]);
   const highlightShoulders = isHighlighted(["OMBROS", "SHOULDERS", "DELTOIDE", "DELTS", "DELT"]);
-  const highlightBiceps = isHighlighted(["BÍCEPS", "BICEPS"]);
-  const highlightTriceps = isHighlighted(["TRÍCEPS", "TRICEPS"]);
-  const highlightForearms = isHighlighted(["ANTEBRAÇO", "ANTEBRACOS", "FOREARMS", "ANTEBRAÇOS"]);
+  
+  // Braços: se o grupo for genérico "BRAÇOS" ou "ARMS", destacamos bíceps e tríceps. Antebraço acende somente se for explicitamente antebraço.
+  const highlightBiceps = isHighlighted(["BÍCEPS", "BICEPS"]) || group === "BRAÇOS" || group === "BRACO" || group === "ARMS";
+  const highlightTriceps = isHighlighted(["TRÍCEPS", "TRICEPS"]) || group === "BRAÇOS" || group === "BRACO" || group === "ARMS";
+  const highlightForearms = group.includes("ANTEBRAÇO") || group.includes("ANTEBRACO") || group.includes("FOREARM");
+  
   const highlightAbs = isHighlighted(["CORE", "ABS", "ABDÔMEN", "ABDOMEN", "OBLÍQUOS", "OBLIQUOS"]);
   const highlightGlutes = isHighlighted(["GLÚTEO", "GLÚTEOS", "GLUTE", "GLUTES", "BUMBUM"]);
-  const highlightQuadriceps = isHighlighted(["QUADRÍCEPS", "QUADRICEPS", "PERNAS", "LEGS", "COXA", "ANTERIOR COXA", "QUAD"]);
+  const highlightQuadriceps = isHighlighted(["QUADRÍCEPS", "QUADRICEPS", "ANTERIOR COXA", "QUAD"]) || group === "PERNAS" || group === "LEGS" || group === "COXA";
   const highlightHamstrings = isHighlighted(["POSTERIOR", "POSTERIOR COXA", "ISQUIOTIBIAIS", "HAMSTRINGS"]);
   const highlightCalves = isHighlighted(["PANTURRILHA", "PANTURRILHAS", "CALF", "CALVES"]);
   const highlightCardio = isHighlighted(["CARDIO", "AQUECIMENTO", "MOBILIDADE", "WARMUP"]);
