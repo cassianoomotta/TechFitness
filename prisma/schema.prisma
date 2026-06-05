@@ -48,6 +48,7 @@ model StudentProfile {
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   trainerId    String?
   trainer      TrainerProfile?   @relation(fields: [trainerId], references: [id])
+  weightGoal   String            @default("EMAGRECER") // EMAGRECER ou GANHAR_MASSA
   workoutPlans WorkoutPlan[]
   sessions     WorkoutSession[]
   measurements BodyMeasurement[]

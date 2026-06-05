@@ -37,7 +37,10 @@ export async function GET() {
       orderBy: { date: "desc" },
     });
 
-    return NextResponse.json(measurements);
+    return NextResponse.json({
+      measurements,
+      weightGoal: studentProfile.weightGoal,
+    });
   } catch (error) {
     console.error("ERRO AO BUSCAR MEDIDAS DO ALUNO:", error);
     return NextResponse.json(
@@ -95,6 +98,59 @@ export async function POST(request: Request) {
     console.error("ERRO AO REGISTRAR PESO DO ALUNO:", error);
     return NextResponse.json(
       { error: "Ocorreu um erro interno ao registrar seu peso." },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT: Atualizar o objetivo de peso do aluno (weightGoal)
+export async function PUT(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "STUDENT") {
+      return NextResponse.json(
+        { error: "Não autorizado." },
+        { status: 401 }
+      );
+    }
+
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!studentProfile) {
+      return NextResponse.json(
+        { error: "Perfil do aluno não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const { weightGoal } = body;
+
+    if (weightGoal !== "EMAGRECER" && weightGoal !== "GANHAR_MASSA") {
+      return NextResponse.json(
+        { error: "Objetivo inválido. Deve ser EMAGRECER ou GANHAR_MASSA." },
+        { status: 400 }
+      );
+    }
+
+    const updatedProfile = await prisma.studentProfile.update({
+      where: { id: studentProfile.id },
+      data: {
+        weightGoal,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      weightGoal: updatedProfile.weightGoal,
+    });
+  } catch (error) {
+    console.error("ERRO AO ATUALIZAR OBJETIVO DO ALUNO:", error);
+    return NextResponse.json(
+      { error: "Ocorreu um erro interno ao atualizar seu objetivo." },
       { status: 500 }
     );
   }

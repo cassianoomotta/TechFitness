@@ -277,18 +277,37 @@ export default function StudentDashboard() {
     }
   };
 
+  const [weightGoal, setWeightGoal] = useState<string>("EMAGRECER");
+
   const fetchMeasurements = async () => {
     setMeasurementsLoading(true);
     try {
       const response = await fetch("/api/student/measurements");
       if (response.ok) {
         const data = await response.json();
-        setMeasurements(data);
+        setMeasurements(data.measurements || []);
+        setWeightGoal(data.weightGoal || "EMAGRECER");
       }
     } catch (err) {
       console.error("Erro ao carregar peso:", err);
     } finally {
       setMeasurementsLoading(false);
+    }
+  };
+
+  const handleUpdateWeightGoal = async (goal: string) => {
+    try {
+      const response = await fetch("/api/student/measurements", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weightGoal: goal }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWeightGoal(data.weightGoal);
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar objetivo de peso:", err);
     }
   };
 
@@ -848,7 +867,40 @@ export default function StudentDashboard() {
 
         {/* Aba 3: Meu Peso */}
         {activeTab === "peso" && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
+            {/* Card Objetivo de Peso */}
+            <div className="glass-card rounded-2xl p-5 border border-[#E2E8F0] bg-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Foco do seu Objetivo</h4>
+                <p className="text-[10px] text-[#94A3B8] mt-1">
+                  Define se o ganho (Hipertrofia) ou a perda (Emagrecimento) de peso será destacado em verde.
+                </p>
+              </div>
+              <div className="flex bg-zinc-100 p-1 rounded-xl border border-[#E2E8F0] w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => handleUpdateWeightGoal("EMAGRECER")}
+                  className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    weightGoal === "EMAGRECER"
+                      ? "bg-[#2563EB] text-white shadow-sm"
+                      : "text-[#94A3B8] hover:text-[#0F172A]"
+                  }`}
+                >
+                  Emagrecimento
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateWeightGoal("GANHAR_MASSA")}
+                  className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    weightGoal === "GANHAR_MASSA"
+                      ? "bg-[#2563EB] text-white shadow-sm"
+                      : "text-[#94A3B8] hover:text-[#0F172A]"
+                  }`}
+                >
+                  Ganho de Massa
+                </button>
+              </div>
+            </div>
             {/* Card Registrar Peso */}
             <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] bg-white shadow-sm space-y-4">
               <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
@@ -931,7 +983,13 @@ export default function StudentDashboard() {
                             })}
                           </span>
                           {nextMeasurement && (
-                            <span className={`text-[10px] font-bold block ${diff > 0 ? "text-red-500" : diff < 0 ? "text-emerald-500" : "text-[#94A3B8]"}`}>
+                            <span className={`text-[10px] font-bold block ${
+                              diff > 0 
+                                ? weightGoal === "GANHAR_MASSA" ? "text-emerald-500" : "text-red-500"
+                                : diff < 0 
+                                ? weightGoal === "GANHAR_MASSA" ? "text-red-500" : "text-emerald-500"
+                                : "text-[#94A3B8]"
+                            }`}>
                               {diff > 0 ? `+${diff.toFixed(1)} kg 📈` : diff < 0 ? `${diff.toFixed(1)} kg 📉` : "Sem alteração"}
                             </span>
                           )}

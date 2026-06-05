@@ -568,18 +568,22 @@ export default function WorkoutSessionPlayer() {
                       }
                       className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
-                    {exercise.previousWorkoutSets && exercise.previousWorkoutSets[setIndex] && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleUpdateSetField(exIndex, setIndex, "weight", String(exercise.previousWorkoutSets[setIndex].weightUsed))
-                        }
-                        className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
-                        title="Usar carga anterior"
-                      >
-                        Ant: {exercise.previousWorkoutSets[setIndex].weightUsed}kg
-                      </button>
-                    )}
+                    {(() => {
+                      const prevSet = exercise.previousWorkoutSets?.[setIndex];
+                      if (!prevSet) return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdateSetField(exIndex, setIndex, "weight", String(prevSet.weightUsed))
+                          }
+                          className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
+                          title="Usar carga anterior"
+                        >
+                          Ant: {prevSet.weightUsed}kg
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   {/* Repetições Reais */}
@@ -594,18 +598,22 @@ export default function WorkoutSessionPlayer() {
                       }
                       className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
-                    {exercise.previousWorkoutSets && exercise.previousWorkoutSets[setIndex] && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleUpdateSetField(exIndex, setIndex, "reps", String(exercise.previousWorkoutSets[setIndex].repsPerformed))
-                        }
-                        className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
-                        title="Usar repetições anteriores"
-                      >
-                        Ant: {exercise.previousWorkoutSets[setIndex].repsPerformed}
-                      </button>
-                    )}
+                    {(() => {
+                      const prevSet = exercise.previousWorkoutSets?.[setIndex];
+                      if (!prevSet) return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdateSetField(exIndex, setIndex, "reps", String(prevSet.repsPerformed))
+                          }
+                          className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
+                          title="Usar repetições anteriores"
+                        >
+                          Ant: {prevSet.repsPerformed}
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   {/* Checkbox */}
