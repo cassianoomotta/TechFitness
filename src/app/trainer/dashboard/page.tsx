@@ -1,7 +1,7 @@
 "use client";
 import BrandLogo from "@/components/BrandLogo";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -77,6 +77,9 @@ export default function TrainerDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Ref para fechar notificações ao clicar fora
+  const notificationRef = useRef<HTMLDivElement>(null);
+
   // Stats dinâmicos
   const [monthlyFrequency, setMonthlyFrequency] = useState<number | null>(null);
   const [weeklyPRs, setWeeklyPRs] = useState<number | null>(null);
@@ -139,6 +142,19 @@ export default function TrainerDashboard() {
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fechar notificações ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNotifications]);
 
   const handleSearchExisting = async (queryVal: string) => {
     if (queryVal.trim().length < 2) {
@@ -358,7 +374,7 @@ export default function TrainerDashboard() {
             </div>
 
             {/* Bell Icon & Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={notificationRef}>
               <button
                 onClick={() => {
                   setShowNotifications(!showNotifications);

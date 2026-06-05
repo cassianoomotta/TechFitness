@@ -1,7 +1,7 @@
 "use client";
 import BrandLogo from "@/components/BrandLogo";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -132,6 +132,9 @@ export default function StudentDashboard() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Ref para fechar notificações ao clicar fora
+  const notificationRef = useRef<HTMLDivElement>(null);
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
@@ -338,6 +341,19 @@ export default function StudentDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Fechar notificações ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNotifications]);
+
   const filteredPartners = partners.filter((p) => {
     const query = partnerSearchQuery.toLowerCase();
     return (
@@ -364,7 +380,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Bell Icon & Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={notificationRef}>
               <button
                 onClick={() => {
                   setShowNotifications(!showNotifications);
