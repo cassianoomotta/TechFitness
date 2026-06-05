@@ -73,7 +73,7 @@ export default async function Home() {
               href="/login"
               className="w-full sm:w-auto px-8 py-4 rounded-xl border border-[#E2E8F0] bg-zinc-50 hover:bg-white text-[#0F172A] font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
             >
-              Ver Demonstração
+              Já tenho conta
             </Link>
           </div>
 
