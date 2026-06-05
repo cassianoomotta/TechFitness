@@ -138,6 +138,10 @@ export default function StudentDashboard() {
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
+  // Estados para Recordes Pessoais (PRs)
+  const [prs, setPrs] = useState<any[]>([]);
+  const [prsLoading, setPrsLoading] = useState(true);
+
   // Estados para edição de Ficha (Divisão & Dias)
   const [editingPlan, setEditingPlan] = useState<WorkoutPlan | null>(null);
   const [editDivision, setEditDivision] = useState("");
@@ -211,7 +215,22 @@ export default function StudentDashboard() {
       }
     };
 
+    const fetchPrs = async () => {
+      try {
+        const response = await fetch("/api/student/prs");
+        if (response.ok) {
+          const data = await response.json();
+          setPrs(data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar PRs:", error);
+      } finally {
+        setPrsLoading(false);
+      }
+    };
+
     fetchPlans();
+    fetchPrs();
   }, []);
 
   // Buscar lista de parceiros ao carregar a aba de dupla
@@ -585,6 +604,45 @@ export default function StudentDashboard() {
                     </Link>
                   </div>
                 ))}
+
+                {/* Recordes Pessoais (PRs) */}
+                <div className="bg-white border border-[#E2E8F0]/85 rounded-2xl p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                      <Award className="w-5 h-5 text-amber-500" />
+                      Recordes de Carga (PRs)
+                    </h3>
+                    <span className="text-[10px] bg-amber-50 border border-amber-250 px-2 py-0.5 rounded font-bold text-amber-700">
+                      Exercícios Concluídos
+                    </span>
+                  </div>
+
+                  {prsLoading ? (
+                    <div className="flex items-center justify-center py-6 text-[#94A3B8]">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#2563EB] mr-2" />
+                      <span className="text-xs">Carregando seus recordes...</span>
+                    </div>
+                  ) : prs.length === 0 ? (
+                    <p className="text-xs text-[#94A3B8] text-center py-6 italic">
+                      Você ainda não concluiu nenhum exercício para registrar recordes. Complete seu primeiro treino!
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                      {prs.map((pr) => (
+                        <div key={pr.exerciseId} className="p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl flex items-center justify-between gap-3 hover:border-amber-200 hover:bg-amber-50/10 transition-all">
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-[#0F172A] truncate">{pr.name}</p>
+                            <p className="text-[9px] text-[#94A3B8] mt-0.5">{pr.muscleGroup} • {pr.equipment}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-extrabold text-amber-600 font-mono">{pr.maxWeight} kg</p>
+                            <p className="text-[9px] text-[#94A3B8] font-medium mt-0.5">{pr.reps} reps</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </>
