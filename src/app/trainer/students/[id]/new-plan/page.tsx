@@ -93,6 +93,10 @@ export default function NewPlanPage() {
   const [editingCustomNameIndex, setEditingCustomNameIndex] = useState<number | null>(null);
   const [tempCustomName, setTempCustomName] = useState("");
 
+  // Estados para Animação de Reordenação
+  const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
+  const [animatingDirection, setAnimatingDirection] = useState<"up" | "down" | null>(null);
+
   // Estados da IA
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiGoal, setAiGoal] = useState("");
@@ -174,21 +178,33 @@ export default function NewPlanPage() {
   };
 
   const handleMoveExerciseUp = (index: number) => {
-    if (index === 0) return;
-    const updated = [...selectedExercises];
-    const temp = updated[index];
-    updated[index] = updated[index - 1];
-    updated[index - 1] = temp;
-    setSelectedExercises(updated);
+    if (index === 0 || animatingIndex !== null) return;
+    setAnimatingIndex(index);
+    setAnimatingDirection("up");
+    setTimeout(() => {
+      const updated = [...selectedExercises];
+      const temp = updated[index];
+      updated[index] = updated[index - 1];
+      updated[index - 1] = temp;
+      setSelectedExercises(updated);
+      setAnimatingIndex(null);
+      setAnimatingDirection(null);
+    }, 300);
   };
 
   const handleMoveExerciseDown = (index: number) => {
-    if (index === selectedExercises.length - 1) return;
-    const updated = [...selectedExercises];
-    const temp = updated[index];
-    updated[index] = updated[index + 1];
-    updated[index + 1] = temp;
-    setSelectedExercises(updated);
+    if (index === selectedExercises.length - 1 || animatingIndex !== null) return;
+    setAnimatingIndex(index);
+    setAnimatingDirection("down");
+    setTimeout(() => {
+      const updated = [...selectedExercises];
+      const temp = updated[index];
+      updated[index] = updated[index + 1];
+      updated[index + 1] = temp;
+      setSelectedExercises(updated);
+      setAnimatingIndex(null);
+      setAnimatingDirection(null);
+    }, 300);
   };
 
   // Atualizar parâmetro de um exercício adicionado
@@ -707,11 +723,30 @@ export default function NewPlanPage() {
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                    {selectedExercises.map((exercise, index) => (
-                      <div
-                        key={index}
-                        className="p-4 bg-zinc-50 border border-[#E2E8F0] rounded-xl space-y-3 relative group"
-                      >
+                    {selectedExercises.map((exercise, index) => {
+                      const isCurrentlyMoving = animatingIndex === index;
+                      const isSwapTarget = animatingIndex !== null && (
+                        (animatingDirection === "up" && index === animatingIndex - 1) ||
+                        (animatingDirection === "down" && index === animatingIndex + 1)
+                      );
+                      
+                      const transformStyle = isCurrentlyMoving
+                        ? (animatingDirection === "up" ? "translateY(calc(-100% - 12px))" : "translateY(calc(100% + 12px))")
+                        : (isSwapTarget
+                          ? (animatingDirection === "up" ? "translateY(calc(100% + 12px))" : "translateY(calc(-100% - 12px))")
+                          : "none");
+
+                      return (
+                        <div
+                          key={index}
+                          style={{
+                            transform: transformStyle,
+                            transition: animatingIndex !== null ? "transform 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1), border-color 300ms" : "none",
+                            zIndex: isCurrentlyMoving || isSwapTarget ? 10 : "auto",
+                            boxShadow: isCurrentlyMoving || isSwapTarget ? "0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.15)" : "none",
+                          }}
+                          className={`p-4 bg-zinc-50 border border-[#E2E8F0] rounded-xl space-y-3 relative group transition-colors duration-300 ${isCurrentlyMoving || isSwapTarget ? "bg-white border-[#2563EB]/40 ring-1 ring-[#2563EB]/10" : ""}`}
+                        >
                         <div className="absolute right-4 top-4 flex items-center gap-1.5">
                           <button
                             type="button"
@@ -873,15 +908,15 @@ export default function NewPlanPage() {
                             <input
                               type="text"
                               placeholder="Foco na cadência..."
-                              value={exercise.notes}
+                              value={exercise.notes || ""}
                               onChange={(e) => handleUpdateExerciseParam(index, "notes", e.target.value)}
                               className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E2E8F0] outline-none text-xs text-[#0F172A] focus:border-[#2563EB]"
                             />
                           </div>
                         </div>
-
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
