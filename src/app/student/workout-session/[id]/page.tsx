@@ -82,6 +82,17 @@ export default function WorkoutSessionPlayer() {
     videoUrl: string | null;
   } | null>(null);
   const [suggestingFor, setSuggestingFor] = useState<number | null>(null);
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+
+  const getYouTubeEmbedUrl = (url: string | null) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
+    }
+    return url;
+  };
 
   const handleSuggestAlternative = async (exerciseId: string, exIndex: number) => {
     setSuggestingFor(exIndex);
@@ -467,15 +478,14 @@ export default function WorkoutSessionPlayer() {
                   )}
                 </button>
                 {exercise.videoUrl && (
-                  <a
-                    href={exercise.videoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-1.5 rounded-lg bg-white text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#00C2FF]/10 transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => setActiveVideoUrl(exercise.videoUrl)}
+                    className="p-1.5 rounded-lg bg-white text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#00C2FF]/10 transition-colors cursor-pointer"
                     title="Ver vídeo demonstrativo"
                   >
                     <Tv className="w-4 h-4" />
-                  </a>
+                  </button>
                 )}
               </div>
             </div>
@@ -491,15 +501,14 @@ export default function WorkoutSessionPlayer() {
                   </div>
                   <div className="flex gap-1">
                     {alternativeSuggestion.videoUrl && (
-                      <a
-                        href={alternativeSuggestion.videoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => setActiveVideoUrl(alternativeSuggestion.videoUrl)}
+                        className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
                         title="Ver vídeo"
                       >
                         <Tv className="w-3.5 h-3.5" />
-                      </a>
+                      </button>
                     )}
                     <button
                       type="button"
@@ -831,6 +840,38 @@ export default function WorkoutSessionPlayer() {
               >
                 {savingRename ? "Salvando..." : "Salvar"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Player de Vídeo */}
+      {activeVideoUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-2xl bg-white rounded-2xl p-4 shadow-2xl relative border border-[#E2E8F0]">
+            <button
+              onClick={() => setActiveVideoUrl(null)}
+              className="absolute -top-12 right-0 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+            >
+              <X className="w-4 h-4" /> Fechar
+            </button>
+            <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-inner">
+              {(() => {
+                const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
+                if (embedUrl && (embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be"))) {
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  );
+                }
+                return (
+                  <video src={activeVideoUrl} controls className="w-full h-full" autoPlay />
+                );
+              })()}
             </div>
           </div>
         </div>

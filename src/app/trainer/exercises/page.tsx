@@ -60,6 +60,7 @@ export default function ExercisesPage() {
   // Modais
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   
   // Campos do Formulário
   const [name, setName] = useState("");
@@ -72,6 +73,30 @@ export default function ExercisesPage() {
   
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState("");
+
+  const getYouTubeEmbedUrl = (url: string | null) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
+    }
+    return url;
+  };
+
+  const getMuscleGroupStyle = (group: string) => {
+    switch (group) {
+      case "Peito": return "bg-rose-50 text-rose-600 border-rose-200/50";
+      case "Costas": return "bg-indigo-50 text-indigo-600 border-indigo-200/50";
+      case "Pernas": return "bg-emerald-50 text-emerald-600 border-emerald-200/50";
+      case "Ombros": return "bg-amber-50 text-amber-600 border-amber-200/50";
+      case "Braços": return "bg-violet-50 text-violet-600 border-violet-200/50";
+      case "Core": return "bg-orange-50 text-orange-600 border-orange-200/50";
+      case "Cardio": return "bg-cyan-50 text-cyan-600 border-cyan-200/50";
+      case "Aquecimento e Mobilidade": return "bg-teal-50 text-teal-600 border-teal-200/50";
+      default: return "bg-slate-50 text-slate-600 border-slate-200/50";
+    }
+  };
 
   const fetchExercises = async () => {
     try {
@@ -338,7 +363,7 @@ export default function ExercisesPage() {
 
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#00C2FF]/10 text-[#2563EB] border border-cyan-900/50">
+                    <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${getMuscleGroupStyle(exercise.muscleGroup)}`}>
                       {exercise.muscleGroup}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-[#94A3B8] border border-[#E2E8F0]">
@@ -356,15 +381,13 @@ export default function ExercisesPage() {
                 <div className="flex items-center justify-between pt-4 border-t border-[#E2E8F0] mt-auto">
                   <div className="flex gap-2">
                     {exercise.videoUrl && (
-                      <a
-                        href={exercise.videoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-2 rounded-lg bg-white hover:bg-[#00C2FF]/10 text-[#475569] hover:text-[#2563EB] transition-all"
+                      <button
+                        onClick={() => setActiveVideoUrl(exercise.videoUrl)}
+                        className="p-2 rounded-lg bg-white hover:bg-[#00C2FF]/10 text-[#475569] hover:text-[#2563EB] transition-all cursor-pointer"
                         title="Ver vídeo demonstrativo"
                       >
                         <Tv className="w-4 h-4" />
-                      </a>
+                      </button>
                     )}
                   </div>
 
@@ -530,6 +553,38 @@ export default function ExercisesPage() {
                 )}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Player de Vídeo */}
+      {activeVideoUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-2xl bg-white rounded-2xl p-4 shadow-2xl relative border border-[#E2E8F0]">
+            <button
+              onClick={() => setActiveVideoUrl(null)}
+              className="absolute -top-12 right-0 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+            >
+              <X className="w-4 h-4" /> Fechar
+            </button>
+            <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-inner">
+              {(() => {
+                const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
+                if (embedUrl && (embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be"))) {
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  );
+                }
+                return (
+                  <video src={activeVideoUrl} controls className="w-full h-full" autoPlay />
+                );
+              })()}
+            </div>
           </div>
         </div>
       )}
