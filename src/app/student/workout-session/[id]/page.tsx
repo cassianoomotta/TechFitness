@@ -199,6 +199,40 @@ export default function WorkoutSessionPlayer() {
     }
   }, [planId, router]);
 
+  const playRestAlertSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+      gain1.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start();
+      osc1.stop(audioCtx.currentTime + 0.15);
+
+      setTimeout(() => {
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(1046.5, audioCtx.currentTime); // C6
+        gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start();
+        osc2.stop(audioCtx.currentTime + 0.25);
+      }, 150);
+    } catch (e) {
+      console.warn("AudioContext não suportado ou bloqueado:", e);
+    }
+  };
+
   // Gerenciamento do Temporizador de Descanso (Timestamp-based)
   useEffect(() => {
     if (isResting && restEndTime !== null) {
@@ -208,6 +242,7 @@ export default function WorkoutSessionPlayer() {
           setIsResting(false);
           setRestTime(0);
           setRestEndTime(null);
+          playRestAlertSound();
         } else {
           setRestTime(remaining);
         }
@@ -225,6 +260,21 @@ export default function WorkoutSessionPlayer() {
     setRestTime(seconds);
     setRestEndTime(Date.now() + seconds * 1000);
     setIsResting(true);
+  };
+
+  const adjustRestTime = (amountSeconds: number) => {
+    if (restEndTime === null) return;
+    const newEndTime = restEndTime + (amountSeconds * 1000);
+    if (newEndTime <= Date.now()) {
+      setIsResting(false);
+      setRestTime(0);
+      setRestEndTime(null);
+    } else {
+      setRestEndTime(newEndTime);
+      const newRemaining = Math.round((newEndTime - Date.now()) / 1000);
+      setInitialRestTime((prev) => Math.max(prev, newRemaining));
+      setRestTime(newRemaining);
+    }
   };
 
   const handleToggleSetComplete = (exIndex: number, setIndex: number, restSeconds: number) => {
@@ -519,9 +569,16 @@ export default function WorkoutSessionPlayer() {
                       className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
                     {exercise.previousWorkoutSets && exercise.previousWorkoutSets[setIndex] && (
-                      <span className="text-[9px] text-amber-600 font-semibold mt-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleUpdateSetField(exIndex, setIndex, "weight", String(exercise.previousWorkoutSets[setIndex].weightUsed))
+                        }
+                        className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
+                        title="Usar carga anterior"
+                      >
                         Ant: {exercise.previousWorkoutSets[setIndex].weightUsed}kg
-                      </span>
+                      </button>
                     )}
                   </div>
 
@@ -538,9 +595,16 @@ export default function WorkoutSessionPlayer() {
                       className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
                     {exercise.previousWorkoutSets && exercise.previousWorkoutSets[setIndex] && (
-                      <span className="text-[9px] text-amber-600 font-semibold mt-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleUpdateSetField(exIndex, setIndex, "reps", String(exercise.previousWorkoutSets[setIndex].repsPerformed))
+                        }
+                        className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
+                        title="Usar repetições anteriores"
+                      >
                         Ant: {exercise.previousWorkoutSets[setIndex].repsPerformed}
-                      </span>
+                      </button>
                     )}
                   </div>
 
@@ -592,9 +656,25 @@ export default function WorkoutSessionPlayer() {
             </div>
 
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => adjustRestTime(-30)}
+                className="px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-[#0F172A] text-[10px] font-bold transition-all cursor-pointer"
+                title="Reduzir 30 segundos"
+              >
+                -30s
+              </button>
               <div className="font-mono text-2xl font-bold text-[#2563EB]">
                 {restTime}s
               </div>
+              <button
+                type="button"
+                onClick={() => adjustRestTime(30)}
+                className="px-2 py-1 rounded bg-[#2563EB] hover:bg-[#1E40AF] text-white text-[10px] font-bold transition-all cursor-pointer"
+                title="Aumentar 30 segundos"
+              >
+                +30s
+              </button>
               <button
                 onClick={() => setIsResting(false)}
                 className="p-1 rounded bg-white hover:bg-zinc-200 text-[#94A3B8] hover:text-[#0F172A]"
