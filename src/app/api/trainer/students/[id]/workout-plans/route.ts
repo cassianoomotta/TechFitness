@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-
 const workoutPlanSchema = z.object({
   name: z.string().min(2, "O nome do treino deve ter pelo menos 2 caracteres"),
   description: z.string().optional().nullable(),
@@ -19,6 +18,7 @@ const workoutPlanSchema = z.object({
       recommendedRpe: z.number().int().min(1).max(10).optional().nullable(),
       recommendedWeight: z.number().optional().nullable(),
       notes: z.string().optional().nullable(),
+      customName: z.string().optional().nullable(),
     })
   ).min(1, "Adicione pelo menos 1 exercício ao treino"),
 });
@@ -93,7 +93,6 @@ export async function POST(
           weekDays: weekDays || null,
         },
       });
-
       // Mapear exercícios
       const exercisesPayload = exercises.map((ex, index) => ({
         workoutPlanId: plan.id,
@@ -105,6 +104,7 @@ export async function POST(
         recommendedRpe: ex.recommendedRpe || null,
         recommendedWeight: ex.recommendedWeight || null,
         notes: ex.notes || null,
+        customName: ex.customName || null,
         order: index,
       }));
 
@@ -151,7 +151,7 @@ export async function PUT(
 
     const { id: studentId } = await params;
     const body = await request.json();
-    const { planId, ...planData } = body;
+    const { planId, updateLinked, ...planData } = body;
 
     if (!planId) {
       return NextResponse.json(
@@ -235,6 +235,7 @@ export async function PUT(
         recommendedRpe: ex.recommendedRpe || null,
         recommendedWeight: ex.recommendedWeight || null,
         notes: ex.notes || null,
+        customName: ex.customName || null,
         order: index,
       }));
 
@@ -251,10 +252,80 @@ export async function PUT(
         }
       });
 
+      // 4. Se 'updateLinked' for true, propagar as atualizações
+      if (updateLinked) {
+        // Encontrar planos vinculados
+        let linkedPlans = [];
+        if (existingPlan.parentPlanId) {
+          linkedPlans = await tx.workoutPlan.findMany({
+            where: {
+              OR: [
+                { id: existingPlan.parentPlanId },
+                { parentPlanId: existingPlan.parentPlanId }
+              ],
+              NOT: { id: existingPlan.id }
+            },
+            include: { student: true }
+          });
+        } else {
+          linkedPlans = await tx.workoutPlan.findMany({
+            where: {
+              parentPlanId: existingPlan.id
+            },
+            include: { student: true }
+          });
+        }
+
+        for (const lp of linkedPlans) {
+          // Atualizar dados principais
+          await tx.workoutPlan.update({
+            where: { id: lp.id },
+            data: {
+              name,
+              description,
+              division,
+              weekDays: weekDays || null,
+            }
+          });
+
+          // Apagar exercícios antigos
+          await tx.workoutPlanExercise.deleteMany({
+            where: { workoutPlanId: lp.id },
+          });
+
+          // Inserir os novos exercícios
+          const lpExercisesPayload = exercises.map((ex, index) => ({
+            workoutPlanId: lp.id,
+            exerciseId: ex.exerciseId,
+            sets: Number(ex.sets),
+            reps: ex.reps,
+            restSeconds: Number(ex.restSeconds),
+            method: ex.method,
+            recommendedRpe: ex.recommendedRpe || null,
+            recommendedWeight: ex.recommendedWeight || null,
+            notes: ex.notes || null,
+            customName: ex.customName || null,
+            order: index,
+          }));
+          await tx.workoutPlanExercise.createMany({
+            data: lpExercisesPayload,
+          });
+          // Notificar o aluno do plano vinculado
+          await tx.notification.create({
+            data: {
+              userId: lp.student.userId,
+              title: "Treino Vinculado Atualizado 🔄",
+              message: `Seu treino "${name}" (Divisão ${division}) foi atualizado pelo treinador ${session.user.name}.`,
+            }
+          });
+        }
+      }
+
       return plan;
     });
 
     return NextResponse.json(updatedPlan);
+
   } catch (error) {
     console.error("ERRO AO ATUALIZAR PLANO DE TREINO:", error);
     return NextResponse.json(

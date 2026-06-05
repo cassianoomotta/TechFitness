@@ -53,6 +53,11 @@ export async function GET(
                 exercise: true,
               },
             },
+            _count: {
+              select: {
+                linkedPlans: true,
+              },
+            },
           },
         },
       },

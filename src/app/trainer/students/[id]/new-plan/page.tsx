@@ -19,6 +19,8 @@ import {
   Sparkles,
   ArrowUp,
   ArrowDown,
+  Pencil,
+  Check,
 } from "lucide-react";
 
 interface Exercise {
@@ -41,6 +43,7 @@ interface WorkoutExerciseInput {
   recommendedRpe: number | null;
   recommendedWeight: number | null;
   notes: string;
+  customName?: string | null;
 }
 
 const METHODS = ["Normal", "Drop Set", "Bi-Set", "Rest Pause", "Até a falha"];
@@ -70,6 +73,8 @@ export default function NewPlanPage() {
   const [division, setDivision] = useState("A");
   const [weekDays, setWeekDays] = useState<string[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<WorkoutExerciseInput[]>([]);
+  const [isPlanLinked, setIsPlanLinked] = useState(false);
+  const [updateLinked, setUpdateLinked] = useState(false);
 
   const handleToggleDay = (day: string) => {
     if (weekDays.includes(day)) {
@@ -83,6 +88,10 @@ export default function NewPlanPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Estados para Edição Inline do Nome do Exercício
+  const [editingCustomNameIndex, setEditingCustomNameIndex] = useState<number | null>(null);
+  const [tempCustomName, setTempCustomName] = useState("");
 
   // Estados da IA
   const [showAiModal, setShowAiModal] = useState(false);
@@ -204,6 +213,10 @@ export default function NewPlanPage() {
     setDivision(plan.division);
     setWeekDays(plan.weekDays ? plan.weekDays.split(",") : []);
     
+    const isLinked = plan.parentPlanId !== null || (plan._count?.linkedPlans && plan._count.linkedPlans > 0);
+    setIsPlanLinked(!!isLinked);
+    setUpdateLinked(false);
+
     // Mapear os exercícios do plano para o formato do formulário
     const mapped = plan.exercises.map((pe: any) => ({
       exerciseId: pe.exerciseId,
@@ -217,6 +230,7 @@ export default function NewPlanPage() {
       recommendedRpe: pe.recommendedRpe,
       recommendedWeight: pe.recommendedWeight,
       notes: pe.notes || "",
+      customName: pe.customName || "",
     }));
     setSelectedExercises(mapped);
     setError("");
@@ -231,6 +245,8 @@ export default function NewPlanPage() {
     setDivision("A");
     setWeekDays([]);
     setSelectedExercises([]);
+    setIsPlanLinked(false);
+    setUpdateLinked(false);
     setError("");
     setSuccess(false);
   };
@@ -281,6 +297,7 @@ export default function NewPlanPage() {
           description,
           division,
           weekDays: weekDays.length > 0 ? weekDays.join(",") : null,
+          updateLinked,
           exercises: selectedExercises.map((ex) => ({
             exerciseId: ex.exerciseId,
             sets: Number(ex.sets),
@@ -290,6 +307,7 @@ export default function NewPlanPage() {
             recommendedRpe: ex.recommendedRpe ? Number(ex.recommendedRpe) : null,
             recommendedWeight: ex.recommendedWeight ? Number(ex.recommendedWeight) : null,
             notes: ex.notes || null,
+            customName: ex.customName || null,
           })),
         }),
       });
@@ -724,7 +742,68 @@ export default function NewPlanPage() {
                         </div>
 
                         <div className="pr-10">
-                          <p className="text-xs font-bold text-[#0F172A]">{exercise.name}</p>
+                          {editingCustomNameIndex === index ? (
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <input
+                                type="text"
+                                value={tempCustomName}
+                                onChange={(e) => setTempCustomName(e.target.value)}
+                                placeholder={exercise.name}
+                                className="px-2 py-1 rounded border border-[#E2E8F0] outline-none text-xs text-[#0F172A] focus:border-[#2563EB] font-bold min-w-[200px]"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleUpdateExerciseParam(index, "customName", tempCustomName.trim());
+                                    setEditingCustomNameIndex(null);
+                                  } else if (e.key === "Escape") {
+                                    setEditingCustomNameIndex(null);
+                                  }
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleUpdateExerciseParam(index, "customName", tempCustomName.trim());
+                                  setEditingCustomNameIndex(null);
+                                }}
+                                className="p-1.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-all cursor-pointer"
+                                title="Salvar"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingCustomNameIndex(null)}
+                                className="text-[10px] text-[#94A3B8] hover:text-[#0F172A] px-1 font-semibold cursor-pointer"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center flex-wrap gap-1">
+                              <p className="text-xs font-bold text-[#0F172A]">
+                                {exercise.customName ? (
+                                  <>
+                                    <span className="text-emerald-600 font-extrabold">{exercise.customName}</span>
+                                    <span className="text-[10px] text-[#94A3B8] font-normal ml-1.5 italic">({exercise.name})</span>
+                                  </>
+                                ) : (
+                                  exercise.name
+                                )}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingCustomNameIndex(index);
+                                  setTempCustomName(exercise.customName || "");
+                                }}
+                                className="p-1 rounded hover:bg-zinc-100 text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer"
+                                title="Renomear exercício para este aluno"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                           <p className="text-[9px] text-[#94A3B8] mt-0.5 uppercase font-semibold">
                             {exercise.muscleGroup} • {exercise.equipment}
                           </p>
@@ -806,6 +885,22 @@ export default function NewPlanPage() {
                   </div>
                 )}
               </div>
+
+              {/* Opção Atualizar Treino Vinculado */}
+              {editingPlanId && isPlanLinked && (
+                <div className="flex items-center gap-2 p-3.5 bg-blue-50 border border-blue-100 rounded-xl">
+                  <input
+                    type="checkbox"
+                    id="updateLinked"
+                    checked={updateLinked}
+                    onChange={(e) => setUpdateLinked(e.target.checked)}
+                    className="w-4 h-4 text-[#2563EB] border-[#E2E8F0] rounded focus:ring-[#2563EB] cursor-pointer"
+                  />
+                  <label htmlFor="updateLinked" className="text-xs font-semibold text-[#1E40AF] cursor-pointer select-none">
+                    Atualizar treino vinculado
+                  </label>
+                </div>
+              )}
 
               {/* Botão Salvar Treino */}
               <button

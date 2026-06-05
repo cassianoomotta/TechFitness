@@ -52,6 +52,13 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=Nu9Y0RTDib4"
   },
   {
+    "name": "Abdominal infra na barra fixa",
+    "muscleGroup": "Core",
+    "equipment": "Peso Corporal",
+    "description": "Pendurado na barra fixa, eleve as pernas (estendidas ou flexionadas) até a linha do quadril contraindo a região inferior do abdômen.",
+    "videoUrl": "https://www.youtube.com/watch?v=NnOch3c49wE"
+  },
+  {
     "name": "Abdominal infra na paralela",
     "muscleGroup": "Core",
     "equipment": "Máquina",
@@ -87,8 +94,15 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=ATio7MMIltA"
   },
   {
+    "name": "Abdominal oblíquo no solo",
+    "muscleGroup": "Core",
+    "equipment": "Peso Corporal",
+    "description": "Deitado, flexione os joelhos e apoie os pés. Realize a rotação do tronco tentando aproximar o cotovelo do joelho oposto.",
+    "videoUrl": "https://www.youtube.com/watch?v=l_a6aYtV9m8"
+  },
+  {
     "name": "Abdominal serrote na polia",
-    "muscleGroup": "Costas",
+    "muscleGroup": "Core",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=gO71GLyEFoQ"
@@ -199,13 +213,6 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/BeOtD76Z6nU"
   },
   {
-    "name": "Afundo com step",
-    "muscleGroup": "Pernas",
-    "equipment": "Step",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=fS7dalFU0qI"
-  },
-  {
     "name": "Afundo explosivo",
     "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
@@ -227,13 +234,6 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=1aOQUohr-JY"
   },
   {
-    "name": "Afundo no step (2)",
-    "muscleGroup": "Pernas",
-    "equipment": "Step",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=SQKu_0b4LYw"
-  },
-  {
     "name": "Agachamento afastado com halter",
     "muscleGroup": "Pernas",
     "equipment": "Halteres",
@@ -246,6 +246,13 @@ const exercisesData = [
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Ha-E7AUmjY0"
+  },
+  {
+    "name": "Agachamento búlgaro",
+    "muscleGroup": "Pernas",
+    "equipment": "Halteres",
+    "description": "Mantenha um pé apoiado atrás em um banco ou step, flexione o joelho da perna da frente até formar um ângulo de 90 graus, mantendo o tronco levemente inclinado.",
+    "videoUrl": "https://www.youtube.com/watch?v=yP5_YstB1Wc"
   },
   {
     "name": "Agachamento com halter",
@@ -403,14 +410,14 @@ const exercisesData = [
   },
   {
     "name": "Alongamento de biceps",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=ob6YJyiFdgs"
   },
   {
     "name": "Alongamento de iliopsoas",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=9E-sipOFU-g"
@@ -431,14 +438,14 @@ const exercisesData = [
   },
   {
     "name": "Alongamento de posterior bilateral na parede",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=LpIUmbKBopk"
   },
   {
     "name": "Alongamento de posterior dinâmico com fita",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=m_VQQY4N4sE"
@@ -501,7 +508,7 @@ const exercisesData = [
   },
   {
     "name": "Aviãozinho na polia",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=XguIB3J9pIQ"
@@ -640,15 +647,8 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=_QOrf0oI69Q"
   },
   {
-    "name": "Crucifixo inverso com halter",
-    "muscleGroup": "Peito",
-    "equipment": "Halteres",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=2e-IGU4T5uY"
-  },
-  {
     "name": "Crucifixo inverso no cross",
-    "muscleGroup": "Peito",
+    "muscleGroup": "Ombros",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=0C1D2KYia9c"
@@ -659,6 +659,13 @@ const exercisesData = [
     "equipment": "Halteres",
     "description": "Incline o tronco à frente e abra os braços lateralmente trabalhando o deltoide posterior.",
     "videoUrl": "https://www.youtube.com/shorts/uY5kRo_iyl8"
+  },
+  {
+    "name": "Desenvolvimento Arnold",
+    "muscleGroup": "Ombros",
+    "equipment": "Halteres",
+    "description": "Sentado com halteres na altura dos ombros e palmas viradas para você, empurre-os para cima rotacionando os punhos para que as palmas terminem viradas para frente.",
+    "videoUrl": "https://www.youtube.com/watch?v=6PG2S4KzW68"
   },
   {
     "name": "Desenvolvimento com halteres",
@@ -683,7 +690,7 @@ const exercisesData = [
   },
   {
     "name": "Elevação conjugada",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=KRfgko2Iroo"
@@ -767,7 +774,7 @@ const exercisesData = [
   },
   {
     "name": "Elevação lateral peito apoiado no banco",
-    "muscleGroup": "Peito",
+    "muscleGroup": "Ombros",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=iTjxX9CWqBs"
@@ -788,14 +795,14 @@ const exercisesData = [
   },
   {
     "name": "Elevação pélvica",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=-d8elW_SqHQ"
   },
   {
     "name": "Elevação pélvica com elástico solo",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=rGVsmsIglRQ"
@@ -816,7 +823,7 @@ const exercisesData = [
   },
   {
     "name": "Elevação pélvica unilateral banco",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=IDEZ77rdD2E"
@@ -830,21 +837,21 @@ const exercisesData = [
   },
   {
     "name": "Elevação pélvica unilateral solo",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=xpdmT6NPmpQ"
   },
   {
     "name": "Elevação y",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=LT1bmEr18lA"
   },
   {
     "name": "Elevação y com elástico",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=6m8rozpDahk"
@@ -857,15 +864,22 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=CFyy1lOWKh8"
   },
   {
+    "name": "Encolhimento com halteres",
+    "muscleGroup": "Ombros",
+    "equipment": "Halteres",
+    "description": "Segure os halteres ao lado do corpo e eleve os ombros em direção às orelhas de forma vertical, mantendo os braços estendidos.",
+    "videoUrl": "https://www.youtube.com/watch?v=GkQWJ0F8N-k"
+  },
+  {
     "name": "Estabilização de escápulas no espaldar",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=dqT6Oc22b-A"
   },
   {
     "name": "Extensão de quadril com elástico",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=x4T_3o3tLI0"
@@ -883,6 +897,13 @@ const exercisesData = [
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=lrvcVGDQT0M"
+  },
+  {
+    "name": "Extensão lombar (Banco Romano)",
+    "muscleGroup": "Core",
+    "equipment": "Peso Corporal",
+    "description": "Apoie o quadril no banco romano, flexione o tronco para frente e retorne até alinhar a coluna com o corpo, contraindo a lombar.",
+    "videoUrl": "https://www.youtube.com/watch?v=2pA4u2_Qv9I"
   },
   {
     "name": "Extensora bilateral",
@@ -920,13 +941,6 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/shorts/dTCO9wDonTE"
   },
   {
-    "name": "Flexão de braços",
-    "muscleGroup": "Peito",
-    "equipment": "Peso Corporal",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=qVq2_0SBVJs"
-  },
-  {
     "name": "Flexão de braços ajoelhado",
     "muscleGroup": "Peito",
     "equipment": "Peso Corporal",
@@ -935,21 +949,21 @@ const exercisesData = [
   },
   {
     "name": "Flexão de joelho em pé caneleira",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Caneleira",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=RveboRfM0to"
   },
   {
     "name": "Flexão de joelho em pé na polia",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=HNr9TY1p-4c"
   },
   {
     "name": "Flexão de quadril com elástico",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Elástico",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=VWNJhoEzu7Q"
@@ -984,14 +998,14 @@ const exercisesData = [
   },
   {
     "name": "Gêmeos em pé na máquina",
-    "muscleGroup": "Panturrilhas",
+    "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": "Apoie os ombros nas almofadas, posicione as pontas dos pés na plataforma e faça a extensão do tornozelo.",
     "videoUrl": "https://www.youtube.com/watch?v=2DXK28kqnfQ"
   },
   {
     "name": "Gêmeos sentado na máquina",
-    "muscleGroup": "Panturrilhas",
+    "muscleGroup": "Pernas",
     "equipment": "Máquina",
     "description": "Sentado na máquina de panturrilha, solte o freio e realize a flexão plantar completa.",
     "videoUrl": "https://www.youtube.com/watch?v=2DXK28kqnfQ"
@@ -1023,6 +1037,13 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=yZ49_0xjX8k"
+  },
+  {
+    "name": "Glúteo quatro apoios com caneleira",
+    "muscleGroup": "Pernas",
+    "equipment": "Caneleira",
+    "description": "Em quatro apoios no solo com caneleira, eleve a perna flexionando o joelho em direção ao teto, contraindo o glúteo.",
+    "videoUrl": "https://www.youtube.com/watch?v=7_h2y0f86Gg"
   },
   {
     "name": "Kipping + flexão de braços",
@@ -1124,7 +1145,7 @@ const exercisesData = [
   },
   {
     "name": "Liberação na torácica",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=-3mgBUY6UUo"
@@ -1135,6 +1156,20 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=bA37GcoJfgw"
+  },
+  {
+    "name": "Manguito rotador (Rotação externa na polia)",
+    "muscleGroup": "Ombros",
+    "equipment": "Polia",
+    "description": "Com o cotovelo flexionado a 90 graus junto ao corpo, realize a rotação externa do ombro puxando o cabo para fora.",
+    "videoUrl": "https://www.youtube.com/watch?v=680D1T2dY-8"
+  },
+  {
+    "name": "Mergulho nas paralelas",
+    "muscleGroup": "Braços",
+    "equipment": "Peso Corporal",
+    "description": "Apoie-se nas barras paralelas, flexione os cotovelos descendo o corpo de forma controlada até que os braços fiquem paralelos ao chão e empurre de volta.",
+    "videoUrl": "https://www.youtube.com/watch?v=2z8JmcrW-As"
   },
   {
     "name": "Mergulho no banco (tríceps)",
@@ -1159,28 +1194,28 @@ const exercisesData = [
   },
   {
     "name": "Mobilidade de tornozelo no caixote",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=UWBaYxrQWjw"
   },
   {
     "name": "Mobilidade de tornozelo semiajoelhado",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=SYFux3PSpmQ"
   },
   {
     "name": "Mobilidade de tornozelo semiajoelhado 2",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=JgxmviF87_M"
   },
   {
     "name": "Mobilidade torácica caixote bastão",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Outros",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=t5zw3_aPIr4"
@@ -1194,28 +1229,28 @@ const exercisesData = [
   },
   {
     "name": "Mobilidade torácica gato e camelo",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=1H5QPV3JkIw"
   },
   {
     "name": "Mobilidade torácica gato e camelo no caixote",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=46w7IfkqxYk"
   },
   {
     "name": "Mobilidade torácica na parede semi ajoelhado",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=5InkVT7Yq4Q"
   },
   {
     "name": "Mobilidade torácica no caixote",
-    "muscleGroup": "Mobilidade",
+    "muscleGroup": "Aquecimento e Mobilidade",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=MQMSS_vE1T4"
@@ -1275,6 +1310,13 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=spoN9Rvq5a8"
+  },
+  {
+    "name": "Passada com halteres",
+    "muscleGroup": "Pernas",
+    "equipment": "Halteres",
+    "description": "Dê passos à frente flexionando o joelho da perna avançada até formar 90 graus, alternando as pernas em movimento contínuo.",
+    "videoUrl": "https://www.youtube.com/watch?v=QyD7aDugzB8"
   },
   {
     "name": "Peck deck (voador)",
@@ -1389,6 +1431,13 @@ const exercisesData = [
     "videoUrl": "https://www.youtube.com/watch?v=xC1hFQVuZv8"
   },
   {
+    "name": "Pullover com halter",
+    "muscleGroup": "Peito",
+    "equipment": "Halteres",
+    "description": "Deitado de costas no banco, segure um halter com as duas mãos acima do peito e desça-o por trás da cabeça mantendo os braços ligeiramente flexionados.",
+    "videoUrl": "https://www.youtube.com/watch?v=5V9kCgA1p3g"
+  },
+  {
     "name": "Puxada aberta na polia alta",
     "muscleGroup": "Costas",
     "equipment": "Polia",
@@ -1422,13 +1471,6 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=NcFqOJqZ_GA"
-  },
-  {
-    "name": "Recuo com step",
-    "muscleGroup": "Pernas",
-    "equipment": "Peso Corporal",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=mZC_ItW7NSQ"
   },
   {
     "name": "Recuo na barra guiada",
@@ -1590,7 +1632,8 @@ const exercisesData = [
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=aTwQVcizDsA"
-  },{
+  },
+  {
     "name": "Rosca bíceps 21",
     "muscleGroup": "Braços",
     "equipment": "Peso Corporal",
@@ -1603,7 +1646,8 @@ const exercisesData = [
     "equipment": "Barra",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=nmY1EM6WI0w"
-  },{
+  },
+  {
     "name": "Rosca bíceps com giro",
     "muscleGroup": "Braços",
     "equipment": "Kettlebell",
@@ -1693,6 +1737,13 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=CafXdOgww4I"
+  },
+  {
+    "name": "Rosca inversa",
+    "muscleGroup": "Braços",
+    "equipment": "Barra",
+    "description": "Segure a barra com a pegada pronada (palmas para baixo) e realize a flexão dos cotovelos, trabalhando o bíceps e principalmente os antebraços.",
+    "videoUrl": "https://www.youtube.com/watch?v=F_fPszw64QY"
   },
   {
     "name": "Rosca martelo alternada",
@@ -1899,21 +1950,21 @@ const exercisesData = [
   },
   {
     "name": "Subida no caixote",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=ra3RcUYVwZ8"
   },
   {
     "name": "Subida no caixote over burpeer",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=eDR0doEfVFE"
   },
   {
     "name": "Subida no caixote over sprawls",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=6SXL6T79A2U"
@@ -1924,6 +1975,20 @@ const exercisesData = [
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=DiSFfxUlh4w"
+  },
+  {
+    "name": "Superman",
+    "muscleGroup": "Core",
+    "equipment": "Peso Corporal",
+    "description": "Deitado de barriga para baixo, eleve simultaneamente os braços e pernas mantendo a contração da região lombar por alguns segundos.",
+    "videoUrl": "https://www.youtube.com/watch?v=Psz8iL75b9k"
+  },
+  {
+    "name": "Supino declinado com barra",
+    "muscleGroup": "Peito",
+    "equipment": "Barra",
+    "description": "Deitado em um banco declinado, desça a barra até a parte inferior do peito e empurre-a verticalmente para cima de forma controlada.",
+    "videoUrl": "https://www.youtube.com/watch?v=vVj44yvY21k"
   },
   {
     "name": "Supino inclinado barra guiada",
@@ -1976,7 +2041,7 @@ const exercisesData = [
   },
   {
     "name": "Swing",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Pernas",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=ORIHpdApWp0"
@@ -1990,17 +2055,10 @@ const exercisesData = [
   },
   {
     "name": "Thruster com halter",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Ombros",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Ik57T5PQxj0"
-  },
-  {
-    "name": "Thruster ladmine",
-    "muscleGroup": "Ombros",
-    "equipment": "Peso Corporal",
-    "description": null,
-    "videoUrl": "https://www.youtube.com/watch?v=VFj04eGoyZY"
   },
   {
     "name": "Thruster landmine",
@@ -2025,7 +2083,7 @@ const exercisesData = [
   },
   {
     "name": "Touch down",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=GxeaOzYEo1Y"
@@ -2067,14 +2125,14 @@ const exercisesData = [
   },
   {
     "name": "Tríceps coice com corda",
-    "muscleGroup": "Pernas",
+    "muscleGroup": "Braços",
     "equipment": "Polia",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=N5QDpZ5m_Vo"
   },
   {
     "name": "Tríceps coice com halter",
-    "muscleGroup": "Pernas",
+    "muscleGroup": "Braços",
     "equipment": "Halteres",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=i2vsWh6Hiq0"
@@ -2200,14 +2258,14 @@ const exercisesData = [
   },
   {
     "name": "Wall ball",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=Q3pj-DRsiQQ"
   },
   {
     "name": "Wall drill",
-    "muscleGroup": "Outros",
+    "muscleGroup": "Cardio",
     "equipment": "Peso Corporal",
     "description": null,
     "videoUrl": "https://www.youtube.com/watch?v=6Y37ckJ4BA0"

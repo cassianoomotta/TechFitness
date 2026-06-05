@@ -77,6 +77,10 @@ model WorkoutPlan {
   weekDays       String?               // Ex: "Seg,Qua,Sex" ou JSON
   exercises      WorkoutPlanExercise[]
   createdAt      DateTime              @default(now())
+
+  parentPlanId   String?
+  parentPlan     WorkoutPlan?          @relation("LinkedPlans", fields: [parentPlanId], references: [id], onDelete: SetNull)
+  linkedPlans    WorkoutPlan[]         @relation("LinkedPlans")
 }
 
 model WorkoutPlanExercise {
