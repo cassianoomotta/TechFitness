@@ -77,6 +77,10 @@ export default function TrainerDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Stats dinâmicos
+  const [monthlyFrequency, setMonthlyFrequency] = useState<number | null>(null);
+  const [weeklyPRs, setWeeklyPRs] = useState<number | null>(null);
+
   // Buscar alunos
   const fetchStudents = async () => {
     try {
@@ -115,9 +119,23 @@ export default function TrainerDashboard() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/trainer/stats");
+      if (response.ok) {
+        const data = await response.json();
+        setMonthlyFrequency(data.monthlyFrequency);
+        setWeeklyPRs(data.weeklyPRs);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar stats:", err);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchNotifications();
+    fetchStats();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -459,7 +477,9 @@ export default function TrainerDashboard() {
                 <Activity className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold text-[#0F172A]">88.5%</p>
+            <p className="text-3xl font-display font-bold text-[#0F172A]">
+              {monthlyFrequency === null ? <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" /> : `${monthlyFrequency}%`}
+            </p>
             <p className="text-xs text-[#94A3B8] mt-2">Presença geral dos alunos</p>
           </div>
 
@@ -470,7 +490,9 @@ export default function TrainerDashboard() {
                 <Award className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold text-[#0F172A]">24</p>
+            <p className="text-3xl font-display font-bold text-[#0F172A]">
+              {weeklyPRs === null ? <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" /> : weeklyPRs}
+            </p>
             <p className="text-xs text-[#94A3B8] mt-2">PRs superados esta semana</p>
           </div>
         </section>
