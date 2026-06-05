@@ -612,6 +612,13 @@ export default function TrainerDashboard() {
                       <Copy className="w-4 h-4" />
                     </button>
                     <Link
+                      href={`/trainer/students/${student.id}/measurements`}
+                      className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-zinc-300 hover:bg-white text-[#94A3B8] hover:text-[#2563EB] text-xs font-semibold flex items-center justify-center transition-all"
+                      title="Avaliação Física / Medidas"
+                    >
+                      <Activity className="w-4 h-4" />
+                    </Link>
+                    <Link
                       href={`/trainer/students/${student.id}/progress`}
                       className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-zinc-300 hover:bg-white text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold flex items-center justify-center transition-all"
                       title="Ver Progresso"

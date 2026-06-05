@@ -37,8 +37,13 @@ export async function GET() {
       orderBy: { date: "desc" },
     });
 
+    const formattedMeasurements = measurements.map((m) => ({
+      ...m,
+      photos: JSON.parse(m.photos || "[]"),
+    }));
+
     return NextResponse.json({
-      measurements,
+      measurements: formattedMeasurements,
       weightGoal: studentProfile.weightGoal,
     });
   } catch (error) {

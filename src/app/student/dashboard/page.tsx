@@ -21,6 +21,7 @@ import {
   Edit,
   X,
   Bell,
+  ChevronRight,
 } from "lucide-react";
 
 interface Exercise {
@@ -120,6 +121,16 @@ export default function StudentDashboard() {
     id: string;
     weight: number;
     date: string;
+    bodyFat?: number | null;
+    chest?: number | null;
+    waist?: number | null;
+    armLeft?: number | null;
+    armRight?: number | null;
+    thighLeft?: number | null;
+    thighRight?: number | null;
+    calfLeft?: number | null;
+    calfRight?: number | null;
+    photos?: string[];
   }
   const [measurements, setMeasurements] = useState<WeightMeasurement[]>([]);
   const [measurementsLoading, setMeasurementsLoading] = useState(false);
@@ -127,6 +138,8 @@ export default function StudentDashboard() {
   const [newWeightDate, setNewWeightDate] = useState("");
   const [savingWeight, setSavingWeight] = useState(false);
   const [weightError, setWeightError] = useState("");
+  const [expandedMeasurementId, setExpandedMeasurementId] = useState<string | null>(null);
+  const [selectedPhotoForZoom, setSelectedPhotoForZoom] = useState<string>("");
 
   // Estados de Notificações
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -971,32 +984,132 @@ export default function StudentDashboard() {
                     const nextMeasurement = measurements[idx + 1];
                     const diff = nextMeasurement ? m.weight - nextMeasurement.weight : 0;
                     
+                    const isExpanded = expandedMeasurementId === m.id;
+                    const hasAdditionalInfo = 
+                      (m.bodyFat !== null && m.bodyFat !== undefined) ||
+                      (m.chest !== null && m.chest !== undefined) ||
+                      (m.waist !== null && m.waist !== undefined) ||
+                      (m.armLeft !== null && m.armLeft !== undefined) ||
+                      (m.armRight !== null && m.armRight !== undefined) ||
+                      (m.thighLeft !== null && m.thighLeft !== undefined) ||
+                      (m.thighRight !== null && m.thighRight !== undefined) ||
+                      (m.calfLeft !== null && m.calfLeft !== undefined) ||
+                      (m.calfRight !== null && m.calfRight !== undefined) ||
+                      (m.photos && m.photos.length > 0);
+
                     return (
-                      <div key={m.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
-                        <div className="space-y-1">
-                          <span className="text-xs font-semibold text-[#0F172A]">
-                            {new Date(m.date).toLocaleDateString("pt-BR", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                              timeZone: "UTC",
-                            })}
-                          </span>
-                          {nextMeasurement && (
-                            <span className={`text-[10px] font-bold block ${
-                              diff > 0 
-                                ? weightGoal === "GANHAR_MASSA" ? "text-emerald-500" : "text-red-500"
-                                : diff < 0 
-                                ? weightGoal === "GANHAR_MASSA" ? "text-red-500" : "text-emerald-500"
-                                : "text-[#94A3B8]"
-                            }`}>
-                              {diff > 0 ? `+${diff.toFixed(1)} kg 📈` : diff < 0 ? `${diff.toFixed(1)} kg 📉` : "Sem alteração"}
+                      <div key={m.id} className="py-3 first:pt-0 last:pb-0">
+                        <div 
+                          onClick={() => {
+                            if (hasAdditionalInfo) {
+                              setExpandedMeasurementId(isExpanded ? null : m.id);
+                            }
+                          }}
+                          className={`flex items-center justify-between transition-colors ${hasAdditionalInfo ? "cursor-pointer hover:bg-zinc-55/60 p-1.5 rounded-xl -mx-1.5" : ""}`}
+                        >
+                          <div className="space-y-1">
+                            <span className="text-xs font-semibold text-[#0F172A] flex items-center gap-1.5">
+                              {new Date(m.date).toLocaleDateString("pt-BR", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                                timeZone: "UTC",
+                              })}
+                              {hasAdditionalInfo && (
+                                <span className="text-[9px] bg-blue-50 text-[#2563EB] px-1 py-0.2 rounded font-bold uppercase tracking-wider scale-90">
+                                  Completo
+                                </span>
+                              )}
                             </span>
-                          )}
+                            {nextMeasurement && (
+                              <span className={`text-[10px] font-bold block ${
+                                diff > 0 
+                                  ? weightGoal === "GANHAR_MASSA" ? "text-emerald-500" : "text-red-500"
+                                  : diff < 0 
+                                  ? weightGoal === "GANHAR_MASSA" ? "text-red-500" : "text-emerald-500"
+                                  : "text-[#94A3B8]"
+                              }`}>
+                                {diff > 0 ? `+${diff.toFixed(1)} kg 📈` : diff < 0 ? `${diff.toFixed(1)} kg 📉` : "Sem alteração"}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-base font-black text-[#2563EB] font-mono">
+                              {m.weight.toFixed(1)} kg
+                            </div>
+                            {hasAdditionalInfo && (
+                              <ChevronRight className={`w-4 h-4 text-[#94A3B8] transition-transform ${isExpanded ? "rotate-90 text-[#2563EB]" : ""}`} />
+                            )}
+                          </div>
                         </div>
-                        <div className="text-base font-black text-[#2563EB] font-mono">
-                          {m.weight.toFixed(1)} kg
-                        </div>
+
+                        {/* Detalhes Adicionais se Expandido */}
+                        {isExpanded && hasAdditionalInfo && (
+                          <div className="mt-3 p-4 rounded-xl bg-zinc-55/40 border border-[#E2E8F0] space-y-4 animate-slide-down">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] text-[#94A3B8]">
+                              {m.bodyFat !== null && m.bodyFat !== undefined && (
+                                <div>
+                                  <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8]">BF (Gordura)</span>
+                                  <span className="text-[#0F172A] font-bold font-mono text-xs">{m.bodyFat}%</span>
+                                </div>
+                              )}
+                              {m.chest !== null && m.chest !== undefined && (
+                                <div>
+                                  <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8]">Peitoral</span>
+                                  <span className="text-[#0F172A] font-bold font-mono text-xs">{m.chest} cm</span>
+                                </div>
+                              )}
+                              {m.waist !== null && m.waist !== undefined && (
+                                <div>
+                                  <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8]">Cintura</span>
+                                  <span className="text-[#0F172A] font-bold font-mono text-xs">{m.waist} cm</span>
+                                </div>
+                              )}
+                              {(m.armLeft !== null || m.armRight !== null) && (
+                                <div>
+                                  <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8]">Braços (E/D)</span>
+                                  <span className="text-[#0F172A] font-bold font-mono text-xs">
+                                    {m.armLeft ?? "--"} / {m.armRight ?? "--"} cm
+                                  </span>
+                                </div>
+                              )}
+                              {(m.thighLeft !== null || m.thighRight !== null) && (
+                                <div>
+                                  <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8]">Coxas (E/D)</span>
+                                  <span className="text-[#0F172A] font-bold font-mono text-xs">
+                                    {m.thighLeft ?? "--"} / {m.thighRight ?? "--"} cm
+                                  </span>
+                                </div>
+                              )}
+                              {(m.calfLeft !== null || m.calfRight !== null) && (
+                                <div>
+                                  <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8]">Panturrilhas (E/D)</span>
+                                  <span className="text-[#0F172A] font-bold font-mono text-xs">
+                                    {m.calfLeft ?? "--"} / {m.calfRight ?? "--"} cm
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Fotos comparativas se existirem */}
+                            {m.photos && m.photos.length > 0 && (
+                              <div className="pt-3 border-t border-[#E2E8F0]/80">
+                                <span className="block font-bold text-[9px] uppercase tracking-wider text-[#94A3B8] mb-2 font-display">Fotos Comparativas</span>
+                                <div className="flex gap-2 flex-wrap">
+                                  {m.photos.map((photo, pIdx) => (
+                                    <div
+                                      key={pIdx}
+                                      onClick={() => setSelectedPhotoForZoom(photo)}
+                                      className="w-14 h-14 rounded-lg bg-zinc-50 border border-[#E2E8F0] overflow-hidden relative cursor-zoom-in hover:border-[#2563EB] transition-all"
+                                    >
+                                      <img src={photo} alt={`Foto ${pIdx + 1}`} className="w-full h-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1099,6 +1212,25 @@ export default function StudentDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Zoom Foto */}
+      {selectedPhotoForZoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="relative max-w-sm max-h-[85vh] w-full flex items-center justify-center animate-scale-up">
+            <button
+              onClick={() => setSelectedPhotoForZoom("")}
+              className="absolute -top-12 right-0 p-2 rounded-lg bg-white hover:bg-zinc-800 text-[#94A3B8] hover:text-white transition-all cursor-pointer border border-[#E2E8F0]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={selectedPhotoForZoom}
+              alt="Medida Ampliada"
+              className="max-w-full max-h-[75vh] rounded-2xl object-contain border border-[#E2E8F0]"
+            />
           </div>
         </div>
       )}
