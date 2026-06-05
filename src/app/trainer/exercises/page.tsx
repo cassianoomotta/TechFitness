@@ -15,6 +15,7 @@ import {
   Trash2,
   Tv,
 } from "lucide-react";
+import MuscleMap from "@/components/MuscleMap";
 
 interface Exercise {
   id: string;
@@ -418,7 +419,7 @@ export default function ExercisesPage() {
       {/* Modal Criar/Editar */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-4xl bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[90vh] overflow-y-auto">
             {/* Fechar */}
             <button
               onClick={() => setIsModalOpen(false)}
@@ -442,117 +443,131 @@ export default function ExercisesPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Nome */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                  Nome do Exercício
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Agachamento Livre, Supino Reto"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Grupo Muscular */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              {/* Formulário */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Nome */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                    Grupo Muscular Primário
-                  </label>
-                  <select
-                    value={muscleGroup}
-                    onChange={(e) => setMuscleGroup(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
-                  >
-                    {MUSCLE_GROUPS.map((group) => (
-                      <option key={group} value={group}>
-                        {group}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Equipamento */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                    Equipamento
-                  </label>
-                  <select
-                    value={equipment}
-                    onChange={(e) => setEquipment(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
-                  >
-                    {EQUIPMENTS.map((eq) => (
-                      <option key={eq} value={eq}>
-                        {eq}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Descrição */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                  Instruções de Execução (Opcional)
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Instruções para posicionamento, execução, respiração, etc."
-                  rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all resize-none"
-                />
-              </div>
-
-              {/* URLs (Vídeo e GIF) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                    URL do Vídeo Demonstrativo (Opcional)
+                    Nome do Exercício
                   </label>
                   <input
-                    type="url"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://youtube.com/watch?v=..."
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ex: Agachamento Livre, Supino Reto"
                     className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Grupo Muscular */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      Grupo Muscular Primário
+                    </label>
+                    <select
+                      value={muscleGroup}
+                      onChange={(e) => setMuscleGroup(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
+                    >
+                      {MUSCLE_GROUPS.map((group) => (
+                        <option key={group} value={group}>
+                          {group}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Equipamento */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      Equipamento
+                    </label>
+                    <select
+                      value={equipment}
+                      onChange={(e) => setEquipment(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
+                    >
+                      {EQUIPMENTS.map((eq) => (
+                        <option key={eq} value={eq}>
+                          {eq}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Descrição */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
-                    URL do GIF de Movimento (Opcional)
+                    Instruções de Execução (Opcional)
                   </label>
-                  <input
-                    type="url"
-                    value={gifUrl}
-                    onChange={(e) => setGifUrl(e.target.value)}
-                    placeholder="https://exemplo.com/exercicio.gif"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Instruções para posicionamento, execução, respiração, etc."
+                    rows={3}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all resize-none"
                   />
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={modalLoading}
-                className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
-              >
-                {modalLoading ? (
-                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
-                ) : (
-                  <>
-                    {editingExercise ? "Salvar Alterações" : "Adicionar Exercício"}
-                  </>
-                )}
-              </button>
-            </form>
+                {/* URLs (Vídeo e GIF) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      URL do Vídeo Demonstrativo (Opcional)
+                    </label>
+                    <input
+                      type="url"
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                      URL do GIF de Movimento (Opcional)
+                    </label>
+                    <input
+                      type="url"
+                      value={gifUrl}
+                      onChange={(e) => setGifUrl(e.target.value)}
+                      placeholder="https://exemplo.com/exercicio.gif"
+                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={modalLoading}
+                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
+                >
+                  {modalLoading ? (
+                    <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  ) : (
+                    <>
+                      {editingExercise ? "Salvar Alterações" : "Adicionar Exercício"}
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Coluna 2: Preview do Músculo */}
+              <div className="flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-900/50 p-6 rounded-2xl border border-slate-100 dark:border-zinc-900 sticky top-0">
+                <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider mb-4">
+                  Visualização Anatômica (Primária)
+                </span>
+                <MuscleMap muscleGroup={muscleGroup} size={280} className="w-full bg-transparent border-0 shadow-none dark:bg-transparent p-0" />
+                <p className="text-[10px] text-[#94A3B8] text-center mt-4 leading-relaxed">
+                  Os músculos correspondentes em <span className="text-[#2563EB] font-bold">azul</span> serão destacados na interface de treino do aluno.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
