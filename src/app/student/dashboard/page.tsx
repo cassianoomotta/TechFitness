@@ -22,6 +22,8 @@ import {
   X,
   Bell,
   ChevronRight,
+  Eye,
+  Tv,
 } from "lucide-react";
 
 interface Exercise {
@@ -33,6 +35,8 @@ interface Exercise {
   reps: string;
   restSeconds: number;
   method: string;
+  videoUrl?: string | null;
+  description?: string | null;
 }
 
 interface WorkoutPlan {
@@ -112,6 +116,23 @@ export default function StudentDashboard() {
 
   // Estados da Aba e Duelo de Parceiros
   const [activeTab, setActiveTab] = useState<"fichas" | "dupla" | "peso">("fichas");
+  const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+
+  const getYouTubeEmbedUrl = (url: string | null) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
+    }
+    return url;
+  };
+
+  const handleTabChange = (tab: "fichas" | "dupla" | "peso") => {
+    setActiveTab(tab);
+    localStorage.setItem("student_active_tab", tab);
+  };
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState("");
   const [partnerSearchQuery, setPartnerSearchQuery] = useState("");
@@ -244,6 +265,13 @@ export default function StudentDashboard() {
 
     fetchPlans();
     fetchPrs();
+  }, []);
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem("student_active_tab");
+    if (savedTab && ["fichas", "dupla", "peso"].includes(savedTab)) {
+      setActiveTab(savedTab as "fichas" | "dupla" | "peso");
+    }
   }, []);
 
   // Buscar lista de parceiros ao carregar a aba de dupla
@@ -515,7 +543,7 @@ export default function StudentDashboard() {
         {/* Abas */}
         <div className="flex border-b border-[#E2E8F0] mb-6">
           <button
-            onClick={() => setActiveTab("fichas")}
+            onClick={() => handleTabChange("fichas")}
             className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "fichas"
                 ? "border-[#2563EB] text-[#2563EB]"
@@ -526,7 +554,7 @@ export default function StudentDashboard() {
             Minhas Fichas
           </button>
           <button
-            onClick={() => setActiveTab("dupla")}
+            onClick={() => handleTabChange("dupla")}
             className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "dupla"
                 ? "border-[#2563EB] text-[#2563EB]"
@@ -537,7 +565,7 @@ export default function StudentDashboard() {
             Treino em Dupla 🤝
           </button>
           <button
-            onClick={() => setActiveTab("peso")}
+            onClick={() => handleTabChange("peso")}
             className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "peso"
                 ? "border-[#2563EB] text-[#2563EB]"
@@ -626,14 +654,24 @@ export default function StudentDashboard() {
                       )}
                     </div>
 
-                    {/* Botão de Ação */}
-                    <Link
-                      href={`/student/workout-session/${plan.id}`}
-                      className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98]"
-                    >
-                      <Play className="w-4.5 h-4.5 fill-white stroke-[3px]" />
-                      Iniciar Sessão de Treino
-                    </Link>
+                    {/* Botões de Ação */}
+                    <div className="flex flex-col sm:flex-row gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlanForPreview(plan)}
+                        className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] hover:bg-zinc-50 text-[#0F172A] font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4 text-[#94A3B8]" />
+                        Visualizar Exercícios
+                      </button>
+                      <Link
+                        href={`/student/workout-session/${plan.id}`}
+                        className="flex-1 sm:flex-[1.5] py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/10 active:scale-[0.98]"
+                      >
+                        <Play className="w-4 h-4 fill-white stroke-[3px]" />
+                        Iniciar Sessão de Treino
+                      </Link>
+                    </div>
                   </div>
                 ))}
 
@@ -1211,6 +1249,143 @@ export default function StudentDashboard() {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Visualização da Ficha Completa */}
+      {selectedPlanForPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] animate-scale-up flex flex-col max-h-[90vh]">
+            {/* Fechar */}
+            <button
+              onClick={() => setSelectedPlanForPreview(null)}
+              className="absolute top-4 right-4 p-2 rounded-lg border border-[#E2E8F0] text-[#94A3B8] hover:text-[#0F172A] hover:bg-zinc-100 transition-all cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="mb-4">
+              <span className="text-[10px] bg-blue-55 border border-blue-200 px-2 py-0.5 rounded font-bold text-[#2563EB] uppercase">
+                Visualizando Ficha
+              </span>
+              <h3 className="font-display text-xl font-extrabold text-[#0F172A] mt-1 flex items-center gap-2">
+                <Dumbbell className="w-5 h-5 text-[#2563EB]" /> {selectedPlanForPreview.name}
+              </h3>
+              {selectedPlanForPreview.description && (
+                <p className="text-xs text-[#94A3B8] mt-1.5 leading-relaxed">
+                  {selectedPlanForPreview.description}
+                </p>
+              )}
+            </div>
+
+            {/* Lista de Exercícios */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2 my-2 border-y border-[#E2E8F0]/80">
+              {selectedPlanForPreview.exercises.map((ex, idx) => (
+                <div
+                  key={ex.id}
+                  className="p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#2563EB]/20 hover:bg-[#2563EB]/1 shadow-sm transition-all"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-4.5 h-4.5 rounded-full bg-zinc-200 text-[#0F172A] text-[10px] font-bold flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <p className="text-xs font-bold text-[#0F172A]">{ex.name}</p>
+                    </div>
+                    <p className="text-[10px] text-[#94A3B8] pl-6">
+                      {ex.muscleGroup} • {ex.equipment}
+                    </p>
+                    {ex.description && (
+                      <p className="text-[10px] text-[#94A3B8] pl-6 italic line-clamp-1 hover:line-clamp-none transition-all duration-300">
+                        Obs: {ex.description}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center justify-between sm:justify-end gap-3 pl-6 sm:pl-0">
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-[#0F172A]">{ex.sets}x{ex.reps}</p>
+                      <p className="text-[9px] text-[#94A3B8] font-medium uppercase tracking-wider">{ex.method}</p>
+                      {ex.restSeconds > 0 && (
+                        <p className="text-[9px] text-[#94A3B8] font-medium font-mono">Descanso: {ex.restSeconds}s</p>
+                      )}
+                    </div>
+                    {ex.videoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveVideoUrl(ex.videoUrl || null)}
+                        className="p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#2563EB] transition-all cursor-pointer animate-pulse-subtle"
+                        title="Ver execução do exercício"
+                      >
+                        <Tv className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Ações */}
+            <div className="flex gap-3 pt-3 border-t border-[#E2E8F0] mt-3">
+              <button
+                type="button"
+                onClick={() => setSelectedPlanForPreview(null)}
+                className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] hover:bg-zinc-100/50 text-[#475569] font-bold text-xs transition-all cursor-pointer"
+              >
+                Voltar
+              </button>
+              <Link
+                href={`/student/workout-session/${selectedPlanForPreview.id}`}
+                className="flex-1 py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/10"
+              >
+                <Play className="w-4 h-4 fill-white stroke-[3px]" />
+                Iniciar Sessão de Treino
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Player de Vídeo Inline (Overlay) */}
+      {activeVideoUrl && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-3xl bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-800 animate-scale-up">
+            {/* Botão de Fechar */}
+            <button
+              onClick={() => setActiveVideoUrl(null)}
+              className="absolute top-4 right-4 z-50 p-2 rounded-lg bg-black/60 border border-zinc-700/50 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
+              title="Fechar vídeo"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Container Iframe Proporcional 16:9 */}
+            <div className="aspect-video w-full bg-black">
+              {getYouTubeEmbedUrl(activeVideoUrl) ? (
+                <iframe
+                  src={getYouTubeEmbedUrl(activeVideoUrl) || ""}
+                  title="Video Player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 p-6 text-center">
+                  <Tv className="w-12 h-12 text-zinc-600 mb-3" />
+                  <p className="text-sm font-semibold">Não foi possível carregar o vídeo inline.</p>
+                  <a
+                    href={activeVideoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:underline mt-2 inline-flex items-center gap-1"
+                  >
+                    Abrir em nova aba externa <ArrowRight className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
