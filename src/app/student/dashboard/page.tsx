@@ -25,7 +25,7 @@ import {
   Eye,
   Tv,
 } from "lucide-react";
-import MuscleMap from "@/components/MuscleMap";
+
 
 interface Exercise {
   id: string;
@@ -119,7 +119,7 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState<"fichas" | "dupla" | "peso">("fichas");
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
-  const [selectedMuscleGroupForMap, setSelectedMuscleGroupForMap] = useState<string | null>(null);
+
 
   const getYouTubeEmbedUrl = (url: string | null) => {
     if (!url) return null;
@@ -1324,14 +1324,7 @@ export default function StudentDashboard() {
                         <Tv className="w-4 h-4" />
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMuscleGroupForMap(ex.muscleGroup)}
-                      className="p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#2563EB] transition-all cursor-pointer"
-                      title="Ver musculatura trabalhada"
-                    >
-                      <Dumbbell className="w-4 h-4" />
-                    </button>
+
                   </div>
                 </div>
               ))}
@@ -1420,36 +1413,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Modal Anatomia Muscular */}
-      {selectedMuscleGroupForMap && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-sm bg-white dark:bg-zinc-950 rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] dark:border-zinc-900 animate-scale-up">
-            <button
-              onClick={() => setSelectedMuscleGroupForMap(null)}
-              className="absolute top-4 right-4 p-2 rounded-lg border border-[#E2E8F0] dark:border-zinc-800 text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
 
-            <div className="text-center mb-4">
-              <span className="text-[9px] bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-2 py-0.5 rounded font-bold text-[#2563EB] dark:text-blue-400 uppercase">
-                Grupo Alvo
-              </span>
-              <h3 className="font-display text-lg font-extrabold text-[#0F172A] dark:text-white mt-1">
-                {selectedMuscleGroupForMap}
-              </h3>
-            </div>
-
-            <div className="rounded-xl overflow-hidden border border-slate-100 dark:border-zinc-900">
-              <MuscleMap muscleGroup={selectedMuscleGroupForMap} size={280} className="w-full bg-slate-50/50 dark:bg-zinc-900/10 border-0 shadow-none" />
-            </div>
-
-            <p className="text-[10px] text-[#94A3B8] text-center mt-4 leading-relaxed">
-              Músculo trabalhado em destaque <span className="text-[#2563EB] font-bold">azul</span> no mapa.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

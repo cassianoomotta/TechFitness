@@ -15,7 +15,7 @@ import {
   Trash2,
   Tv,
 } from "lucide-react";
-import MuscleMap from "@/components/MuscleMap";
+
 
 interface Exercise {
   id: string;
@@ -419,7 +419,7 @@ export default function ExercisesPage() {
       {/* Modal Criar/Editar */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-4xl bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[90vh] overflow-y-auto">
             {/* Fechar */}
             <button
               onClick={() => setIsModalOpen(false)}
@@ -443,7 +443,7 @@ export default function ExercisesPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="w-full">
               {/* Formulário */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Nome */}
@@ -556,17 +556,6 @@ export default function ExercisesPage() {
                   )}
                 </button>
               </form>
-
-              {/* Coluna 2: Preview do Músculo */}
-              <div className="flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-900/50 p-6 rounded-2xl border border-slate-100 dark:border-zinc-900 sticky top-0">
-                <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider mb-4">
-                  Visualização Anatômica (Primária)
-                </span>
-                <MuscleMap muscleGroup={muscleGroup} size={280} className="w-full bg-transparent border-0 shadow-none dark:bg-transparent p-0" />
-                <p className="text-[10px] text-[#94A3B8] text-center mt-4 leading-relaxed">
-                  Os músculos correspondentes em <span className="text-[#2563EB] font-bold">azul</span> serão destacados na interface de treino do aluno.
-                </p>
-              </div>
             </div>
           </div>
         </div>
