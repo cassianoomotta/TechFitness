@@ -149,11 +149,11 @@ const ALL_ACHIEVEMENTS = [
   { id: "pr_pioneer", title: "Pioneiro da Força", description: "Bateu seu primeiro recorde pessoal de carga (PR)", icon: "Zap", xpReward: 150, tier: 1 },
   { id: "body_awareness", title: "Consciência Corporal", description: "Registrou seu peso ou medidas corporais pela primeira vez", icon: "Scale", xpReward: 100, tier: 1 },
   { id: "iron_consistency", title: "Consistência de Aço", description: "Concluiu 5 sessões de treino no total", icon: "Award", xpReward: 250, tier: 2 },
-  { id: "streak_fire", title: "Fogo no Treino", description: "Alcançou um streak de 3 dias consecutivos treinando", icon: "Flame", xpReward: 300, tier: 2 },
+  { id: "streak_fire", title: "Frequência Semanal", description: "Treinou por 3 semanas consecutivas (pelo menos 1 treino por semana)", icon: "Flame", xpReward: 300, tier: 2 },
   { id: "eagle_eye", title: "Olhar de Águia", description: "Registrou peso ou medidas corporais 3 vezes", icon: "Scale", xpReward: 200, tier: 2 },
   { id: "warrior_path", title: "Caminho do Guerreiro", description: "Completou 15 sessões de treino — disciplina notável", icon: "Sword", xpReward: 500, tier: 3 },
   { id: "titan_strength", title: "Força Titânica", description: "Bateu 5 recordes de carga (PRs) em exercícios diferentes", icon: "ShieldAlert", xpReward: 500, tier: 3 },
-  { id: "inferno_streak", title: "Sequência Infernal", description: "Manteve um streak de 7 dias consecutivos de treino", icon: "Flame", xpReward: 600, tier: 3 },
+  { id: "inferno_streak", title: "Constância de Titã", description: "Treinou por 7 semanas consecutivas (pelo menos 1 treino por semana)", icon: "Flame", xpReward: 600, tier: 3 },
   { id: "centurion", title: "Centurião", description: "Alcançou 30 sessões de treino completas", icon: "Crown", xpReward: 800, tier: 4 },
   { id: "pr_machine", title: "Máquina de PRs", description: "Acumulou 10 recordes pessoais de carga em exercícios", icon: "Zap", xpReward: 750, tier: 4 },
   { id: "olympus_legend", title: "Lenda do Olimpo", description: "Completou 50 sessões de treino — poucos chegam aqui", icon: "Trophy", xpReward: 1500, tier: 4 },
@@ -161,34 +161,47 @@ const ALL_ACHIEVEMENTS = [
 
 function calculateStreak(sessions: { date: Date }[]) {
   if (sessions.length === 0) return 0;
-  
-  const todayStr = new Date().toLocaleDateString("en-CA");
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toLocaleDateString("en-CA");
 
-  const sessionDates = new Set(
-    sessions.map((s) => new Date(s.date).toLocaleDateString("en-CA"))
+  const getWeekStart = (d: Date) => {
+    const temp = new Date(d);
+    temp.setHours(0, 0, 0, 0);
+    const day = temp.getDay();
+    const diff = temp.getDate() - day + (day === 0 ? -6 : 1); // Segunda-feira
+    const monday = new Date(temp.setDate(diff));
+    return monday.toLocaleDateString("en-CA");
+  };
+
+  const sessionWeeks = new Set(
+    sessions.map((s) => getWeekStart(new Date(s.date)))
   );
 
-  const hasTrainedToday = sessionDates.has(todayStr);
-  const hasTrainedYesterday = sessionDates.has(yesterdayStr);
+  const today = new Date();
+  const currentWeek = getWeekStart(today);
+  
+  const lastWeekDate = new Date(today);
+  lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+  const lastWeek = getWeekStart(lastWeekDate);
 
-  if (!hasTrainedToday && !hasTrainedYesterday) return 0;
+  const hasTrainedThisWeek = sessionWeeks.has(currentWeek);
+  const hasTrainedLastWeek = sessionWeeks.has(lastWeek);
+
+  if (!hasTrainedThisWeek && !hasTrainedLastWeek) {
+    return 0;
+  }
 
   let streak = 1;
-  const currentRefDate = new Date(hasTrainedToday ? todayStr : yesterdayStr);
-  
+  const refDate = new Date(hasTrainedThisWeek ? currentWeek : lastWeek);
+
   while (true) {
-    currentRefDate.setDate(currentRefDate.getDate() - 1);
-    const checkStr = currentRefDate.toLocaleDateString("en-CA");
-    if (sessionDates.has(checkStr)) {
+    refDate.setDate(refDate.getDate() - 7);
+    const prevWeekStr = getWeekStart(refDate);
+    if (sessionWeeks.has(prevWeekStr)) {
       streak++;
     } else {
       break;
     }
   }
-  
+
   return streak;
 }
 

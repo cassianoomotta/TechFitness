@@ -44,29 +44,40 @@ export async function GET() {
       where: { studentId: studentProfile.id },
     });
 
-    // 4. Calcular o Streak Atual (dias civis consecutivos de treino)
+    // 4. Calcular o Streak Atual (semanas consecutivas com treino)
     let streak = 0;
     if (totalSessions > 0) {
-      const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+      const getWeekStart = (d: Date) => {
+        const temp = new Date(d);
+        temp.setHours(0, 0, 0, 0);
+        const day = temp.getDay();
+        const diff = temp.getDate() - day + (day === 0 ? -6 : 1); // Segunda-feira
+        const monday = new Date(temp.setDate(diff));
+        return monday.toLocaleDateString("en-CA");
+      };
 
-      const sessionDates = new Set(
-        sessions.map((s) => new Date(s.date).toLocaleDateString("en-CA"))
+      const sessionWeeks = new Set(
+        sessions.map((s) => getWeekStart(new Date(s.date)))
       );
 
-      const hasTrainedToday = sessionDates.has(todayStr);
-      const hasTrainedYesterday = sessionDates.has(yesterdayStr);
+      const today = new Date();
+      const currentWeek = getWeekStart(today);
+      
+      const lastWeekDate = new Date(today);
+      lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+      const lastWeek = getWeekStart(lastWeekDate);
 
-      if (hasTrainedToday || hasTrainedYesterday) {
+      const hasTrainedThisWeek = sessionWeeks.has(currentWeek);
+      const hasTrainedLastWeek = sessionWeeks.has(lastWeek);
+
+      if (hasTrainedThisWeek || hasTrainedLastWeek) {
         streak = 1;
-        const currentRefDate = new Date(hasTrainedToday ? todayStr : yesterdayStr);
-        
+        const refDate = new Date(hasTrainedThisWeek ? currentWeek : lastWeek);
+
         while (true) {
-          currentRefDate.setDate(currentRefDate.getDate() - 1);
-          const checkStr = currentRefDate.toLocaleDateString("en-CA");
-          if (sessionDates.has(checkStr)) {
+          refDate.setDate(refDate.getDate() - 7);
+          const prevWeekStr = getWeekStart(refDate);
+          if (sessionWeeks.has(prevWeekStr)) {
             streak++;
           } else {
             break;
@@ -146,8 +157,8 @@ export async function GET() {
       },
       {
         id: "streak_fire",
-        title: "Fogo no Treino",
-        description: "Alcançou um streak de 3 dias consecutivos treinando",
+        title: "Frequência Semanal",
+        description: "Treinou por 3 semanas consecutivas (pelo menos 1 treino por semana)",
         icon: "Flame",
         xpReward: 300,
         unlocked: streak >= 3,
@@ -192,8 +203,8 @@ export async function GET() {
       },
       {
         id: "inferno_streak",
-        title: "Sequência Infernal",
-        description: "Manteve um streak de 7 dias consecutivos de treino",
+        title: "Constância de Titã",
+        description: "Treinou por 7 semanas consecutivas (pelo menos 1 treino por semana)",
         icon: "Flame",
         xpReward: 600,
         unlocked: streak >= 7,
