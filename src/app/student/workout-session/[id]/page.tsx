@@ -14,6 +14,14 @@ import {
   Zap,
   Shuffle,
   Edit,
+  Trophy,
+  Play,
+  Scale,
+  Flame,
+  Shield,
+  Award,
+  Sparkles,
+  Crown,
 } from "lucide-react";
 
 
@@ -129,6 +137,8 @@ export default function WorkoutSessionPlayer() {
   const [finishLoading, setFinishLoading] = useState(false);
   const [finishSuccess, setFinishSuccess] = useState(false);
   const [finishError, setFinishError] = useState("");
+  const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Cronômetro Geral do Treino (Timestamp-based)
   useEffect(() => {
@@ -380,9 +390,15 @@ export default function WorkoutSessionPlayer() {
 
       setFinishSuccess(true);
       localStorage.removeItem(`workout_start_time_${planId}`);
-      setTimeout(() => {
-        router.push("/student/dashboard");
-      }, 1500);
+      if (data.newAchievements && data.newAchievements.length > 0) {
+        setUnlockedAchievements(data.newAchievements);
+        setShowCelebration(true);
+        setIsFinishModalOpen(false);
+      } else {
+        setTimeout(() => {
+          router.push("/student/dashboard");
+        }, 1500);
+      }
     } catch (err) {
       setFinishError("Erro de conexão ao salvar.");
     } finally {
@@ -797,6 +813,96 @@ export default function WorkoutSessionPlayer() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Celebração de Conquista Desbloqueada */}
+      {showCelebration && (
+        <div className="fixed inset-0 bg-zinc-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-b from-slate-900 to-zinc-950 rounded-3xl p-6 w-full max-w-sm border border-amber-500/30 shadow-2xl shadow-amber-500/10 text-center space-y-6 relative overflow-hidden animate-scale-up">
+            
+            {/* Sparkles / Brilho do Topo */}
+            <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
+            
+            <div className="flex flex-col items-center pt-4">
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 blur opacity-75 animate-pulse" />
+                <div className="relative p-4 rounded-full bg-slate-800 border-2 border-amber-400/50 flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-8 h-8 text-amber-400" />
+                </div>
+              </div>
+              
+              <h2 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-300 tracking-wider mt-5">
+                CONQUISTA ALCANÇADA!
+              </h2>
+              <p className="text-[10px] text-amber-500/80 font-bold uppercase tracking-widest mt-1">
+                Jornada de Evolução
+              </p>
+            </div>
+
+            {/* Listagem de Conquistas Obtidas */}
+            <div className="space-y-4 py-2">
+              {unlockedAchievements.map((achievement) => {
+                const IconComponent = () => {
+                  const props = { className: "w-8 h-8 text-amber-400" };
+                  switch (achievement.icon) {
+                    case "Play":
+                      return <Play {...props} className={props.className + " fill-current"} />;
+                    case "Zap":
+                      return <Zap {...props} className={props.className + " fill-current"} />;
+                    case "Scale":
+                      return <Scale {...props} />;
+                    case "Flame":
+                      return <Flame {...props} className={props.className + " fill-current"} />;
+                    case "ShieldAlert":
+                      return <Shield {...props} />;
+                    case "Crown":
+                      return <Crown {...props} />;
+                    case "Award":
+                      return <Award {...props} />;
+                    default:
+                      return <Trophy {...props} />;
+                  }
+                };
+
+                return (
+                  <div
+                    key={achievement.id}
+                    className="p-4 rounded-2xl bg-slate-850/60 border border-amber-500/20 flex flex-col items-center gap-3 relative"
+                  >
+                    <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-400/20">
+                      <IconComponent />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white">
+                        {achievement.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 leading-normal mt-1 max-w-[240px] mx-auto">
+                        {achievement.description}
+                      </p>
+                    </div>
+                    
+                    {/* Recompensa XP */}
+                    <div className="mt-1.5 px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-md shadow-amber-500/25">
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      +{achievement.xpReward} XP Recompensa
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowCelebration(false);
+                router.push("/student/dashboard");
+              }}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-slate-950 font-black text-xs transition-all duration-300 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 cursor-pointer active:scale-[0.98]"
+            >
+              Continuar para o Dashboard
+            </button>
           </div>
         </div>
       )}

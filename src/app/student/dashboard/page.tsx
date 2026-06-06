@@ -29,6 +29,7 @@ import {
   Shield,
   Scale,
   Zap,
+  Swords,
 } from "lucide-react";
 
 
@@ -76,8 +77,16 @@ interface ComparisonData {
     sessionsCount: number;
     setsCount: number;
   };
+  sharedExercises: {
+    exerciseId: string;
+    name: string;
+    muscleGroup: string;
+    equipment: string;
+  }[];
   exerciseComparison: {
+    exerciseId: string;
     exerciseName: string;
+    muscleGroup: string;
     myMax: number;
     partnerMax: number;
   }[];
@@ -193,6 +202,7 @@ export default function StudentDashboard() {
     unlocked: boolean;
     progress: number;
     target: number;
+    tier: number;
   }
   interface GamificationData {
     level: number;
@@ -208,6 +218,25 @@ export default function StudentDashboard() {
   }
   const [gamification, setGamification] = useState<GamificationData | null>(null);
   const [gamificationLoading, setGamificationLoading] = useState(true);
+
+  interface RankingUser {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+    totalXp: number;
+    level: number;
+    levelTitle: string;
+    totalSessions: number;
+  }
+  interface RankingData {
+    top5: RankingUser[];
+    userPosition: number;
+    totalParticipants: number;
+  }
+  const [ranking, setRanking] = useState<RankingData | null>(null);
+  const [rankingLoading, setRankingLoading] = useState(true);
+
 
   // Estados para edição de Ficha (Divisão & Dias)
   const [editingPlan, setEditingPlan] = useState<WorkoutPlan | null>(null);
@@ -310,9 +339,24 @@ export default function StudentDashboard() {
       }
     };
 
+    const fetchRanking = async () => {
+      try {
+        const response = await fetch("/api/student/ranking");
+        if (response.ok) {
+          const data = await response.json();
+          setRanking(data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar ranking:", error);
+      } finally {
+        setRankingLoading(false);
+      }
+    };
+
     fetchPlans();
     fetchPrs();
     fetchGamification();
+    fetchRanking();
   }, []);
 
   useEffect(() => {
@@ -833,7 +877,7 @@ export default function StudentDashboard() {
                   )}
                  </div>
 
-                {/* Conquistas / Badges RPG */}
+                {/* Conquistas / Badges RPG (Preview) */}
                 {!gamificationLoading && gamification && (
                   <div className="bg-white border border-[#E2E8F0]/85 rounded-2xl p-6 shadow-sm space-y-5">
                     <div className="flex items-center justify-between">
@@ -846,78 +890,264 @@ export default function StudentDashboard() {
                       </span>
                     </div>
 
+                    {/* Preview: mostra as 4 conquistas mais relevantes */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {gamification.achievements.map((achievement) => {
-                        const IconComponent = () => {
-                          const props = { className: `w-6 h-6 ${achievement.unlocked ? "text-amber-500" : "text-[#94A3B8]"}` };
-                          switch (achievement.icon) {
-                            case "Play":
-                              return <Play {...props} className={props.className + " fill-current"} />;
-                            case "Zap":
-                              return <Zap {...props} className={props.className + " fill-current"} />;
-                            case "Scale":
-                              return <Scale {...props} />;
-                            case "Flame":
-                              return <Flame {...props} className={props.className + " fill-current"} />;
-                            case "ShieldAlert":
-                              return <Shield {...props} />;
-                            default:
-                              return <Trophy {...props} />;
-                          }
-                        };
+                      {(() => {
+                        const unlocked = gamification.achievements.filter(a => a.unlocked);
+                        const locked = gamification.achievements.filter(a => !a.unlocked);
+                        // Show last 2 unlocked + next 2 to unlock
+                        const preview = [
+                          ...unlocked.slice(-2),
+                          ...locked.slice(0, Math.max(0, 4 - Math.min(unlocked.length, 2))),
+                        ].slice(0, 4);
+                        
+                        return preview.map((achievement) => {
+                          const IconComponent = () => {
+                            const props = { className: `w-6 h-6 ${achievement.unlocked ? "text-amber-500" : "text-[#94A3B8]"}` };
+                            switch (achievement.icon) {
+                              case "Play":
+                                return <Play {...props} className={props.className + " fill-current"} />;
+                              case "Zap":
+                                return <Zap {...props} className={props.className + " fill-current"} />;
+                              case "Scale":
+                                return <Scale {...props} />;
+                              case "Flame":
+                                return <Flame {...props} className={props.className + " fill-current"} />;
+                              case "ShieldAlert":
+                                return <Shield {...props} />;
+                              default:
+                                return <Trophy {...props} />;
+                            }
+                          };
 
-                        const percent = Math.min(100, Math.round((achievement.progress / achievement.target) * 100));
+                          const percent = Math.min(100, Math.round((achievement.progress / achievement.target) * 100));
 
-                        return (
-                          <div 
-                            key={achievement.id} 
-                            className={`p-4 rounded-xl border flex flex-col justify-between gap-3 transition-all duration-300 ${
-                              achievement.unlocked 
-                                ? "bg-amber-50/20 border-amber-200/60 shadow-sm shadow-amber-500/5 hover:border-amber-300" 
-                                : "bg-zinc-50 border-[#E2E8F0] opacity-80"
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className={`p-2.5 rounded-xl flex-shrink-0 transition-transform duration-300 ${
+                          return (
+                            <div 
+                              key={achievement.id} 
+                              className={`p-4 rounded-xl border flex flex-col justify-between gap-3 transition-all duration-300 ${
                                 achievement.unlocked 
-                                  ? "bg-amber-100/50 scale-105 border border-amber-200" 
-                                  : "bg-zinc-200/50 border border-[#E2E8F0]"
-                              }`}>
-                                <IconComponent />
+                                  ? "bg-amber-50/20 border-amber-200/60 shadow-sm shadow-amber-500/5 hover:border-amber-300" 
+                                  : "bg-zinc-50 border-[#E2E8F0] opacity-80"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className={`p-2.5 rounded-xl flex-shrink-0 transition-transform duration-300 ${
+                                  achievement.unlocked 
+                                    ? "bg-amber-100/50 scale-105 border border-amber-200" 
+                                    : "bg-zinc-200/50 border border-[#E2E8F0]"
+                                }`}>
+                                  <IconComponent />
+                                </div>
+                                <div className="min-w-0">
+                                  <h4 className={`text-xs font-bold truncate ${achievement.unlocked ? "text-[#0F172A]" : "text-[#475569]"}`}>
+                                    {achievement.title}
+                                  </h4>
+                                  <p className="text-[10px] text-[#94A3B8] leading-tight mt-0.5">
+                                    {achievement.description}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Progresso de Desbloqueio */}
+                              <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-zinc-900/10">
+                                <div className="flex justify-between items-center text-[8px] text-[#94A3B8] font-bold">
+                                  <span className={achievement.unlocked ? "text-amber-700" : ""}>
+                                    {achievement.unlocked ? "DESBLOQUEADA" : "EM PROGRESSO"}
+                                  </span>
+                                  <span>{achievement.progress} / {achievement.target}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-700 ${
+                                      achievement.unlocked 
+                                        ? "bg-amber-500" 
+                                        : "bg-blue-500"
+                                    }`}
+                                    style={{ width: `${percent}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    {/* CTA — Ver Jornada Completa */}
+                    <Link
+                      href="/student/achievements"
+                      className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-slate-900 to-zinc-950 hover:from-slate-800 hover:to-zinc-900 text-white font-bold text-xs transition-all duration-300 shadow-lg shadow-slate-900/20 hover:shadow-slate-900/30 cursor-pointer active:scale-[0.98] group"
+                    >
+                      <Trophy className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                      Ver Jornada Completa de Conquistas
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                )}
+
+                {/* Ranking de Alunos (Top 5) */}
+                {!rankingLoading && ranking && (
+                  <div className="bg-white border border-[#E2E8F0]/85 rounded-2xl p-6 shadow-sm space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                        Liga dos Titãs — Ranking Geral
+                      </h3>
+                      <span className="text-[10px] bg-[#2563EB]/5 border border-[#2563EB]/15 px-2 py-0.5 rounded font-bold text-[#2563EB]">
+                        {ranking.totalParticipants} atletas ativos
+                      </span>
+                    </div>
+
+                    {/* Pódio visual (Top 3) */}
+                    <div className="grid grid-cols-3 gap-3 pt-4 pb-2 border-b border-[#E2E8F0]/50 items-end">
+                      {/* 2º Lugar (Esquerda) */}
+                      {ranking.top5[1] && (
+                        <div className="flex flex-col items-center text-center space-y-1.5 order-1">
+                          <div className="relative">
+                            <div className="w-12 h-12 rounded-full bg-slate-100 border-2 border-slate-300 flex items-center justify-center font-bold text-slate-500 overflow-hidden shadow-sm">
+                              {ranking.top5[1].image ? (
+                                <img src={ranking.top5[1].image} alt={ranking.top5[1].name} className="w-full h-full object-cover" />
+                              ) : (
+                                ranking.top5[1].name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <span className="absolute -bottom-1.5 -right-1 bg-slate-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-extrabold border border-white">
+                              2
+                            </span>
+                          </div>
+                          <div className="min-w-0 w-full">
+                            <p className="text-[11px] font-bold text-[#475569] truncate px-1">
+                              {ranking.top5[1].name}
+                            </p>
+                            <p className="text-[9px] text-slate-500 font-mono font-bold">
+                              {ranking.top5[1].totalXp} XP
+                            </p>
+                          </div>
+                          <div className="w-full h-10 bg-slate-200/50 rounded-t-lg border-x border-t border-slate-200 flex items-center justify-center">
+                            <span className="text-[9px] font-extrabold text-slate-500 font-mono">2º</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 1º Lugar (Centro) */}
+                      {ranking.top5[0] && (
+                        <div className="flex flex-col items-center text-center space-y-1.5 order-2">
+                          <div className="relative">
+                            <div className="w-15 h-15 rounded-full bg-amber-50 border-3 border-amber-400 flex items-center justify-center font-bold text-amber-700 overflow-hidden shadow-md">
+                              {ranking.top5[0].image ? (
+                                <img src={ranking.top5[0].image} alt={ranking.top5[0].name} className="w-full h-full object-cover" />
+                              ) : (
+                                ranking.top5[0].name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <span className="absolute -bottom-1.5 -right-1 bg-amber-400 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-extrabold border-2 border-white">
+                              👑
+                            </span>
+                          </div>
+                          <div className="min-w-0 w-full">
+                            <p className="text-xs font-black text-amber-600 truncate px-1">
+                              {ranking.top5[0].name}
+                            </p>
+                            <p className="text-[10px] text-amber-500 font-mono font-bold">
+                              {ranking.top5[0].totalXp} XP
+                            </p>
+                          </div>
+                          <div className="w-full h-14 bg-amber-100/40 rounded-t-lg border-x border-t border-amber-200/80 flex items-center justify-center shadow-inner">
+                            <span className="text-xs font-black text-amber-600 font-mono">1º</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3º Lugar (Direita) */}
+                      {ranking.top5[2] && (
+                        <div className="flex flex-col items-center text-center space-y-1.5 order-3">
+                          <div className="relative">
+                            <div className="w-12 h-12 rounded-full bg-amber-50/50 border-2 border-amber-600/50 flex items-center justify-center font-bold text-amber-800 overflow-hidden shadow-sm">
+                              {ranking.top5[2].image ? (
+                                <img src={ranking.top5[2].image} alt={ranking.top5[2].name} className="w-full h-full object-cover" />
+                              ) : (
+                                ranking.top5[2].name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <span className="absolute -bottom-1.5 -right-1 bg-amber-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-extrabold border border-white">
+                              3
+                            </span>
+                          </div>
+                          <div className="min-w-0 w-full">
+                            <p className="text-[11px] font-bold text-amber-800/80 truncate px-1">
+                              {ranking.top5[2].name}
+                            </p>
+                            <p className="text-[9px] text-amber-700/70 font-mono font-bold">
+                              {ranking.top5[2].totalXp} XP
+                            </p>
+                          </div>
+                          <div className="w-full h-7 bg-amber-100/10 rounded-t-lg border-x border-t border-amber-200/30 flex items-center justify-center">
+                            <span className="text-[9px] font-extrabold text-amber-700/70 font-mono">3º</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Lista dos demais (4º e 5º) */}
+                    {(ranking.top5[3] || ranking.top5[4]) && (
+                      <div className="space-y-2 pt-2">
+                        {ranking.top5.slice(3, 5).map((user, idx) => (
+                          <div
+                            key={user.id}
+                            className="flex items-center justify-between p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl hover:bg-zinc-100/30 hover:border-[#2563EB]/15 transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-bold text-[#94A3B8] w-4 text-center">
+                                {idx + 4}
+                              </span>
+                              <div className="w-8 h-8 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center font-bold text-xs text-[#475569] overflow-hidden">
+                                {user.image ? (
+                                  <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  user.name.charAt(0).toUpperCase()
+                                )}
                               </div>
                               <div className="min-w-0">
-                                <h4 className={`text-xs font-bold truncate ${achievement.unlocked ? "text-[#0F172A]" : "text-[#475569]"}`}>
-                                  {achievement.title}
-                                </h4>
-                                <p className="text-[10px] text-[#94A3B8] leading-tight mt-0.5">
-                                  {achievement.description}
+                                <p className="text-xs font-bold text-[#0F172A] truncate">
+                                  {user.name}
+                                </p>
+                                <p className="text-[9px] text-[#94A3B8]">
+                                  Lvl {user.level} • {user.levelTitle}
                                 </p>
                               </div>
                             </div>
-
-                            {/* Progresso de Desbloqueio */}
-                            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-zinc-900/10">
-                              <div className="flex justify-between items-center text-[8px] text-[#94A3B8] font-bold">
-                                <span className={achievement.unlocked ? "text-amber-700" : ""}>
-                                  {achievement.unlocked ? "DESBLOQUEADA" : "EM PROGRESSO"}
-                                </span>
-                                <span>{achievement.progress} / {achievement.target}</span>
-                              </div>
-                              <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full transition-all duration-700 ${
-                                    achievement.unlocked 
-                                      ? "bg-amber-500" 
-                                      : "bg-blue-500"
-                                  }`}
-                                  style={{ width: `${percent}%` }}
-                                />
-                              </div>
+                            <div className="text-right">
+                              <p className="text-xs font-extrabold text-[#2563EB] font-mono">
+                                {user.totalXp} XP
+                              </p>
+                              <p className="text-[8px] text-[#94A3B8] font-medium">
+                                {user.totalSessions} treinos
+                              </p>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Posição do Usuário Logado */}
+                    {ranking.userPosition > 5 && (
+                      <div className="p-3 bg-[#2563EB]/5 border border-[#2563EB]/10 rounded-xl text-center">
+                        <p className="text-xs text-[#1E40AF] font-bold">
+                          Você está na <span className="font-extrabold">{ranking.userPosition}ª</span> posição global.
+                        </p>
+                        <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                          Conclua mais treinos e registre PRs para subir no ranking! ⚡
+                        </p>
+                      </div>
+                    )}
+                    {ranking.userPosition > 0 && ranking.userPosition <= 5 && (
+                      <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                        <p className="text-xs text-emerald-700 font-bold">
+                          Você está no TOP 5! Posição atual: <span className="font-extrabold">{ranking.userPosition}º Lugar</span> 🎉
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1084,34 +1314,145 @@ export default function StudentDashboard() {
 
                 </div>
 
-                {/* Duelo de Carga nos Exercícios Chave */}
+                {/* Exercícios em Comum nos Planos */}
                 <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80">
-                  <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-5 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-[#2563EB]" /> Recordes de Carga Máxima (PRs)
-                  </h4>
-
-                  <div className="space-y-5">
-                    {comparison.exerciseComparison.map((ex) => (
-                      <div key={ex.exerciseName} className="p-4 rounded-xl bg-zinc-50 border border-[#E2E8F0]/60">
-                        <h5 className="text-xs font-bold text-[#0F172A] mb-3">{ex.exerciseName}</h5>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Minha Carga */}
-                          <div className="flex items-center justify-between border-r border-[#E2E8F0] pr-4">
-                            <span className="text-[10px] text-[#94A3B8] font-bold uppercase">Você</span>
-                            <span className="text-sm font-mono font-bold text-[#2563EB]">{ex.myMax}kg</span>
-                          </div>
-
-                          {/* Carga do Parceiro */}
-                          <div className="flex items-center justify-between pl-4">
-                            <span className="text-[10px] text-[#94A3B8] font-bold uppercase">{comparison.partnerInfo.name.split(" ")[0]}</span>
-                            <span className="text-sm font-mono font-bold text-[#0F172A]">{ex.partnerMax}kg</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-5">
+                    <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-2">
+                      <Swords className="w-4 h-4 text-[#2563EB]" /> Exercícios em Comum
+                    </h4>
+                    <span className="text-[10px] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-bold text-[#2563EB]">
+                      {comparison.sharedExercises.length} exercício{comparison.sharedExercises.length !== 1 ? "s" : ""}
+                    </span>
                   </div>
+
+                  {comparison.sharedExercises.length === 0 ? (
+                    <div className="p-6 text-center border border-dashed border-[#E2E8F0] rounded-xl">
+                      <Dumbbell className="w-8 h-8 mx-auto text-[#94A3B8] mb-2" />
+                      <p className="text-xs text-[#94A3B8] font-medium">
+                        Vocês não possuem exercícios em comum nos planos de treino atuais.
+                      </p>
+                      <p className="text-[10px] text-[#94A3B8] mt-1">
+                        Peça ao seu treinador para incluir exercícios semelhantes!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                      {/* Agrupados por grupo muscular */}
+                      {(() => {
+                        const groups = comparison.sharedExercises.reduce((acc, ex) => {
+                          const group = ex.muscleGroup || "Outros";
+                          if (!acc[group]) acc[group] = [];
+                          acc[group].push(ex);
+                          return acc;
+                        }, {} as Record<string, typeof comparison.sharedExercises>);
+                        
+                        return Object.entries(groups).map(([group, exercises]) => (
+                          <div key={group}>
+                            <p className="text-[9px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1.5 mt-3 first:mt-0">
+                              {group}
+                            </p>
+                            <div className="space-y-1.5">
+                              {exercises.map((ex) => (
+                                <div key={ex.exerciseId} className="p-2.5 bg-zinc-50 rounded-lg border border-[#E2E8F0]/60 flex items-center justify-between gap-3 hover:border-blue-200 transition-all">
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-[#0F172A] truncate">{ex.name}</p>
+                                    <p className="text-[9px] text-[#94A3B8]">{ex.equipment}</p>
+                                  </div>
+                                  <span className="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold flex-shrink-0 border border-emerald-200/50">
+                                    Em Comum ✓
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
                 </div>
+
+                {/* Duelo de Carga nos Exercícios em Comum */}
+                {comparison.exerciseComparison.length > 0 && (
+                  <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80">
+                    <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-5 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-[#2563EB]" /> Duelo de PRs — Exercícios em Comum
+                    </h4>
+
+                    {comparison.exerciseComparison.filter(ex => ex.myMax > 0 || ex.partnerMax > 0).length === 0 ? (
+                      <div className="p-6 text-center border border-dashed border-[#E2E8F0] rounded-xl">
+                        <TrendingUp className="w-6 h-6 mx-auto text-[#94A3B8] mb-2" />
+                        <p className="text-xs text-[#94A3B8] font-medium">
+                          Nenhum de vocês registrou carga nos exercícios em comum ainda.
+                        </p>
+                        <p className="text-[10px] text-[#94A3B8] mt-1">
+                          Complete treinos para gerar o duelo de cargas! 💪
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {comparison.exerciseComparison
+                          .filter(ex => ex.myMax > 0 || ex.partnerMax > 0)
+                          .map((ex) => {
+                            const maxBetween = Math.max(ex.myMax, ex.partnerMax);
+                            const iAmWinning = ex.myMax > ex.partnerMax;
+                            const isTied = ex.myMax === ex.partnerMax && ex.myMax > 0;
+                            return (
+                              <div key={ex.exerciseId} className="p-4 rounded-xl bg-zinc-50 border border-[#E2E8F0]/60">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div>
+                                    <h5 className="text-xs font-bold text-[#0F172A]">{ex.exerciseName}</h5>
+                                    <p className="text-[9px] text-[#94A3B8]">{ex.muscleGroup}</p>
+                                  </div>
+                                  {!isTied && (ex.myMax > 0 || ex.partnerMax > 0) && (
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                      iAmWinning
+                                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                                        : "bg-red-50 text-red-600 border border-red-200/50"
+                                    }`}>
+                                      {iAmWinning ? "Você vence 🏆" : `${comparison.partnerInfo.name.split(" ")[0]} vence`}
+                                    </span>
+                                  )}
+                                  {isTied && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200/50">
+                                      Empate ⚔️
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Barras de comparação */}
+                                <div className="space-y-2.5">
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                      <span className="text-[#0F172A]">Você</span>
+                                      <span className="text-[#2563EB] font-mono">{ex.myMax > 0 ? `${ex.myMax}kg` : "—"}</span>
+                                    </div>
+                                    <div className="w-full bg-white h-2.5 rounded-lg overflow-hidden border border-[#E2E8F0]/40">
+                                      <div
+                                        className="bg-[#2563EB] h-full rounded-lg transition-all duration-1000"
+                                        style={{ width: `${maxBetween > 0 ? (ex.myMax / maxBetween) * 100 : 0}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                      <span className="text-[#0F172A]">{comparison.partnerInfo.name.split(" ")[0]}</span>
+                                      <span className="text-[#94A3B8] font-mono">{ex.partnerMax > 0 ? `${ex.partnerMax}kg` : "—"}</span>
+                                    </div>
+                                    <div className="w-full bg-white h-2.5 rounded-lg overflow-hidden border border-[#E2E8F0]/40">
+                                      <div
+                                        className="bg-zinc-700 h-full rounded-lg transition-all duration-1000"
+                                        style={{ width: `${maxBetween > 0 ? (ex.partnerMax / maxBetween) * 100 : 0}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                )}
 
               </div>
             ) : (

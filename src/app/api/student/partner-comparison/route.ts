@@ -126,43 +126,79 @@ export async function POST(request: Request) {
       0
     );
 
-    // 5. Coletar cargas máximas nos exercícios-chave
-    // Exercício 1: Supino Reto com Barra
-    // Exercício 2: Agachamento Livre com Barra
-    // Exercício 3: Rosca Direta com Barra W
-    const targetExercises = [
-      "Supino Reto com Barra",
-      "Agachamento Livre com Barra",
-      "Rosca Direta com Barra W",
-    ];
-
-    const studentLogs = await prisma.exerciseLog.findMany({
-      where: {
-        studentId: student.id,
-        exercise: { name: { in: targetExercises } },
+    // 5. Buscar exercícios em comum nos planos de treino dos dois alunos
+    const studentPlanExercises = await prisma.workoutPlanExercise.findMany({
+      where: { workoutPlan: { studentId: student.id } },
+      include: {
+        exercise: { select: { id: true, name: true, muscleGroup: true, equipment: true } },
       },
-      include: { exercise: { select: { name: true } } },
     });
 
-    const partnerLogs = await prisma.exerciseLog.findMany({
-      where: {
-        studentId: partner.id,
-        exercise: { name: { in: targetExercises } },
+    const partnerPlanExercises = await prisma.workoutPlanExercise.findMany({
+      where: { workoutPlan: { studentId: partner.id } },
+      include: {
+        exercise: { select: { id: true, name: true, muscleGroup: true, equipment: true } },
       },
-      include: { exercise: { select: { name: true } } },
     });
+
+    // IDs únicos de exercícios de cada aluno
+    const studentExerciseIds = new Set(studentPlanExercises.map((e) => e.exerciseId));
+    const partnerExerciseIds = new Set(partnerPlanExercises.map((e) => e.exerciseId));
+
+    // Exercícios em comum (interseção)
+    const sharedExerciseIds = [...studentExerciseIds].filter((id) => partnerExerciseIds.has(id));
+
+    // Montar lista de exercícios compartilhados com infos
+    const exerciseMap = new Map<string, { name: string; muscleGroup: string; equipment: string }>();
+    for (const pe of [...studentPlanExercises, ...partnerPlanExercises]) {
+      if (sharedExerciseIds.includes(pe.exerciseId) && !exerciseMap.has(pe.exerciseId)) {
+        exerciseMap.set(pe.exerciseId, {
+          name: pe.exercise.name,
+          muscleGroup: pe.exercise.muscleGroup,
+          equipment: pe.exercise.equipment,
+        });
+      }
+    }
+
+    const sharedExercises = sharedExerciseIds.map((id) => ({
+      exerciseId: id,
+      ...exerciseMap.get(id)!,
+    }));
+
+    // 6. Comparar PRs (carga máxima) nos exercícios em comum
+    const studentLogs = sharedExerciseIds.length > 0
+      ? await prisma.exerciseLog.findMany({
+          where: {
+            studentId: student.id,
+            exerciseId: { in: sharedExerciseIds },
+          },
+          include: { exercise: { select: { name: true } } },
+        })
+      : [];
+
+    const partnerLogs = sharedExerciseIds.length > 0
+      ? await prisma.exerciseLog.findMany({
+          where: {
+            studentId: partner.id,
+            exerciseId: { in: sharedExerciseIds },
+          },
+          include: { exercise: { select: { name: true } } },
+        })
+      : [];
 
     // Função auxiliar para encontrar a carga máxima
-    const getMaxWeight = (logsList: typeof studentLogs, exName: string) => {
-      const filtered = logsList.filter((l) => l.exercise.name === exName);
+    const getMaxWeight = (logsList: typeof studentLogs, exId: string) => {
+      const filtered = logsList.filter((l) => l.exerciseId === exId);
       if (filtered.length === 0) return 0;
       return Math.max(...filtered.map((l) => l.weightUsed));
     };
 
-    const exerciseComparison = targetExercises.map((name) => ({
-      exerciseName: name,
-      myMax: getMaxWeight(studentLogs, name),
-      partnerMax: getMaxWeight(partnerLogs, name),
+    const exerciseComparison = sharedExerciseIds.map((id) => ({
+      exerciseId: id,
+      exerciseName: exerciseMap.get(id)?.name || "Exercício",
+      muscleGroup: exerciseMap.get(id)?.muscleGroup || "",
+      myMax: getMaxWeight(studentLogs, id),
+      partnerMax: getMaxWeight(partnerLogs, id),
     }));
 
     return NextResponse.json({
@@ -176,6 +212,7 @@ export async function POST(request: Request) {
         sessionsCount: partnerTotalSessions,
         setsCount: partnerTotalSets,
       },
+      sharedExercises,
       exerciseComparison,
     });
   } catch (error) {
