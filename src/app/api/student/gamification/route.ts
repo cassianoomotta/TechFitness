@@ -28,9 +28,16 @@ export async function GET() {
     // 1. Total de treinos realizados
     const sessions = await prisma.workoutSession.findMany({
       where: { studentId: studentProfile.id },
+      include: { logs: true },
       orderBy: { date: "desc" },
     });
     const totalSessions = sessions.length;
+
+    // Buscar fichas de treino propostas
+    const studentPlans = await prisma.workoutPlan.findMany({
+      where: { studentId: studentProfile.id },
+      include: { exercises: true },
+    });
 
     // 2. Total de PRs (Recordes de carga)
     const prAggregations = await prisma.exerciseLog.groupBy({
@@ -44,7 +51,7 @@ export async function GET() {
       where: { studentId: studentProfile.id },
     });
 
-    // 4. Calcular o Streak Atual (semanas consecutivas com treino)
+    // 4. Calcular o Streak Atual (semanas consecutivas em que completou todos os treinos da ficha)
     let streak = 0;
     if (totalSessions > 0) {
       const getWeekStart = (d: Date) => {
@@ -56,9 +63,45 @@ export async function GET() {
         return monday.toLocaleDateString("en-CA");
       };
 
-      const sessionWeeks = new Set(
-        sessions.map((s) => getWeekStart(new Date(s.date)))
-      );
+      // Agrupar sessões por semana
+      const sessionsByWeek: Record<string, typeof sessions> = {};
+      for (const s of sessions) {
+        const w = getWeekStart(new Date(s.date));
+        if (!sessionsByWeek[w]) {
+          sessionsByWeek[w] = [];
+        }
+        sessionsByWeek[w].push(s);
+      }
+
+      // Função para verificar se a semana foi completada
+      const isWeekCompleted = (weekStr: string) => {
+        const weekSessions = sessionsByWeek[weekStr] || [];
+        if (weekSessions.length === 0) return false;
+        if (studentPlans.length === 0) return true; // Se não tiver ficha, qualquer treino conta
+
+        const completedPlanIds = new Set<string>();
+        for (const session of weekSessions) {
+          const sessionExerciseIds = new Set(session.logs.map((l) => l.exerciseId));
+          let bestPlanId = null;
+          let maxOverlap = 0;
+
+          for (const plan of studentPlans) {
+            const planExerciseIds = plan.exercises.map((e) => e.exerciseId);
+            const overlap = planExerciseIds.filter((id) => sessionExerciseIds.has(id)).length;
+            if (overlap > maxOverlap) {
+              maxOverlap = overlap;
+              bestPlanId = plan.id;
+            }
+          }
+
+          if (bestPlanId) {
+            completedPlanIds.add(bestPlanId);
+          }
+        }
+
+        // A semana está completa se todos os planos foram executados
+        return studentPlans.every((plan) => completedPlanIds.has(plan.id));
+      };
 
       const today = new Date();
       const currentWeek = getWeekStart(today);
@@ -67,17 +110,17 @@ export async function GET() {
       lastWeekDate.setDate(lastWeekDate.getDate() - 7);
       const lastWeek = getWeekStart(lastWeekDate);
 
-      const hasTrainedThisWeek = sessionWeeks.has(currentWeek);
-      const hasTrainedLastWeek = sessionWeeks.has(lastWeek);
+      const isCurrentWeekDone = isWeekCompleted(currentWeek);
+      const isLastWeekDone = isWeekCompleted(lastWeek);
 
-      if (hasTrainedThisWeek || hasTrainedLastWeek) {
+      if (isCurrentWeekDone || isLastWeekDone) {
         streak = 1;
-        const refDate = new Date(hasTrainedThisWeek ? currentWeek : lastWeek);
+        const refDate = new Date(isCurrentWeekDone ? currentWeek : lastWeek);
 
         while (true) {
           refDate.setDate(refDate.getDate() - 7);
           const prevWeekStr = getWeekStart(refDate);
-          if (sessionWeeks.has(prevWeekStr)) {
+          if (isWeekCompleted(prevWeekStr)) {
             streak++;
           } else {
             break;
@@ -158,7 +201,7 @@ export async function GET() {
       {
         id: "streak_fire",
         title: "Frequência Semanal",
-        description: "Treinou por 3 semanas consecutivas (pelo menos 1 treino por semana)",
+        description: "Completou todas as fichas de treino por 3 semanas consecutivas",
         icon: "Flame",
         xpReward: 300,
         unlocked: streak >= 3,
@@ -204,7 +247,7 @@ export async function GET() {
       {
         id: "inferno_streak",
         title: "Constância de Titã",
-        description: "Treinou por 7 semanas consecutivas (pelo menos 1 treino por semana)",
+        description: "Completou todas as fichas de treino por 7 semanas consecutivas",
         icon: "Flame",
         xpReward: 600,
         unlocked: streak >= 7,

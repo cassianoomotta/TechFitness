@@ -41,6 +41,8 @@ export async function POST(request: Request) {
       );
     }
 
+
+
     // Buscar perfil do aluno correspondente
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
@@ -55,10 +57,16 @@ export async function POST(request: Request) {
 
     const { durationMs, satisfaction, logs } = validation.data;
 
+    // Buscar as fichas de treino propostas
+    const studentPlans = await prisma.workoutPlan.findMany({
+      where: { studentId: studentProfile.id },
+      include: { exercises: true }
+    });
+
     // --- CÁLCULO DE CONQUISTAS ANTES DE SALVAR ---
     const sessionsBefore = await prisma.workoutSession.findMany({
       where: { studentId: studentProfile.id },
-      select: { date: true },
+      include: { logs: true },
       orderBy: { date: "desc" },
     });
     
@@ -73,7 +81,7 @@ export async function POST(request: Request) {
 
     const totalSessionsBefore = sessionsBefore.length;
     const prsCountBefore = prAggregationsBefore.length;
-    const streakBefore = calculateStreak(sessionsBefore);
+    const streakBefore = calculateStreak(sessionsBefore, studentPlans);
 
     const unlockedBefore = getUnlockedAchievements(totalSessionsBefore, prsCountBefore, streakBefore, measurementsCount);
 
@@ -110,7 +118,7 @@ export async function POST(request: Request) {
     // --- CÁLCULO DE CONQUISTAS DEPOIS DE SALVAR ---
     const sessionsAfter = await prisma.workoutSession.findMany({
       where: { studentId: studentProfile.id },
-      select: { date: true },
+      include: { logs: true },
       orderBy: { date: "desc" },
     });
     
@@ -121,7 +129,7 @@ export async function POST(request: Request) {
 
     const totalSessionsAfter = sessionsAfter.length;
     const prsCountAfter = prAggregationsAfter.length;
-    const streakAfter = calculateStreak(sessionsAfter);
+    const streakAfter = calculateStreak(sessionsAfter, studentPlans);
 
     const unlockedAfter = getUnlockedAchievements(totalSessionsAfter, prsCountAfter, streakAfter, measurementsCount);
 
@@ -159,7 +167,10 @@ const ALL_ACHIEVEMENTS = [
   { id: "olympus_legend", title: "Lenda do Olimpo", description: "Completou 50 sessões de treino — poucos chegam aqui", icon: "Trophy", xpReward: 1500, tier: 4 },
 ];
 
-function calculateStreak(sessions: { date: Date }[]) {
+function calculateStreak(
+  sessions: { date: Date; logs: { exerciseId: string }[] }[],
+  studentPlans: { id: string; exercises: { exerciseId: string }[] }[]
+) {
   if (sessions.length === 0) return 0;
 
   const getWeekStart = (d: Date) => {
@@ -171,9 +182,45 @@ function calculateStreak(sessions: { date: Date }[]) {
     return monday.toLocaleDateString("en-CA");
   };
 
-  const sessionWeeks = new Set(
-    sessions.map((s) => getWeekStart(new Date(s.date)))
-  );
+  // Agrupar sessões por semana
+  const sessionsByWeek: Record<string, typeof sessions> = {};
+  for (const s of sessions) {
+    const w = getWeekStart(new Date(s.date));
+    if (!sessionsByWeek[w]) {
+      sessionsByWeek[w] = [];
+    }
+    sessionsByWeek[w].push(s);
+  }
+
+  // Função para verificar se a semana foi completada
+  const isWeekCompleted = (weekStr: string) => {
+    const weekSessions = sessionsByWeek[weekStr] || [];
+    if (weekSessions.length === 0) return false;
+    if (studentPlans.length === 0) return true; // Se não tiver ficha, qualquer treino conta
+
+    const completedPlanIds = new Set<string>();
+    for (const session of weekSessions) {
+      const sessionExerciseIds = new Set(session.logs.map((l) => l.exerciseId));
+      let bestPlanId = null;
+      let maxOverlap = 0;
+
+      for (const plan of studentPlans) {
+        const planExerciseIds = plan.exercises.map((e) => e.exerciseId);
+        const overlap = planExerciseIds.filter((id) => sessionExerciseIds.has(id)).length;
+        if (overlap > maxOverlap) {
+          maxOverlap = overlap;
+          bestPlanId = plan.id;
+        }
+      }
+
+      if (bestPlanId) {
+        completedPlanIds.add(bestPlanId);
+      }
+    }
+
+    // A semana está completa se todos os planos foram executados
+    return studentPlans.every((plan) => completedPlanIds.has(plan.id));
+  };
 
   const today = new Date();
   const currentWeek = getWeekStart(today);
@@ -182,27 +229,26 @@ function calculateStreak(sessions: { date: Date }[]) {
   lastWeekDate.setDate(lastWeekDate.getDate() - 7);
   const lastWeek = getWeekStart(lastWeekDate);
 
-  const hasTrainedThisWeek = sessionWeeks.has(currentWeek);
-  const hasTrainedLastWeek = sessionWeeks.has(lastWeek);
+  const isCurrentWeekDone = isWeekCompleted(currentWeek);
+  const isLastWeekDone = isWeekCompleted(lastWeek);
 
-  if (!hasTrainedThisWeek && !hasTrainedLastWeek) {
-    return 0;
-  }
+  if (isCurrentWeekDone || isLastWeekDone) {
+    let streak = 1;
+    const refDate = new Date(isCurrentWeekDone ? currentWeek : lastWeek);
 
-  let streak = 1;
-  const refDate = new Date(hasTrainedThisWeek ? currentWeek : lastWeek);
-
-  while (true) {
-    refDate.setDate(refDate.getDate() - 7);
-    const prevWeekStr = getWeekStart(refDate);
-    if (sessionWeeks.has(prevWeekStr)) {
-      streak++;
-    } else {
-      break;
+    while (true) {
+      refDate.setDate(refDate.getDate() - 7);
+      const prevWeekStr = getWeekStart(refDate);
+      if (isWeekCompleted(prevWeekStr)) {
+        streak++;
+      } else {
+        break;
+      }
     }
+    return streak;
   }
 
-  return streak;
+  return 0;
 }
 
 function getUnlockedAchievements(totalSessions: number, prsCount: number, streak: number, measurementsCount: number) {
