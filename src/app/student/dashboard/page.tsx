@@ -24,6 +24,11 @@ import {
   ChevronRight,
   Eye,
   Tv,
+  Flame,
+  Trophy,
+  Shield,
+  Scale,
+  Zap,
 } from "lucide-react";
 
 
@@ -178,6 +183,32 @@ export default function StudentDashboard() {
   const [prs, setPrs] = useState<any[]>([]);
   const [prsLoading, setPrsLoading] = useState(true);
 
+  // Estados de Gamificação (RPG)
+  interface Achievement {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    xpReward: number;
+    unlocked: boolean;
+    progress: number;
+    target: number;
+  }
+  interface GamificationData {
+    level: number;
+    levelTitle: string;
+    totalXp: number;
+    currentLevelXp: number;
+    nextLevelXpNeeded: number;
+    streak: number;
+    totalSessions: number;
+    prsCount: number;
+    measurementsCount: number;
+    achievements: Achievement[];
+  }
+  const [gamification, setGamification] = useState<GamificationData | null>(null);
+  const [gamificationLoading, setGamificationLoading] = useState(true);
+
   // Estados para edição de Ficha (Divisão & Dias)
   const [editingPlan, setEditingPlan] = useState<WorkoutPlan | null>(null);
   const [editDivision, setEditDivision] = useState("");
@@ -265,8 +296,23 @@ export default function StudentDashboard() {
       }
     };
 
+    const fetchGamification = async () => {
+      try {
+        const response = await fetch("/api/student/gamification");
+        if (response.ok) {
+          const data = await response.json();
+          setGamification(data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados de gamificação:", error);
+      } finally {
+        setGamificationLoading(false);
+      }
+    };
+
     fetchPlans();
     fetchPrs();
+    fetchGamification();
   }, []);
 
   useEffect(() => {
@@ -542,6 +588,77 @@ export default function StudentDashboard() {
           </div>
         </section>
 
+        {/* Painel RPG de Nível, XP e Streak */}
+        {!gamificationLoading && gamification && (
+          <section className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/5 animate-fade-in">
+            {/* Elemento decorativo de luz de fundo */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+              
+              {/* Informações do Nível */}
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#2563EB] to-[#00C2FF] flex flex-col items-center justify-center shadow-lg shadow-blue-500/20 border border-white/20">
+                  <span className="text-[10px] uppercase font-bold text-blue-100 leading-none">Nível</span>
+                  <span className="text-2xl font-black font-mono leading-none mt-1">{gamification.level}</span>
+                </div>
+                <div>
+                  <h3 className="font-display text-base font-extrabold tracking-tight bg-gradient-to-r from-blue-100 to-cyan-100 bg-clip-text text-transparent">
+                    {gamification.levelTitle}
+                  </h3>
+                  <p className="text-[10px] text-zinc-400 mt-1 flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{gamification.totalXp} XP Acumulados</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Estatísticas de Gamificação */}
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                {/* Streak */}
+                <div className="flex-1 md:flex-none p-3.5 bg-white/5 border border-white/5 rounded-xl flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${gamification.streak > 0 ? "bg-amber-500/10 text-amber-400 animate-pulse" : "bg-zinc-800 text-zinc-500"}`}>
+                    <Flame className="w-5 h-5 fill-current" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-zinc-400 block tracking-wider">Streak</span>
+                    <span className="text-sm font-bold font-mono text-white">
+                      {gamification.streak} {gamification.streak === 1 ? "dia" : "dias"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Total Treinos */}
+                <div className="flex-1 md:flex-none p-3.5 bg-white/5 border border-white/5 rounded-xl flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                    <Dumbbell className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-zinc-400 block tracking-wider">Treinos</span>
+                    <span className="text-sm font-bold font-mono text-white">
+                      {gamification.totalSessions} conclusões
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Barra de Progresso de Nível (XP) */}
+            <div className="mt-6 space-y-2">
+              <div className="flex justify-between items-center text-[10px] text-zinc-400">
+                <span>Progresso para o Nível {gamification.level + 1}</span>
+                <span className="font-mono">{gamification.currentLevelXp} / {gamification.nextLevelXpNeeded} XP</span>
+              </div>
+              <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#00C2FF] transition-all duration-1000 shadow-[0_0_8px_rgba(37,99,235,0.5)]"
+                  style={{ width: `${Math.min(100, (gamification.currentLevelXp / gamification.nextLevelXpNeeded) * 100)}%` }}
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Abas */}
         <div className="flex border-b border-[#E2E8F0] mb-6">
           <button
@@ -714,7 +831,95 @@ export default function StudentDashboard() {
                       ))}
                     </div>
                   )}
-                </div>
+                 </div>
+
+                {/* Conquistas / Badges RPG */}
+                {!gamificationLoading && gamification && (
+                  <div className="bg-white border border-[#E2E8F0]/85 rounded-2xl p-6 shadow-sm space-y-5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                        Conquistas & Condecorações
+                      </h3>
+                      <span className="text-[10px] bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded font-bold text-emerald-700">
+                        {gamification.achievements.filter(a => a.unlocked).length} / {gamification.achievements.length} Desbloqueadas
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {gamification.achievements.map((achievement) => {
+                        const IconComponent = () => {
+                          const props = { className: `w-6 h-6 ${achievement.unlocked ? "text-amber-500" : "text-[#94A3B8]"}` };
+                          switch (achievement.icon) {
+                            case "Play":
+                              return <Play {...props} className={props.className + " fill-current"} />;
+                            case "Zap":
+                              return <Zap {...props} className={props.className + " fill-current"} />;
+                            case "Scale":
+                              return <Scale {...props} />;
+                            case "Flame":
+                              return <Flame {...props} className={props.className + " fill-current"} />;
+                            case "ShieldAlert":
+                              return <Shield {...props} />;
+                            default:
+                              return <Trophy {...props} />;
+                          }
+                        };
+
+                        const percent = Math.min(100, Math.round((achievement.progress / achievement.target) * 100));
+
+                        return (
+                          <div 
+                            key={achievement.id} 
+                            className={`p-4 rounded-xl border flex flex-col justify-between gap-3 transition-all duration-300 ${
+                              achievement.unlocked 
+                                ? "bg-amber-50/20 border-amber-200/60 shadow-sm shadow-amber-500/5 hover:border-amber-300" 
+                                : "bg-zinc-50 border-[#E2E8F0] opacity-80"
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`p-2.5 rounded-xl flex-shrink-0 transition-transform duration-300 ${
+                                achievement.unlocked 
+                                  ? "bg-amber-100/50 scale-105 border border-amber-200" 
+                                  : "bg-zinc-200/50 border border-[#E2E8F0]"
+                              }`}>
+                                <IconComponent />
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className={`text-xs font-bold truncate ${achievement.unlocked ? "text-[#0F172A]" : "text-[#475569]"}`}>
+                                  {achievement.title}
+                                </h4>
+                                <p className="text-[10px] text-[#94A3B8] leading-tight mt-0.5">
+                                  {achievement.description}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Progresso de Desbloqueio */}
+                            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-zinc-900/10">
+                              <div className="flex justify-between items-center text-[8px] text-[#94A3B8] font-bold">
+                                <span className={achievement.unlocked ? "text-amber-700" : ""}>
+                                  {achievement.unlocked ? "DESBLOQUEADA" : "EM PROGRESSO"}
+                                </span>
+                                <span>{achievement.progress} / {achievement.target}</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all duration-700 ${
+                                    achievement.unlocked 
+                                      ? "bg-amber-500" 
+                                      : "bg-blue-500"
+                                  }`}
+                                  style={{ width: `${percent}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>
