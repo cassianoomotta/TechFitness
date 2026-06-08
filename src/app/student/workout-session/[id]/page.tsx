@@ -418,10 +418,10 @@ export default function WorkoutSessionPlayer() {
   if (!plan) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col max-w-md mx-auto relative border-x border-[#E2E8F0] shadow-2xl text-[#0F172A]">
+    <div className="h-[100dvh] bg-[#F8FAFC] flex flex-col max-w-md mx-auto relative border-x border-[#E2E8F0] shadow-2xl text-[#0F172A]">
       
       {/* Header Fixo */}
-      <header className="border-b border-[#E2E8F0] bg-white/95 sticky top-0 z-30 px-4 py-4 flex items-center justify-between">
+      <header className="border-b border-[#E2E8F0] bg-white/95 z-30 px-4 py-4 flex items-center justify-between flex-none">
         <div className="flex items-center gap-3">
           <Link
             href="/student/dashboard"
@@ -445,7 +445,7 @@ export default function WorkoutSessionPlayer() {
       </header>
 
       {/* Main Exercises List (Mobile-First scroll) */}
-      <main className="flex-1 px-4 py-6 space-y-6 pb-28 overflow-y-auto">
+      <main className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
         {plan.exercises.map((exercise, exIndex) => (
           <div
             key={exercise.id}
@@ -588,14 +588,16 @@ export default function WorkoutSessionPlayer() {
                     <input
                       type="number"
                       step="any"
+                      inputMode="decimal"
                       placeholder="--"
                       value={set.weight}
                       disabled={set.completed}
                       onChange={(e) =>
                         handleUpdateSetField(exIndex, setIndex, "weight", e.target.value)
                       }
-                      className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
+                      className="w-full text-center py-1 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-base sm:text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
+                    {/* ... */}
                     {(() => {
                       const prevSet = exercise.previousWorkoutSets?.[setIndex];
                       if (!prevSet) return null;
@@ -618,14 +620,16 @@ export default function WorkoutSessionPlayer() {
                   <div className="col-span-4 flex flex-col items-center">
                     <input
                       type="number"
+                      inputMode="numeric"
                       placeholder="--"
                       value={set.reps}
                       disabled={set.completed}
                       onChange={(e) =>
                         handleUpdateSetField(exIndex, setIndex, "reps", e.target.value)
                       }
-                      className="w-full text-center py-1.5 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-xs focus:border-[#2563EB] outline-none transition-all"
+                      className="w-full text-center py-1 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-base sm:text-xs focus:border-[#2563EB] outline-none transition-all"
                     />
+                    {/* ... */}
                     {(() => {
                       const prevSet = exercise.previousWorkoutSets?.[setIndex];
                       if (!prevSet) return null;
@@ -667,8 +671,8 @@ export default function WorkoutSessionPlayer() {
         ))}
       </main>
 
-      {/* Barra de Ação Flutuante na Base */}
-      <footer className="border-t border-[#E2E8F0] bg-white/90 backdrop-blur-md fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30 p-4 flex gap-3">
+      {/* Barra de Ação na Base */}
+      <footer className="border-t border-[#E2E8F0] bg-white/90 backdrop-blur-md p-4 pb-[calc(1.0rem+safe-area-inset-bottom)] flex gap-3 z-30 flex-none">
         <button
           onClick={() => setIsFinishModalOpen(true)}
           className="flex-1 py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98]"
@@ -679,7 +683,7 @@ export default function WorkoutSessionPlayer() {
 
       {/* Temporizador de Descanso Flutuante Overlay */}
       {isResting && (
-        <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-40 animate-slide-up">
+        <div className="absolute bottom-20 left-4 right-4 z-40 animate-slide-up">
           <div className="bg-white border border-[#2563EB]/20 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="bg-[#00C2FF]/10 p-2.5 rounded-xl text-[#2563EB] animate-pulse">

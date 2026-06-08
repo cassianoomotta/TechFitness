@@ -127,7 +127,7 @@ function getAchievementStatusHint(achievement: Achievement, currentValues: { ses
     case "iron_consistency":
       return `Falta(m) ${remaining} treino(s) completo(s) para alcançar o hábito de aço.`;
     case "streak_fire":
-      return `Treine por mais ${remaining} semana(s) consecutivas para desbloquear Frequência Semanal.`;
+      return `Complete todas as fichas por mais ${remaining} semana(s) consecutivas para desbloquear Frequência Semanal.`;
     case "eagle_eye":
       return `Registre seu peso corporal mais ${remaining} vez(es) na aba "Meu Peso".`;
     case "warrior_path":
@@ -135,7 +135,7 @@ function getAchievementStatusHint(achievement: Achievement, currentValues: { ses
     case "titan_strength":
       return `Bata recordes de carga em mais ${remaining} exercício(s) diferente(s).`;
     case "inferno_streak":
-      return `Mantenha o ritmo! Treine por mais ${remaining} semana(s) consecutivas para desbloquear Constância de Titã.`;
+      return `Mantenha o ritmo! Complete todas as fichas por mais ${remaining} semana(s) consecutivas para desbloquear Constância de Titã.`;
     case "centurion":
       return `Falta(m) ${remaining} treino(s) completo(s) para se tornar um Centurião.`;
     case "pr_machine":

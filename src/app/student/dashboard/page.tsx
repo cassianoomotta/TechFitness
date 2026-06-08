@@ -140,7 +140,7 @@ function getAchievementStatusHint(achievement: Achievement, currentValues: { ses
     case "iron_consistency":
       return `Falta(m) ${remaining} treino(s) completo(s) para alcançar o hábito de aço.`;
     case "streak_fire":
-      return `Treine por mais ${remaining} semana(s) consecutivas para desbloquear Frequência Semanal.`;
+      return `Complete todas as fichas por mais ${remaining} semana(s) consecutivas para desbloquear Frequência Semanal.`;
     case "eagle_eye":
       return `Registre seu peso corporal mais ${remaining} vez(es) na aba "Meu Peso".`;
     case "warrior_path":
@@ -148,7 +148,7 @@ function getAchievementStatusHint(achievement: Achievement, currentValues: { ses
     case "titan_strength":
       return `Bata recordes de carga em mais ${remaining} exercício(s) diferente(s).`;
     case "inferno_streak":
-      return `Mantenha o ritmo! Treine por mais ${remaining} semana(s) consecutivas para desbloquear Constância de Titã.`;
+      return `Mantenha o ritmo! Complete todas as fichas por mais ${remaining} semana(s) consecutivas para desbloquear Constância de Titã.`;
     case "centurion":
       return `Falta(m) ${remaining} treino(s) completo(s) para se tornar um Centurião.`;
     case "pr_machine":
@@ -671,7 +671,7 @@ export default function StudentDashboard() {
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
       {/* Header */}
       <header className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo size={36} />
 
           <div className="flex items-center gap-3">
@@ -747,7 +747,7 @@ export default function StudentDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
         
         {/* Welcome Block */}
         <section className="mb-8 text-center sm:text-left">
@@ -838,50 +838,50 @@ export default function StudentDashboard() {
         )}
 
         {/* Abas */}
-        <div className="flex border-b border-[#E2E8F0] mb-6">
+        <div className="hidden sm:flex border-b border-[#E2E8F0] mb-6">
           <button
             onClick={() => handleTabChange("fichas")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "fichas"
                 ? "border-[#2563EB] text-[#2563EB]"
                 : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
             }`}
           >
-            <Dumbbell className="w-4 h-4" />
-            Minhas Fichas
+            <Dumbbell className="w-3.5 h-3.5" />
+            <span><span className="hidden sm:inline">Minhas </span>Fichas</span>
           </button>
           <button
             onClick={() => handleTabChange("dupla")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "dupla"
                 ? "border-[#2563EB] text-[#2563EB]"
                 : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
             }`}
           >
-            <Users className="w-4 h-4" />
-            Treino em Dupla 🤝
+            <Users className="w-3.5 h-3.5" />
+            <span>Dupla<span className="hidden sm:inline"> 🤝</span></span>
           </button>
           <button
             onClick={() => handleTabChange("peso")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "peso"
                 ? "border-[#2563EB] text-[#2563EB]"
                 : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
             }`}
           >
-            <TrendingUp className="w-4 h-4" />
-            Meu Peso ⚖️
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Peso<span className="hidden sm:inline"> ⚖️</span></span>
           </button>
           <button
             onClick={() => handleTabChange("conquistas")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "conquistas"
                 ? "border-[#2563EB] text-[#2563EB]"
                 : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
             }`}
           >
-            <Trophy className="w-4 h-4" />
-            Conquistas 🏆
+            <Trophy className="w-3.5 h-3.5" />
+            <span>Conquistas<span className="hidden sm:inline"> 🏆</span></span>
           </button>
         </div>
 
@@ -2378,6 +2378,48 @@ export default function StudentDashboard() {
         </div>
       )}
 
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-[#E2E8F0]/80 pb-[safe-area-inset-bottom] shadow-[0_-4px_24px_rgba(0,0,0,0.04)] select-none">
+        <div className="flex items-center justify-around h-16">
+          <button
+            onClick={() => handleTabChange("fichas")}
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+              activeTab === "fichas" ? "text-[#2563EB]" : "text-[#94A3B8]"
+            }`}
+          >
+            <Dumbbell className={`w-5 h-5 transition-transform duration-300 ${activeTab === "fichas" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
+            <span>Treinos</span>
+          </button>
+          <button
+            onClick={() => handleTabChange("dupla")}
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+              activeTab === "dupla" ? "text-[#2563EB]" : "text-[#94A3B8]"
+            }`}
+          >
+            <Users className={`w-5 h-5 transition-transform duration-300 ${activeTab === "dupla" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
+            <span>Dupla</span>
+          </button>
+          <button
+            onClick={() => handleTabChange("peso")}
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+              activeTab === "peso" ? "text-[#2563EB]" : "text-[#94A3B8]"
+            }`}
+          >
+            <TrendingUp className={`w-5 h-5 transition-transform duration-300 ${activeTab === "peso" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
+            <span>Peso</span>
+          </button>
+          <button
+            onClick={() => handleTabChange("conquistas")}
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+              activeTab === "conquistas" ? "text-[#2563EB]" : "text-[#94A3B8]"
+            }`}
+          >
+            <Trophy className={`w-5 h-5 transition-transform duration-300 ${activeTab === "conquistas" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
+            <span>Conquistas</span>
+          </button>
+        </div>
+      </div>
 
     </div>
   );
