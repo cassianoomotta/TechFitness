@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords } from 'lucide-react';
 import Link from 'next/link';
-import { TIER_CONFIG, getAchievementIcon } from '../page';
+import { TIER_CONFIG, getAchievementIcon } from '@/lib/gamification-ui';
 import { getAchievementStatusHint } from '@/lib/gamification';
 import { Sparkles } from 'lucide-react';
 
@@ -104,8 +104,8 @@ export default function AchievementsTab(props: any) {
                     {/* Nodes */}
                     {[1, 2, 3, 4].map((tierNum) => {
                       const config = TIER_CONFIG[tierNum] || TIER_CONFIG[1];
-                      const tierAchievements = gamification.achievements.filter(a => a.tier === tierNum);
-                      const tierUnlocked = tierAchievements.filter(a => a.unlocked).length;
+                      const tierAchievements = gamification.achievements.filter((a: any) => a.tier === tierNum);
+                      const tierUnlocked = tierAchievements.filter((a: any) => a.unlocked).length;
                       const tierTotal = tierAchievements.length;
                       const isCompleted = tierUnlocked === tierTotal;
                       const isSelected = selectedTier === tierNum;
@@ -181,8 +181,8 @@ export default function AchievementsTab(props: any) {
 
                   {/* Grid */}
                   {gamification.achievements
-                    .filter(a => a.tier === selectedTier)
-                    .filter(a => {
+                    .filter((a: any) => a.tier === selectedTier)
+                    .filter((a: any) => {
                       if (achievementFilter === "unlocked") return a.unlocked;
                       if (achievementFilter === "locked") return !a.unlocked;
                       return true;
@@ -194,8 +194,8 @@ export default function AchievementsTab(props: any) {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {gamification.achievements
-                          .filter(a => a.tier === selectedTier)
-                          .filter(a => {
+                          .filter((a: any) => a.tier === selectedTier)
+                          .filter((a: any) => {
                             if (achievementFilter === "unlocked") return a.unlocked;
                             if (achievementFilter === "locked") return !a.unlocked;
                             return true;

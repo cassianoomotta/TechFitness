@@ -157,15 +157,15 @@ export default function WorkoutTab(props: any) {
                         Conquistas & Condecorações
                       </h3>
                       <span className="text-[10px] bg-emerald-50 border border-emerald-250 px-2 py-0.5 rounded font-bold text-emerald-700">
-                        {gamification.achievements.filter(a => a.unlocked).length} / {gamification.achievements.length} Desbloqueadas
+                        {gamification.achievements.filter((a: any) => a.unlocked).length} / {gamification.achievements.length} Desbloqueadas
                       </span>
                     </div>
 
                     {/* Preview: mostra as 4 conquistas mais relevantes */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {(() => {
-                        const unlocked = gamification.achievements.filter(a => a.unlocked);
-                        const locked = gamification.achievements.filter(a => !a.unlocked);
+                        const unlocked = gamification.achievements.filter((a: any) => a.unlocked);
+                        const locked = gamification.achievements.filter((a: any) => !a.unlocked);
                         // Show last 2 unlocked + next 2 to unlock
                         const preview = [
                           ...unlocked.slice(-2),

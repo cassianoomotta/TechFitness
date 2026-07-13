@@ -234,7 +234,7 @@ export default function PartnerTab(props: any) {
                       <TrendingUp className="w-4 h-4 text-[#2563EB]" /> Duelo de PRs — Exercícios em Comum
                     </h4>
 
-                    {comparison.exerciseComparison.filter(ex => ex.myMax > 0 || ex.partnerMax > 0).length === 0 ? (
+                    {comparison.exerciseComparison.filter((ex: any) => ex.myMax > 0 || ex.partnerMax > 0).length === 0 ? (
                       <div className="p-6 text-center border border-dashed border-[#E2E8F0] rounded-xl">
                         <TrendingUp className="w-6 h-6 mx-auto text-[#94A3B8] mb-2" />
                         <p className="text-xs text-[#94A3B8] font-medium">
@@ -247,7 +247,7 @@ export default function PartnerTab(props: any) {
                     ) : (
                       <div className="space-y-4">
                         {comparison.exerciseComparison
-                          .filter(ex => ex.myMax > 0 || ex.partnerMax > 0)
+                          .filter((ex: any) => ex.myMax > 0 || ex.partnerMax > 0)
                           .map((ex: any) => {
                             const maxBetween = Math.max(ex.myMax, ex.partnerMax);
                             const iAmWinning = ex.myMax > ex.partnerMax;
