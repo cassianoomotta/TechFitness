@@ -108,7 +108,7 @@ export async function POST(
             name: sourcePlan.name,
             description: sourcePlan.description,
             division: sourcePlan.division,
-            weekDays: sourcePlan.weekDays,
+            weekDays: sourcePlan.weekDays ? (sourcePlan.weekDays as any) : undefined,
             parentPlanId: sourcePlan.id,
           },
         });

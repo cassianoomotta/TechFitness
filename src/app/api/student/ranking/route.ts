@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+import { calculateXp, getLevelTitle } from "@/lib/gamification";
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -14,8 +16,21 @@ export async function GET() {
       );
     }
 
-    // Buscar todos os perfis de alunos
+    // Identificar perfil atual primeiro para saber o trainerId
+    const currentUserProfile = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!currentUserProfile) {
+      return NextResponse.json(
+        { error: "Perfil não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    // Buscar perfis de alunos do mesmo treinador apenas
     const students = await prisma.studentProfile.findMany({
+      where: { trainerId: currentUserProfile.trainerId },
       include: {
         user: {
           select: {
@@ -46,16 +61,9 @@ export async function GET() {
 
       const measurementsCount = student.measurements.length;
 
-      // Regra de XP: Treino = 300 XP, PR = 150 XP, Medição = 100 XP
-      const totalXp = (totalSessions * 300) + (prsCount * 150) + (measurementsCount * 100);
-      const level = Math.floor(totalXp / 1000) + 1;
-
-      // Nomes de nível RPG
-      let levelTitle = "Recruta do Aço";
-      if (level >= 3 && level <= 4) levelTitle = "Forjador de Cargas";
-      else if (level >= 5 && level <= 6) levelTitle = "Guerreiro de Ferro";
-      else if (level >= 7 && level <= 9) levelTitle = "Monstro da Academia";
-      else if (level >= 10) levelTitle = "Lenda do Olimpo";
+      // Usar lógica centralizada
+      const { totalXp, level } = calculateXp(totalSessions, prsCount, measurementsCount);
+      const levelTitle = getLevelTitle(level);
 
       return {
         id: student.id,
@@ -74,11 +82,6 @@ export async function GET() {
 
     // Pegar os top 5
     const top5 = rankedStudents.slice(0, 5);
-
-    // Identificar a posição do usuário logado no ranking
-    const currentUserProfile = await prisma.studentProfile.findUnique({
-      where: { userId: session.user.id },
-    });
 
     let userPosition = -1;
     if (currentUserProfile) {

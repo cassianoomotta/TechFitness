@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -70,12 +70,81 @@ export default function WorkoutSessionPlayer() {
 
   // Estado das séries: Record<exerciseIndex, SetState[]>
   const [setsData, setSetsData] = useState<Record<number, SetState[]>>({});
+  const setsDataRef = useRef(setsData);
 
   // Estado do Temporizador de Descanso
   const [restTime, setRestTime] = useState(0);
   const [initialRestTime, setInitialRestTime] = useState(0);
   const [isResting, setIsResting] = useState(false);
   const [restEndTime, setRestEndTime] = useState<number | null>(null);
+
+  // Chaves do localStorage para persistência do treino
+  const STORAGE_KEY_SETS = `workout_sets_${planId}`;
+  const STORAGE_KEY_REST = `workout_rest_end_${planId}`;
+
+  // Persistir setsData no localStorage sempre que mudar
+  const updateSetsData = useCallback((newData: Record<number, SetState[]> | ((prev: Record<number, SetState[]>) => Record<number, SetState[]>)) => {
+    setSetsData((prev) => {
+      const resolved = typeof newData === "function" ? newData(prev) : newData;
+      setsDataRef.current = resolved;
+      try {
+        localStorage.setItem(`workout_sets_${planId}`, JSON.stringify(resolved));
+      } catch (e) {
+        // localStorage pode falhar em modo privado/sem espaço
+      }
+      return resolved;
+    });
+  }, [planId]);
+
+  // Restaurar estado do rest timer do localStorage ao montar
+  useEffect(() => {
+    try {
+      const savedRestEnd = localStorage.getItem(STORAGE_KEY_REST);
+      if (savedRestEnd) {
+        const endTime = Number(savedRestEnd);
+        const remaining = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+        if (remaining > 0) {
+          setRestEndTime(endTime);
+          setInitialRestTime(remaining);
+          setRestTime(remaining);
+          setIsResting(true);
+        } else {
+          localStorage.removeItem(STORAGE_KEY_REST);
+        }
+      }
+    } catch (e) {
+      // Ignorar erros de localStorage
+    }
+  }, [STORAGE_KEY_REST]);
+
+  // Re-sincronizar estado ao voltar de tela bloqueada (Android/iOS)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Re-sincronizar rest timer
+        try {
+          const savedRestEnd = localStorage.getItem(STORAGE_KEY_REST);
+          if (savedRestEnd) {
+            const endTime = Number(savedRestEnd);
+            const remaining = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+            if (remaining > 0) {
+              setRestEndTime(endTime);
+              setRestTime(remaining);
+              setIsResting(true);
+            } else {
+              setIsResting(false);
+              setRestTime(0);
+              setRestEndTime(null);
+              localStorage.removeItem(STORAGE_KEY_REST);
+            }
+          }
+        } catch (e) {}
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [STORAGE_KEY_REST]);
 
   // Estado para renomear exercício
   const [renamingExercise, setRenamingExercise] = useState<Exercise | null>(null);
@@ -200,16 +269,37 @@ export default function WorkoutSessionPlayer() {
         const data = await response.json();
         setPlan(data);
 
-        // Inicializar os inputs de séries com os valores recomendados
-        const initialSets: Record<number, SetState[]> = {};
-        data.exercises.forEach((ex: Exercise, exIndex: number) => {
-          initialSets[exIndex] = Array.from({ length: ex.sets }, () => ({
-            weight: ex.recommendedWeight ? String(ex.recommendedWeight) : "",
-            reps: isNaN(Number(ex.reps)) ? "10" : ex.reps, // fallbacks amigáveis
-            completed: false,
-          }));
-        });
-        setSetsData(initialSets);
+        // Tentar restaurar dados salvos do localStorage (sobrevive bloqueio de tela)
+        let restored = false;
+        try {
+          const savedSets = localStorage.getItem(`workout_sets_${planId}`);
+          if (savedSets) {
+            const parsed = JSON.parse(savedSets) as Record<number, SetState[]>;
+            // Validar se a estrutura salva corresponde ao plano atual
+            const isValid = data.exercises.every((_: Exercise, exIndex: number) =>
+              parsed[exIndex] && Array.isArray(parsed[exIndex])
+            );
+            if (isValid) {
+              updateSetsData(parsed);
+              restored = true;
+            }
+          }
+        } catch (e) {
+          // Se falhar, inicializar normalmente
+        }
+
+        // Se não restaurou do localStorage, inicializar com valores recomendados
+        if (!restored) {
+          const initialSets: Record<number, SetState[]> = {};
+          data.exercises.forEach((ex: Exercise, exIndex: number) => {
+            initialSets[exIndex] = Array.from({ length: ex.sets }, () => ({
+              weight: ex.recommendedWeight ? String(ex.recommendedWeight) : "",
+              reps: isNaN(Number(ex.reps)) ? "10" : ex.reps, // fallbacks amigáveis
+              completed: false,
+            }));
+          });
+          updateSetsData(initialSets);
+        }
       } catch (err) {
         console.error("Erro ao carregar treino:", err);
       } finally {
@@ -220,7 +310,7 @@ export default function WorkoutSessionPlayer() {
     if (planId) {
       fetchPlan();
     }
-  }, [planId, router]);
+  }, [planId, router, updateSetsData]);
 
   const playRestAlertSound = () => {
     try {
@@ -265,6 +355,7 @@ export default function WorkoutSessionPlayer() {
           setIsResting(false);
           setRestTime(0);
           setRestEndTime(null);
+          try { localStorage.removeItem(STORAGE_KEY_REST); } catch (e) {}
           playRestAlertSound();
         } else {
           setRestTime(remaining);
@@ -279,10 +370,16 @@ export default function WorkoutSessionPlayer() {
 
   const startRestTimer = (seconds: number) => {
     if (seconds <= 0) return;
+    const endTime = Date.now() + seconds * 1000;
     setInitialRestTime(seconds);
     setRestTime(seconds);
-    setRestEndTime(Date.now() + seconds * 1000);
+    setRestEndTime(endTime);
     setIsResting(true);
+    try {
+      localStorage.setItem(STORAGE_KEY_REST, String(endTime));
+    } catch (e) {
+      // Ignorar
+    }
   };
 
   const adjustRestTime = (amountSeconds: number) => {
@@ -309,7 +406,7 @@ export default function WorkoutSessionPlayer() {
       completed: isCompleted,
     };
 
-    setSetsData({
+    updateSetsData({
       ...setsData,
       [exIndex]: currentSets,
     });
@@ -326,7 +423,7 @@ export default function WorkoutSessionPlayer() {
       ...currentSets[setIndex],
       [field]: value,
     };
-    setSetsData({
+    updateSetsData({
       ...setsData,
       [exIndex]: currentSets,
     });
@@ -389,7 +486,10 @@ export default function WorkoutSessionPlayer() {
       }
 
       setFinishSuccess(true);
+      // Limpar todos os dados de sessão do localStorage
       localStorage.removeItem(`workout_start_time_${planId}`);
+      localStorage.removeItem(`workout_sets_${planId}`);
+      localStorage.removeItem(STORAGE_KEY_REST);
       if (data.newAchievements && data.newAchievements.length > 0) {
         setUnlockedAchievements(data.newAchievements);
         setShowCelebration(true);

@@ -41,51 +41,62 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    // Buscar detalhes dos exercícios e as respectivas repetições máximas naquele peso
-    const prs = await Promise.all(
-      prAggregations.map(async (agg) => {
-        const exercise = await prisma.exercise.findUnique({
-          where: { id: agg.exerciseId },
-          select: {
-            name: true,
-            muscleGroup: true,
-            equipment: true,
-          },
-        });
+    // Buscar detalhes de todos os exercícios de uma vez
+    const exerciseIds = prAggregations.map((a) => a.exerciseId);
+    const exercises = await prisma.exercise.findMany({
+      where: { id: { in: exerciseIds } },
+      select: { id: true, name: true, muscleGroup: true, equipment: true },
+    });
+    
+    const exerciseMap = new Map();
+    for (const ex of exercises) {
+      exerciseMap.set(ex.id, ex);
+    }
 
-        // Encontrar o número de repetições realizadas com esse peso máximo (pegar a última ocorrência)
-        const bestLog = await prisma.exerciseLog.findFirst({
-          where: {
-            studentId: studentProfile.id,
-            exerciseId: agg.exerciseId,
-            weightUsed: agg._max.weightUsed || 0,
-          },
-          orderBy: {
-            session: {
-              date: "desc",
-            },
-          },
-          select: {
-            repsPerformed: true,
-            session: {
-              select: {
-                date: true,
-              },
-            },
-          },
-        });
+    // Buscar as ocorrências mais recentes onde o aluno atingiu a carga máxima (PR)
+    const orConditions = prAggregations.map((agg) => ({
+      exerciseId: agg.exerciseId,
+      weightUsed: agg._max.weightUsed || 0,
+    }));
 
-        return {
-          exerciseId: agg.exerciseId,
-          name: exercise?.name || "Exercício Desconhecido",
-          muscleGroup: exercise?.muscleGroup || "Outros",
-          equipment: exercise?.equipment || "Nenhum",
-          maxWeight: agg._max.weightUsed || 0,
-          reps: bestLog?.repsPerformed || 0,
-          date: bestLog?.session?.date || null,
-        };
-      })
-    );
+    const bestLogs = await prisma.exerciseLog.findMany({
+      where: {
+        studentId: studentProfile.id,
+        OR: orConditions,
+      },
+      orderBy: {
+        session: { date: "desc" },
+      },
+      select: {
+        exerciseId: true,
+        weightUsed: true,
+        repsPerformed: true,
+        session: { select: { date: true } },
+      },
+    });
+
+    const bestLogMap = new Map();
+    for (const log of bestLogs) {
+      const key = `${log.exerciseId}_${log.weightUsed}`;
+      if (!bestLogMap.has(key)) {
+        bestLogMap.set(key, log);
+      }
+    }
+
+    const prs = prAggregations.map((agg) => {
+      const exercise = exerciseMap.get(agg.exerciseId);
+      const bestLog = bestLogMap.get(`${agg.exerciseId}_${agg._max.weightUsed}`);
+
+      return {
+        exerciseId: agg.exerciseId,
+        name: exercise?.name || "Exercício Desconhecido",
+        muscleGroup: exercise?.muscleGroup || "Outros",
+        equipment: exercise?.equipment || "Nenhum",
+        maxWeight: agg._max.weightUsed || 0,
+        reps: bestLog?.repsPerformed || 0,
+        date: bestLog?.session?.date || null,
+      };
+    });
 
     // Ordenar PRs por grupo muscular e nome
     prs.sort((a, b) => {

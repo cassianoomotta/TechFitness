@@ -92,23 +92,27 @@ export async function GET() {
       }
     }
 
+    // Carga máxima ANTES dos últimos 7 dias para todos os alunos
+    const allPreviousMaxes = await prisma.exerciseLog.groupBy({
+      by: ["studentId", "exerciseId"],
+      _max: { weightUsed: true },
+      where: {
+        studentId: { in: studentIds },
+        session: { date: { lt: sevenDaysAgo } },
+      },
+    });
+
+    const prevMaxMap = new Map<string, number>();
+    for (const prev of allPreviousMaxes) {
+      const key = `${prev.studentId}_${prev.exerciseId}`;
+      prevMaxMap.set(key, prev._max.weightUsed || 0);
+    }
+
     // Para cada par (student, exercise) com log recente, verificar se é PR
     let weeklyPRs = 0;
 
     for (const [key, recentMax] of recentMaxes) {
-      const [studentId, exerciseId] = key.split("_");
-
-      // Carga máxima ANTES dos últimos 7 dias
-      const previousMax = await prisma.exerciseLog.aggregate({
-        _max: { weightUsed: true },
-        where: {
-          studentId,
-          exerciseId,
-          session: { date: { lt: sevenDaysAgo } },
-        },
-      });
-
-      const prevMaxWeight = previousMax._max.weightUsed || 0;
+      const prevMaxWeight = prevMaxMap.get(key) || 0;
 
       if (recentMax > prevMaxWeight && prevMaxWeight > 0) {
         weeklyPRs++;

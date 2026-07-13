@@ -36,7 +36,7 @@ model TrainerProfile {
   id               String            @id @default(cuid())
   userId           String            @unique
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialties      String            @default("[]")
+  specialties      Json              @default("[]")
   cref             String?
   students         StudentProfile[]
   workoutTemplates WorkoutTemplate[]
@@ -63,7 +63,7 @@ model Exercise {
   videoUrl             String?
   gifUrl               String?
   equipment            String                // Ex: Halteres, Barra, Máquina
-  alternatives         String                @default("[]")
+  alternatives         Json                  @default("[]")
   workoutPlanExercises WorkoutPlanExercise[]
   exerciseLogs         ExerciseLog[]
 }
@@ -75,7 +75,7 @@ model WorkoutPlan {
   name           String                // Ex: "Treino Hipertrofia A"
   description    String?
   division       String                // Ex: "A", "B", "C", "Push"
-  weekDays       String?               // Ex: "Seg,Qua,Sex" ou JSON
+  weekDays       Json?                 // Array de dias, ex: ["Seg", "Qua", "Sex"]
   exercises      WorkoutPlanExercise[]
   createdAt      DateTime              @default(now())
 
@@ -142,7 +142,7 @@ model BodyMeasurement {
   thighRight  Float?
   calfLeft    Float?
   calfRight   Float?
-  photos      String         @default("[]")
+  photos      Json           @default("[]")
 }
 
 model WorkoutTemplate {

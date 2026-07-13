@@ -92,8 +92,15 @@ export async function GET(
       if (!a.weekDays) return 1;
       if (!b.weekDays) return -1;
 
-      const aDays = a.weekDays.split(",").map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
-      const bDays = b.weekDays.split(",").map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
+      const getDaysArray = (wd: any): string[] => {
+        if (!wd) return [];
+        if (Array.isArray(wd)) return wd;
+        if (typeof wd === 'string') return wd.split(",");
+        return [];
+      };
+
+      const aDays = getDaysArray(a.weekDays).map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
+      const bDays = getDaysArray(b.weekDays).map(d => d.trim()).map(d => DAY_ORDER[d] || 999).sort((x, y) => x - y);
 
       for (let i = 0; i < Math.max(aDays.length, bDays.length); i++) {
         const aVal = aDays[i] !== undefined ? aDays[i] : 999;

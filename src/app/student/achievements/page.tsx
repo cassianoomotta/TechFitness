@@ -20,6 +20,7 @@ import {
   Sparkles,
   ChevronDown,
 } from "lucide-react";
+import { getAchievementStatusHint } from "@/lib/gamification";
 
 interface Achievement {
   id: string;
@@ -109,41 +110,6 @@ function getAchievementIcon(iconName: string, unlocked: boolean, size: string = 
       return <Trophy {...props} />;
     default:
       return <Trophy {...props} />;
-  }
-}
-
-function getAchievementStatusHint(achievement: Achievement, currentValues: { sessions: number, prs: number, measurements: number, streak: number }) {
-  if (achievement.unlocked) return "Conquista desbloqueada! XP adicionado à sua conta.";
-  
-  const remaining = achievement.target - achievement.progress;
-  
-  switch (achievement.id) {
-    case "first_step":
-      return `Falta apenas ${remaining} treino para iniciar sua jornada!`;
-    case "pr_pioneer":
-      return `Falta registrar seu primeiro recorde pessoal de carga (PR) em qualquer exercício!`;
-    case "body_awareness":
-      return `Registre seu peso corporal 1 vez na aba "Meu Peso" para desbloquear.`;
-    case "iron_consistency":
-      return `Falta(m) ${remaining} treino(s) completo(s) para alcançar o hábito de aço.`;
-    case "streak_fire":
-      return `Complete todas as fichas por mais ${remaining} semana(s) consecutivas para desbloquear Frequência Semanal.`;
-    case "eagle_eye":
-      return `Registre seu peso corporal mais ${remaining} vez(es) na aba "Meu Peso".`;
-    case "warrior_path":
-      return `Falta(m) ${remaining} treino(s) completo(s) para trilhar o Caminho do Guerreiro.`;
-    case "titan_strength":
-      return `Bata recordes de carga em mais ${remaining} exercício(s) diferente(s).`;
-    case "inferno_streak":
-      return `Mantenha o ritmo! Complete todas as fichas por mais ${remaining} semana(s) consecutivas para desbloquear Constância de Titã.`;
-    case "centurion":
-      return `Falta(m) ${remaining} treino(s) completo(s) para se tornar um Centurião.`;
-    case "pr_machine":
-      return `Bata recordes de carga em mais ${remaining} exercício(s) para se tornar uma Máquina de PRs.`;
-    case "olympus_legend":
-      return `Falta(m) ${remaining} treino(s) para subir ao topo e se tornar uma Lenda do Olimpo!`;
-    default:
-      return `Falta(m) ${remaining} para atingir a meta de ${achievement.target}.`;
   }
 }
 
@@ -396,12 +362,7 @@ export default function AchievementsPage() {
                   })
                   .map((achievement) => {
                     const percent = Math.min(100, Math.round((achievement.progress / achievement.target) * 100));
-                    const hintText = getAchievementStatusHint(achievement, {
-                      sessions: gamification.totalSessions,
-                      prs: gamification.prsCount,
-                      measurements: gamification.measurementsCount,
-                      streak: gamification.streak
-                    });
+                    const hintText = getAchievementStatusHint(achievement);
 
                     return (
                       <div 

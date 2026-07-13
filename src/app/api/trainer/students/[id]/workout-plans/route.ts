@@ -90,7 +90,7 @@ export async function POST(
           name,
           description,
           division,
-          weekDays: weekDays || null,
+          weekDays: weekDays ? weekDays.split(",") : undefined,
         },
       });
       // Mapear exercícios
@@ -215,7 +215,7 @@ export async function PUT(
           name,
           description,
           division,
-          weekDays: weekDays || null,
+          weekDays: weekDays ? weekDays.split(",") : undefined,
         },
       });
 
@@ -284,7 +284,7 @@ export async function PUT(
               name,
               description,
               division,
-              weekDays: weekDays || null,
+              weekDays: weekDays ? weekDays.split(",") : undefined,
             }
           });
 

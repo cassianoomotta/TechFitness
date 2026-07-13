@@ -39,7 +39,7 @@ export async function GET() {
 
     const formattedMeasurements = measurements.map((m) => ({
       ...m,
-      photos: JSON.parse(m.photos || "[]"),
+      photos: Array.isArray(m.photos) ? m.photos : [],
     }));
 
     return NextResponse.json({

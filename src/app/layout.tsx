@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
@@ -15,6 +15,15 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "TechFitness | Treino Inteligente & Progressão de Carga",
   description: "Plataforma premium para personal trainers prescreverem treinos focados em progressão de carga e alunos evoluírem de forma acompanhada e gamificada.",
@@ -28,9 +37,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${outfit.variable} ${inter.variable} h-full dark antialiased`}
+      className={`${outfit.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-950 text-slate-100 font-sans flex flex-col">
+      <body className="min-h-full bg-[#F8FAFC] text-[#0F172A] font-sans flex flex-col">
         <SessionProvider>
           {children}
         </SessionProvider>

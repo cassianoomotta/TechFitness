@@ -119,9 +119,9 @@ export default async function Home() {
             &copy; {new Date().getFullYear()} TechFitness. Desenvolvido com foco em alta performance.
           </p>
           <div className="flex gap-6">
-            <span className="text-xs text-[#94A3B8] hover:text-[#94A3B8] transition-colors cursor-pointer">Termos</span>
-            <span className="text-xs text-[#94A3B8] hover:text-[#94A3B8] transition-colors cursor-pointer">Privacidade</span>
-            <span className="text-xs text-[#94A3B8] hover:text-[#94A3B8] transition-colors cursor-pointer">Suporte</span>
+            <button onClick={() => alert("Página de Termos em construção")} className="text-xs text-[#94A3B8] hover:text-[#2563EB] transition-colors cursor-pointer">Termos</button>
+            <button onClick={() => alert("Página de Privacidade em construção")} className="text-xs text-[#94A3B8] hover:text-[#2563EB] transition-colors cursor-pointer">Privacidade</button>
+            <button onClick={() => alert("Entre em contato: suporte@techfitness.com.br")} className="text-xs text-[#94A3B8] hover:text-[#2563EB] transition-colors cursor-pointer">Suporte</button>
           </div>
         </div>
       </footer>
