@@ -198,7 +198,7 @@ export default function PartnerTab(props: any) {
                         const groups = comparison.sharedExercises.reduce((acc: any, ex: any) => {
                           const group = ex.muscleGroup || "Outros";
                           if (!acc[group]) acc[group] = [];
-                          acc[group].push(ex: any);
+                          acc[group].push(ex);
                           return acc;
                         }, {} as Record<string, typeof comparison.sharedExercises>);
                         
