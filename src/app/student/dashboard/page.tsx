@@ -5,7 +5,6 @@ import PartnerTab from "./components/PartnerTab";
 import WeightTab from "./components/WeightTab";
 import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
-import WeatherCard from "./components/WeatherCard";
 
 import { getAchievementStatusHint } from "@/lib/gamification";
 
