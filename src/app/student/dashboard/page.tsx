@@ -672,6 +672,11 @@ export default function StudentDashboard() {
           </div>
         </section>
 
+        {/* Clima Atual */}
+        <section className="mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <WeatherCard />
+        </section>
+
         {/* Painel RPG de Nível, XP e Streak */}
         {!gamificationLoading && gamification && (
           <section className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/5 animate-fade-in">

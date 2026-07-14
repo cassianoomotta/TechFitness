@@ -49,7 +49,8 @@ export default function WeatherCard() {
         (err) => {
           console.warn("Geolocalização negada/falha. Usando padrão.", err);
           fetchWeather(defaultLat, defaultLon, defaultCity);
-        }
+        },
+        { timeout: 5000, maximumAge: 300000 }
       );
     } else {
       fetchWeather(defaultLat, defaultLon, defaultCity);
