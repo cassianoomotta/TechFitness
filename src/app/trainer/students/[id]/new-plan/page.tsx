@@ -584,6 +584,11 @@ export default function NewPlanPage() {
                             {plan.name}
                           </span>
                         </div>
+                        {plan.createdAt && (
+                          <p className="text-[10px] text-[#64748B] mt-1">
+                            Criado em {new Date(plan.createdAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
                         {plan.description && (
                           <p className="text-[10px] text-[#94A3B8] truncate mt-0.5">
                             {plan.description}

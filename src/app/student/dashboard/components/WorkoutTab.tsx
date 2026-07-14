@@ -46,6 +46,11 @@ export default function WorkoutTab(props: any) {
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                         </div>
+                        {plan.createdAt && (
+                          <p className="text-[10px] text-[#64748B] mt-1">
+                            Criado em {new Date(plan.createdAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
                         {plan.description && (
                           <p className="text-xs text-[#94A3B8] mt-0.5 leading-relaxed">{plan.description}</p>
                         )}
