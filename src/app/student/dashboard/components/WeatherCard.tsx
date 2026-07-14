@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Cloud, CloudRain, Sun, Thermometer, MapPin } from "lucide-react";
+import { Cloud, CloudRain, Sun, Moon, Thermometer, MapPin } from "lucide-react";
 
 interface WeatherData {
   temp: number;
   code: number;
   city: string;
+  isDay: number;
 }
 
 export default function WeatherCard() {
@@ -29,7 +30,8 @@ export default function WeatherCard() {
         setWeather({
           temp: Math.round(data.current_weather.temperature),
           code: data.current_weather.weathercode,
-          city: cityName
+          city: cityName,
+          isDay: data.current_weather.is_day
         });
       } catch (err) {
         console.error("Erro ao buscar clima:", err);
@@ -70,9 +72,11 @@ export default function WeatherCard() {
   // 3: Nublado
   // 45-48: Neblina
   // 51-99: Chuva/Neve/Tempestade
-  let Icon = Sun;
-  let iconColor = "text-amber-500";
-  let message = "Clima perfeito lá fora! Excelente dia para mandar aquele pump e quebrar recordes!";
+  let Icon = weather.isDay === 0 ? Moon : Sun;
+  let iconColor = weather.isDay === 0 ? "text-indigo-400" : "text-amber-500";
+  let message = weather.isDay === 0 
+    ? "A noite chegou! A academia costuma ser mais tranquila agora. Ótimo momento para um treino focado." 
+    : "Clima perfeito lá fora! Excelente dia para mandar aquele pump e quebrar recordes!";
 
   if (weather.code >= 51) {
     Icon = CloudRain;
@@ -81,7 +85,9 @@ export default function WeatherCard() {
   } else if (weather.code === 3 || weather.code >= 45) {
     Icon = Cloud;
     iconColor = "text-[#94A3B8]";
-    message = "Tempo nublado, mas a disciplina não tem clima. Bora esmagar os pesos!";
+    message = weather.isDay === 0 
+      ? "Noite nublada, mas a disciplina não tem clima. Bora esmagar os pesos!"
+      : "Tempo nublado, mas a disciplina não tem clima. Bora esmagar os pesos!";
   }
 
   return (
