@@ -117,7 +117,10 @@ export async function GET(
       name: student.user.name,
       email: student.user.email,
       image: student.user.image,
-      workoutPlans: student.workoutPlans,
+      workoutPlans: student.workoutPlans.map((plan) => ({
+        ...plan,
+        weekDays: Array.isArray(plan.weekDays) ? (plan.weekDays as string[]).join(",") : (plan.weekDays as string | null),
+      })),
     };
 
     return NextResponse.json(formattedStudent);

@@ -224,11 +224,14 @@ export async function PUT(
       where: { id },
       data: {
         division: division.trim(),
-        weekDays: weekDays || null,
+        weekDays: weekDays ? (typeof weekDays === 'string' ? weekDays.split(',').map((d: string) => d.trim()) : weekDays) : null,
       },
     });
 
-    return NextResponse.json(updatedPlan);
+    return NextResponse.json({
+      ...updatedPlan,
+      weekDays: Array.isArray(updatedPlan.weekDays) ? (updatedPlan.weekDays as string[]).join(',') : (updatedPlan.weekDays as string | null),
+    });
   } catch (error) {
     console.error("ERRO AO ATUALIZAR PLANO DE TREINO:", error);
     return NextResponse.json(

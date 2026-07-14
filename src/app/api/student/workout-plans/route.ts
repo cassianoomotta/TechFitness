@@ -110,7 +110,7 @@ export async function GET() {
         name: plan.name,
         description: plan.description,
         division: plan.division,
-        weekDays: plan.weekDays,
+        weekDays: Array.isArray(plan.weekDays) ? (plan.weekDays as string[]).join(",") : (plan.weekDays as string | null),
         createdAt: plan.createdAt,
         exercises: plan.exercises.map((pe) => ({
           id: pe.id,
