@@ -678,7 +678,28 @@ export default function StudentDashboard() {
         </section>
 
         {/* Painel RPG de Nível, XP e Streak */}
-        {!gamificationLoading && gamification && (
+        {gamificationLoading ? (
+          <section className="mb-8 p-6 rounded-2xl bg-slate-900 shadow-xl relative overflow-hidden animate-pulse">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-slate-800"></div>
+                <div className="space-y-2">
+                  <div className="h-5 w-32 bg-slate-800 rounded"></div>
+                  <div className="h-3 w-24 bg-slate-800 rounded"></div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="flex items-center gap-3 bg-slate-800/50 px-4 py-2.5 rounded-xl w-full sm:w-40">
+                  <div className="h-8 w-8 bg-slate-700 rounded-lg shrink-0"></div>
+                  <div className="space-y-1 w-full">
+                    <div className="h-3 w-16 bg-slate-700 rounded"></div>
+                    <div className="h-4 w-12 bg-slate-700 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : gamification && (
           <section className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/5 animate-fade-in">
             {/* Elemento decorativo de luz de fundo */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/10 rounded-full blur-3xl pointer-events-none" />

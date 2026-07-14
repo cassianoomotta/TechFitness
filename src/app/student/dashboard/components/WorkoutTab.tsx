@@ -13,9 +13,30 @@ export default function WorkoutTab(props: any) {
   return (
     <>
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-          <p className="text-sm">Carregando seus treinos...</p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="h-6 w-32 bg-slate-200/60 rounded animate-pulse"></div>
+            <div className="h-6 w-16 bg-slate-200/60 rounded animate-pulse"></div>
+          </div>
+          {/* Skeletons de Fichas */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+              <div className="flex justify-between items-start mb-4">
+                <div className="space-y-3 w-full">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 bg-slate-200/70 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-40 bg-slate-200/70 rounded-md animate-pulse"></div>
+                  </div>
+                  <div className="h-3 w-3/4 bg-slate-100 rounded animate-pulse"></div>
+                </div>
+                <div className="h-8 w-8 bg-slate-100 rounded-full animate-pulse shrink-0"></div>
+              </div>
+              <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-50">
+                <div className="h-8 w-20 bg-slate-100 rounded-full animate-pulse"></div>
+                <div className="h-8 w-24 bg-slate-100 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : plans.length === 0 ? (
               <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8]">
