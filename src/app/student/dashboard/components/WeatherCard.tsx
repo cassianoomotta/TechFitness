@@ -125,29 +125,29 @@ export default function WeatherCard() {
   }
 
   return (
-    <div className={`rounded-3xl p-5 mb-6 border flex flex-col sm:flex-row items-start sm:items-center gap-4 relative overflow-hidden group transition-all duration-500 hover:scale-[1.01] hover:shadow-xl ${wrapperClass}`}>
+    <div className={`rounded-2xl p-3 sm:p-4 border flex items-center gap-3 relative overflow-hidden group transition-all duration-500 hover:scale-[1.01] hover:shadow-md ${wrapperClass}`}>
       {/* Background sutil (ícone gigante) */}
-      <div className={`absolute -right-6 -top-6 opacity-[0.03] pointer-events-none transition-transform duration-700 group-hover:scale-125 group-hover:-rotate-12 ${textColor}`}>
-        <Icon className="w-40 h-40" />
+      <div className={`absolute -right-4 -top-8 opacity-[0.04] pointer-events-none transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6 ${textColor}`}>
+        <Icon className="w-32 h-32" />
       </div>
 
       {/* Ícone */}
-      <div className={`p-3.5 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 ${iconBoxClass}`}>
-        <Icon className={`w-8 h-8 ${iconColor}`} />
+      <div className={`p-2.5 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 ${iconBoxClass}`}>
+        <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${iconColor}`} />
       </div>
       
       {/* Conteúdo */}
-      <div className="flex-1 z-10">
-        <div className="flex flex-wrap items-center gap-3 mb-1.5">
-          <h3 className={`text-2xl font-black flex items-center gap-1 ${textColor} tracking-tight`}>
+      <div className="flex-1 z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+        <div className="flex items-center gap-2">
+          <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-1 ${textColor} tracking-tight`}>
             {weather.temp}°C
           </h3>
-          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 uppercase tracking-wider ${pillClass}`}>
-            <MapPin className="w-3 h-3" />
-            {weather.city}
+          <span className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-wider ${pillClass}`}>
+            <MapPin className="w-2.5 h-2.5" />
+            <span className="truncate max-w-[80px] sm:max-w-none">{weather.city}</span>
           </span>
         </div>
-        <p className={`text-xs font-medium leading-relaxed max-w-[90%] ${subtextColor}`}>
+        <p className={`text-[10px] sm:text-[11px] font-medium leading-snug sm:text-right ${subtextColor}`}>
           {message}
         </p>
       </div>

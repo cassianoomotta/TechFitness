@@ -1,7 +1,6 @@
 import React from 'react';
 import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords } from 'lucide-react';
 import Link from 'next/link';
-import WeatherCard from './WeatherCard';
 
 export default function WorkoutTab(props: any) {
   const {
@@ -13,7 +12,6 @@ export default function WorkoutTab(props: any) {
 
   return (
     <>
-      <WeatherCard />
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
           <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
