@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords } from 'lucide-react';
 import Link from 'next/link';
+import WeatherCard from './WeatherCard';
 
 export default function WorkoutTab(props: any) {
   const {
@@ -12,14 +13,13 @@ export default function WorkoutTab(props: any) {
 
   return (
     <>
-      
-          <>
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-                <p className="text-sm">Carregando seus treinos...</p>
-              </div>
-            ) : plans.length === 0 ? (
+      <WeatherCard />
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
+          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
+          <p className="text-sm">Carregando seus treinos...</p>
+        </div>
+      ) : plans.length === 0 ? (
               <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8]">
                 <Dumbbell className="w-12 h-12 mx-auto text-[#475569] mb-4" />
                 <p className="text-base font-semibold text-zinc-850">Nenhum treino atribuído</p>
