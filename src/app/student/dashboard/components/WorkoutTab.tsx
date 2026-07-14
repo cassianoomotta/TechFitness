@@ -429,7 +429,5 @@ export default function WorkoutTab(props: any) {
               </div>
             )}
           </>
-        
-    </>
   );
 }
