@@ -1006,10 +1006,10 @@ export default function StudentDashboard() {
                         <p className="text-[9px] text-[#94A3B8] font-medium font-mono">Descanso: {ex.restSeconds}s</p>
                       )}
                     </div>
-                    {ex.videoUrl && (
+                    {(ex.videoUrl || ex.gifUrl) && (
                       <button
                         type="button"
-                        onClick={() => setActiveVideoUrl(ex.videoUrl || null)}
+                        onClick={() => setActiveVideoUrl(ex.videoUrl || ex.gifUrl || null)}
                         className="p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#2563EB] transition-all cursor-pointer animate-pulse-subtle"
                         title="Ver execução do exercício"
                       >
@@ -1058,7 +1058,9 @@ export default function StudentDashboard() {
 
             {/* Container Iframe Proporcional 16:9 */}
             <div className="aspect-video w-full bg-black">
-              {getYouTubeEmbedUrl(activeVideoUrl) ? (
+              {activeVideoUrl?.endsWith('.gif') ? (
+                <img src={activeVideoUrl} alt="Execução" className="w-full h-full object-contain bg-black" />
+              ) : getYouTubeEmbedUrl(activeVideoUrl) ? (
                 <iframe
                   src={getYouTubeEmbedUrl(activeVideoUrl) || ""}
                   title="Video Player"

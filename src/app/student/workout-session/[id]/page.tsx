@@ -603,10 +603,10 @@ export default function WorkoutSessionPlayer() {
                     <Shuffle className="w-4 h-4" />
                   )}
                 </button>
-                {exercise.videoUrl && (
+                {(exercise.videoUrl || exercise.gifUrl) && (
                   <button
                     type="button"
-                    onClick={() => setActiveVideoUrl(exercise.videoUrl)}
+                    onClick={() => setActiveVideoUrl(exercise.videoUrl || exercise.gifUrl || "")}
                     className="p-1.5 rounded-lg bg-white text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#00C2FF]/10 transition-colors cursor-pointer"
                     title="Ver vídeo demonstrativo"
                   >
@@ -627,10 +627,10 @@ export default function WorkoutSessionPlayer() {
                     <p className="text-[9px] text-[#94A3B8] mt-0.5">{alternativeSuggestion.equipment}</p>
                   </div>
                   <div className="flex gap-1">
-                    {alternativeSuggestion.videoUrl && (
+                    {(alternativeSuggestion.videoUrl || alternativeSuggestion.gifUrl) && (
                       <button
                         type="button"
-                        onClick={() => setActiveVideoUrl(alternativeSuggestion.videoUrl)}
+                        onClick={() => setActiveVideoUrl(alternativeSuggestion.videoUrl || alternativeSuggestion.gifUrl || "")}
                         className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
                         title="Ver vídeo"
                       >
@@ -1078,6 +1078,11 @@ export default function WorkoutSessionPlayer() {
             </button>
             <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-inner">
               {(() => {
+                if (activeVideoUrl.endsWith('.gif')) {
+                  return (
+                    <img src={activeVideoUrl} alt="Execução do exercício" className="w-full h-full object-contain bg-black" />
+                  );
+                }
                 const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
                 if (embedUrl && (embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be"))) {
                   return (
