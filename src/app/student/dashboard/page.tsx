@@ -1009,7 +1009,7 @@ export default function StudentDashboard() {
                     {(ex.videoUrl || ex.gifUrl) && (
                       <button
                         type="button"
-                        onClick={() => setActiveVideoUrl(ex.videoUrl || ex.gifUrl || null)}
+                        onClick={() => setActiveVideoUrl(ex.gifUrl || ex.videoUrl || null)}
                         className="p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#2563EB] transition-all cursor-pointer animate-pulse-subtle"
                         title="Ver execução do exercício"
                       >

@@ -606,7 +606,7 @@ export default function WorkoutSessionPlayer() {
                 {(exercise.videoUrl || exercise.gifUrl) && (
                   <button
                     type="button"
-                    onClick={() => setActiveVideoUrl(exercise.videoUrl || exercise.gifUrl || "")}
+                    onClick={() => setActiveVideoUrl(exercise.gifUrl || exercise.videoUrl || "")}
                     className="p-1.5 rounded-lg bg-white text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#00C2FF]/10 transition-colors cursor-pointer"
                     title="Ver vídeo demonstrativo"
                   >
@@ -630,7 +630,7 @@ export default function WorkoutSessionPlayer() {
                     {(alternativeSuggestion.videoUrl || alternativeSuggestion.gifUrl) && (
                       <button
                         type="button"
-                        onClick={() => setActiveVideoUrl(alternativeSuggestion.videoUrl || alternativeSuggestion.gifUrl || "")}
+                        onClick={() => setActiveVideoUrl(alternativeSuggestion.gifUrl || alternativeSuggestion.videoUrl || "")}
                         className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
                         title="Ver vídeo"
                       >
