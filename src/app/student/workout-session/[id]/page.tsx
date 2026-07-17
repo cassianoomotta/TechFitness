@@ -212,12 +212,12 @@ export default function WorkoutSessionPlayer() {
   // Cronômetro Geral do Treino (Timestamp-based)
   useEffect(() => {
     let startTime = localStorage.getItem(`workout_start_time_${planId}`);
-    if (!startTime) {
+    if (!startTime || startTime === "undefined" || startTime === "null") {
       startTime = String(Date.now());
       localStorage.setItem(`workout_start_time_${planId}`, startTime);
     }
     
-    const startTimestamp = Number(startTime);
+    const startTimestamp = Number(startTime) || Date.now();
 
     const updateTimer = () => {
       const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
@@ -449,11 +449,14 @@ export default function WorkoutSessionPlayer() {
       const exerciseSets = setsData[exIndex] || [];
       exerciseSets.forEach((set, setIndex) => {
         if (set.completed) {
+          const parsedWeight = parseFloat(String(set.weight).replace(',', '.'));
+          const parsedReps = parseInt(String(set.reps), 10);
+          
           logsPayload.push({
             exerciseId: ex.exerciseId,
             setNumber: setIndex + 1,
-            weightUsed: Number(set.weight) || 0,
-            repsPerformed: Number(set.reps) || 0,
+            weightUsed: isNaN(parsedWeight) ? 0 : Math.max(0, parsedWeight),
+            repsPerformed: isNaN(parsedReps) ? 0 : Math.max(0, parsedReps),
             rpe: ex.recommendedRpe || null,
             failed: false,
           });
@@ -472,7 +475,7 @@ export default function WorkoutSessionPlayer() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          durationMs: totalSeconds * 1000,
+          durationMs: Math.min(Math.max(0, Math.floor(totalSeconds * 1000)), 86400000),
           satisfaction: Number(satisfaction),
           logs: logsPayload,
         }),
@@ -481,7 +484,12 @@ export default function WorkoutSessionPlayer() {
       const data = await response.json();
 
       if (!response.ok) {
-        setFinishError(data.error || "Erro ao salvar o treino.");
+        if (data.errors) {
+          console.error("Validation errors:", data.errors);
+          setFinishError("Erro de formato nos dados inseridos (ex: repetições devem ser números inteiros).");
+        } else {
+          setFinishError(data.error || "Erro ao salvar o treino.");
+        }
         return;
       }
 
