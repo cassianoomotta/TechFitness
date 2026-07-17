@@ -33,6 +33,7 @@ interface Exercise {
   equipment: string;
   description: string | null;
   videoUrl: string | null;
+  gifUrl: string | null;
   sets: number;
   reps: string;
   restSeconds: number;
@@ -158,6 +159,7 @@ export default function WorkoutSessionPlayer() {
     equipment: string;
     description: string | null;
     videoUrl: string | null;
+    gifUrl: string | null;
   } | null>(null);
   const [suggestingFor, setSuggestingFor] = useState<number | null>(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
@@ -172,6 +174,18 @@ export default function WorkoutSessionPlayer() {
     }
     return url;
   };
+
+  const getMediaUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
+      return url;
+    }
+    if (url.startsWith("videos/") || url.startsWith("images/")) {
+      return `https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/${url}`;
+    }
+    return url;
+  };
+
 
   const handleSuggestAlternative = async (exerciseId: string, exIndex: number) => {
     setSuggestingFor(exIndex);
@@ -1080,7 +1094,7 @@ export default function WorkoutSessionPlayer() {
               {(() => {
                 if (activeVideoUrl.endsWith('.gif')) {
                   return (
-                    <img src={activeVideoUrl} alt="Execução do exercício" className="w-full h-full object-contain bg-black" />
+                    <img src={getMediaUrl(activeVideoUrl)} alt="Execução do exercício" className="w-full h-full object-contain bg-black" />
                   );
                 }
                 const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
@@ -1095,7 +1109,7 @@ export default function WorkoutSessionPlayer() {
                   );
                 }
                 return (
-                  <video src={activeVideoUrl} controls className="w-full h-full" autoPlay />
+                  <video src={getMediaUrl(activeVideoUrl)} controls className="w-full h-full" autoPlay />
                 );
               })()}
             </div>

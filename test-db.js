@@ -1,16 +1,19 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 async function main() {
-  const exercises = await prisma.exercise.findMany({
-    take: 5,
+  const totalWithGif = await prisma.exercise.count({
     where: { gifUrl: { not: null } }
   });
-  console.log("Com GIF:", exercises);
-  
-  const exerciciosSemGif = await prisma.exercise.findMany({
-    take: 5,
-    where: { gifUrl: null }
+  console.log("Total exercises in DB with GIF:", totalWithGif);
+
+  const planExercises = await prisma.workoutPlanExercise.findMany({
+    include: { exercise: true },
+    take: 5
   });
-  console.log("Sem GIF:", exerciciosSemGif);
+  console.log("WorkoutPlanExercises sample:");
+  planExercises.forEach(pe => {
+    console.log(`- PE ID: ${pe.id}, Name: ${pe.customName || pe.exercise.name}, Ex Name: ${pe.exercise.name}, Ex GIF: ${pe.exercise.gifUrl}, Ex Video: ${pe.exercise.videoUrl}`);
+  });
 }
 main().catch(e => console.error(e)).finally(async () => { await prisma.$disconnect(); });

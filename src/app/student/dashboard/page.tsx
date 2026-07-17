@@ -78,6 +78,7 @@ interface Exercise {
   restSeconds: number;
   method: string;
   videoUrl?: string | null;
+  gifUrl?: string | null;
   description?: string | null;
 }
 
@@ -180,6 +181,18 @@ export default function StudentDashboard() {
     }
     return url;
   };
+
+  const getMediaUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
+      return url;
+    }
+    if (url.startsWith("videos/") || url.startsWith("images/")) {
+      return `https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/${url}`;
+    }
+    return url;
+  };
+
 
   const handleTabChange = (tab: "fichas" | "conquistas" | "dupla" | "peso") => {
     setActiveTab(tab);
@@ -1059,7 +1072,7 @@ export default function StudentDashboard() {
             {/* Container Iframe Proporcional 16:9 */}
             <div className="aspect-video w-full bg-black">
               {activeVideoUrl?.endsWith('.gif') ? (
-                <img src={activeVideoUrl} alt="Execução" className="w-full h-full object-contain bg-black" />
+                <img src={getMediaUrl(activeVideoUrl)} alt="Execução" className="w-full h-full object-contain bg-black" />
               ) : getYouTubeEmbedUrl(activeVideoUrl) ? (
                 <iframe
                   src={getYouTubeEmbedUrl(activeVideoUrl) || ""}
@@ -1074,7 +1087,7 @@ export default function StudentDashboard() {
                   <Tv className="w-12 h-12 text-zinc-600 mb-3" />
                   <p className="text-sm font-semibold">Não foi possível carregar o vídeo inline.</p>
                   <a
-                    href={activeVideoUrl}
+                    href={getMediaUrl(activeVideoUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-400 hover:underline mt-2 inline-flex items-center gap-1"

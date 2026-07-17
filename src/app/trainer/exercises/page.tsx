@@ -85,6 +85,17 @@ export default function ExercisesPage() {
     return url;
   };
 
+  const getMediaUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
+      return url;
+    }
+    if (url.startsWith("videos/") || url.startsWith("images/")) {
+      return `https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/${url}`;
+    }
+    return url;
+  };
+
   const getMuscleGroupStyle = (group: string) => {
     switch (group) {
       case "Peito": return "bg-rose-50 text-rose-600 border-rose-200/50";
@@ -381,11 +392,11 @@ export default function ExercisesPage() {
 
                 <div className="flex items-center justify-between pt-4 border-t border-[#E2E8F0] mt-auto">
                   <div className="flex gap-2">
-                    {exercise.videoUrl && (
+                    {(exercise.videoUrl || exercise.gifUrl) && (
                       <button
-                        onClick={() => setActiveVideoUrl(exercise.videoUrl)}
+                        onClick={() => setActiveVideoUrl(exercise.gifUrl || exercise.videoUrl)}
                         className="p-2 rounded-lg bg-white hover:bg-[#00C2FF]/10 text-[#475569] hover:text-[#2563EB] transition-all cursor-pointer"
-                        title="Ver vídeo demonstrativo"
+                        title="Ver demonstração"
                       >
                         <Tv className="w-4 h-4" />
                       </button>
@@ -573,6 +584,11 @@ export default function ExercisesPage() {
             </button>
             <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-inner">
               {(() => {
+                if (activeVideoUrl.endsWith('.gif')) {
+                  return (
+                    <img src={getMediaUrl(activeVideoUrl)} alt="Execução" className="w-full h-full object-contain bg-black" />
+                  );
+                }
                 const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);
                 if (embedUrl && (embedUrl.includes("youtube.com") || embedUrl.includes("youtu.be"))) {
                   return (
@@ -585,7 +601,7 @@ export default function ExercisesPage() {
                   );
                 }
                 return (
-                  <video src={activeVideoUrl} controls className="w-full h-full" autoPlay />
+                  <video src={getMediaUrl(activeVideoUrl)} controls className="w-full h-full" autoPlay />
                 );
               })()}
             </div>

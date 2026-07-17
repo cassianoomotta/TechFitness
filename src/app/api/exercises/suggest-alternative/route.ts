@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         equipment: true,
         description: true,
         videoUrl: true,
+        gifUrl: true,
       },
     });
 
