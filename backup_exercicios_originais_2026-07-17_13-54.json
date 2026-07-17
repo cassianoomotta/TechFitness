@@ -1,0 +1,3392 @@
+[
+  {
+    "id": "cmphnt2bn001otjnsexdchqop",
+    "name": "Alongamento de panturrilha no kettbell",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gz2BMBP6ybM",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt2ev001ptjnsqidf2ob3",
+    "name": "Alongamento de posterior bilateral na parede",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=LpIUmbKBopk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt2rr001ttjns1p57kxdf",
+    "name": "Anti-rotação na polia",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Br8UrEbZ8nY",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt4u3002gtjnstsmbmhp6",
+    "name": "Corrida na esteira",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=YIRTbVdFty0",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsyd4000gtjnswriodh0p",
+    "name": "Abdução de quadril em pé na polia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=HI7w-Nw_VKY",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsxtm000atjns5bdark55",
+    "name": "Abdominal infra vela no solo",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Fm6PxM4d2h4",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vqxu8000dtja0vzax672a",
+    "name": "Abdominal oblíquo no solo",
+    "muscleGroup": "Core",
+    "description": "Deitado, flexione os joelhos e apoie os pés. Realize a rotação do tronco tentando aproximar o cotovelo do joelho oposto.",
+    "videoUrl": "https://www.youtube.com/watch?v=l_a6aYtV9m8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsy6l000etjnsjtwkup1q",
+    "name": "Abdução de quadril 3 apoios",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=-3qQYNnaMoI",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsy9u000ftjnse0rjeo15",
+    "name": "Abdução de quadril com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=LmFM7JxufV0",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsygd000htjnsojgn3yfj",
+    "name": "Abdução de quadril no solo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=bnvOjk76rGE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsyjl000itjnstfwkduwz",
+    "name": "Abdução de quadril sentado com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=oz573L2s6n4",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsymt000jtjnsb0ref9l1",
+    "name": "Abdução e extensão de quadril com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=jqxd5pKXuAw",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsz31000otjnspzgbncfh",
+    "name": "Adução na polia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Rdt5S_I4Ao4",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnszmi000utjnsxc29iyz9",
+    "name": "Afundo na barra guiada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=_U_sX4bIQEE",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnszpr000vtjns0x9rep83",
+    "name": "Afundo no step",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1aOQUohr-JY",
+    "gifUrl": null,
+    "equipment": "Step",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnszw8000xtjns8ca5v3fs",
+    "name": "Agachamento afastado com halter",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=9uhVyihQAH0",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt02p000ztjnsox9qdput",
+    "name": "Agachamento com halter",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=vcJJQZCZn3E",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt05y0010tjnsmjvq058x",
+    "name": "Agachamento com salto",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=9YeCZsVHGEU",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt0j00014tjnso8m04hja",
+    "name": "Agachamento isométrico na parede",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=QUw-vetcQN0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt0pg0016tjnsmt89pewn",
+    "name": "Agachamento livre com barra",
+    "muscleGroup": "Pernas",
+    "description": "Apoie a barra nos ombros, desça flexionando os joelhos e empurrando o quadril para trás, mantendo a coluna ereta.",
+    "videoUrl": "https://www.youtube.com/shorts/RQhnPIIk4BU",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt0so0017tjnspbfju185",
+    "name": "Agachamento máquina de frente",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=rKW0nXteHyY",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt0vx0018tjnsm9pfrf1e",
+    "name": "Agachamento na barra guiada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=h2D7nDY_UNY",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt0z50019tjnsr3skdycc",
+    "name": "Agachamento na máquina de costas",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1LLU2juoFiU",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt12e001atjnsvga8v9m6",
+    "name": "Agachamento na polia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=eoQsQ-MnG40",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt1c7001dtjns5s6x4k2r",
+    "name": "Agachamento sem carga com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=tkmUjqYrwOo",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt1im001ftjnshvzytkmu",
+    "name": "Agachamento sumô na barra guiada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=3CHGWflAgec",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt1vi001jtjnsuiqb157a",
+    "name": "Alongamento de adutores na parede",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=kI2lO_Xy6hE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt1yq001ktjnsemgrgokw",
+    "name": "Alongamento de adutores no espaldar",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=cteB1lIkWj8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt21z001ltjnsyx3o4a6i",
+    "name": "Alongamento de biceps",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ob6YJyiFdgs",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt257001mtjnsxg5myqyo",
+    "name": "Alongamento de iliopsoas",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=9E-sipOFU-g",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt28f001ntjns6m7hqukn",
+    "name": "Alongamento de panturrilha no espaldar",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=px9lyqLYlag",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt2la001rtjnsxyabvx0z",
+    "name": "Anti-rotação acima da cabeça",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=39WS0Cik--s",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt2oj001stjns2dzrm1hm",
+    "name": "Anti-rotação acima da cabeça (2)",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=TBimT5BOQU0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt2y8001vtjns42yjcu3r",
+    "name": "Anti-rotação posição de afundo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=3H4GQd-0f4g",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt3b7001ztjnsvax1akwk",
+    "name": "Aviãozinho na polia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=XguIB3J9pIQ",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt4dy002btjnslckcg9fc",
+    "name": "Caminhada na esteira",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=HKaG19T6myg",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt4h6002ctjnswqq9r2zn",
+    "name": "Chop rotacional posição de afundo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=9BRs2Gix66s",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt50k002itjnsn7rtgdkv",
+    "name": "Crossover na polia média",
+    "muscleGroup": "Peito",
+    "description": "Em pé entre as polias, traga as manoplas para a frente do corpo cruzando levemente as mãos.",
+    "videoUrl": "https://www.youtube.com/watch?v=_QOrf0oI69Q",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt570002ktjnseawczfu8",
+    "name": "Crucifixo inverso no cross",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=0C1D2KYia9c",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt5dh002mtjnsb4z4sepz",
+    "name": "Desenvolvimento com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Sentado, empurre os halteres acima da cabeça até a extensão quase completa dos braços.",
+    "videoUrl": "https://www.youtube.com/shorts/4yNsA3Vf1g8",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vqxae0007tja0eaa5rzly",
+    "name": "Abdominal infra na barra fixa",
+    "muscleGroup": "Core",
+    "description": "Pendurado na barra fixa, eleve as pernas (estendidas ou flexionadas) até a linha do quadril contraindo a região inferior do abdômen.",
+    "videoUrl": "https://www.youtube.com/watch?v=NnOch3c49wE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsxn30008tjnsemf28o1j",
+    "name": "Abdominal infra no banco",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Jm9N7T99xkk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsxqb0009tjnsppf43hqh",
+    "name": "Abdominal infra no solo",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=jqbGOOArtUc",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsy04000ctjns3eoh6has",
+    "name": "Abdominal serrote na polia",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gO71GLyEFoQ",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfki65000btjw08qc77hb7",
+    "name": "Levantamento terra",
+    "muscleGroup": "Costas",
+    "description": "Com a barra no chão, suba estendendo o quadril e os joelhos de forma síncrona mantendo o abdômen travado.",
+    "videoUrl": "https://www.youtube.com/shorts/k6eZCDVNWco",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntbih004itjnsqjdm3t0f",
+    "name": "Mergulho no banco (tríceps)",
+    "muscleGroup": "Braços",
+    "description": "Apoie as mãos no banco atrás do corpo e desça o quadril flexionando os cotovelos até 90 graus.",
+    "videoUrl": "https://www.youtube.com/shorts/nkhwFKpEhgw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntcbj004rtjns4o2qvaos",
+    "name": "Mobilidade torácica gato e camelo no caixote",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=46w7IfkqxYk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntces004stjnsf0o0lmyz",
+    "name": "Mobilidade torácica na parede semi ajoelhado",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=5InkVT7Yq4Q",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntci0004ttjnsh3egcm2m",
+    "name": "Mobilidade torácica no caixote",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=MQMSS_vE1T4",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkhik0003tjw0n5ryp1zh",
+    "name": "Peck deck (voador)",
+    "muscleGroup": "Peito",
+    "description": "Sentado na máquina voador, junte os braços à frente mantendo os cotovelos levemente flexionados.",
+    "videoUrl": "https://www.youtube.com/shorts/3NzHyUoRJ0A",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkjn8000ttjw00znf497x",
+    "name": "Prancha isométrica",
+    "muscleGroup": "Core",
+    "description": "Apoie os antebraços e as pontas dos pés no chão, mantendo todo o corpo alinhado e o abdômen contraído.",
+    "videoUrl": "https://www.youtube.com/shorts/fKkarqjGve8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfki0a0009tjw0uyt3u4in",
+    "name": "Puxada fechada (triângulo)",
+    "muscleGroup": "Costas",
+    "description": "Utilizando a manopla de triângulo na polia alta, puxe-a na direção do peito abrindo o peitoral.",
+    "videoUrl": "https://www.youtube.com/shorts/3IGToev6BEo",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkhuc0007tjw0gq4qddzd",
+    "name": "Remada baixa sentado",
+    "muscleGroup": "Costas",
+    "description": "Sentado com os pés apoiados, puxe o triângulo em direção ao abdômen mantendo a postura ereta.",
+    "videoUrl": "https://www.youtube.com/shorts/na-lNfQQkYk",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkj8i000otjw0ayjlsx5b",
+    "name": "Rosca concentrada",
+    "muscleGroup": "Braços",
+    "description": "Sentado com o cotovelo apoiado na parte interna da coxa, realize a rosca isolando o bíceps.",
+    "videoUrl": "https://www.youtube.com/shorts/l5b_u4OW2GY",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkjbg000ptjw0j3q0b3vp",
+    "name": "Tríceps pulley (corda)",
+    "muscleGroup": "Braços",
+    "description": "Segure a corda na polia alta e faça a extensão completa dos cotovelos, abrindo a corda no final.",
+    "videoUrl": "https://www.youtube.com/shorts/nkhwFKpEhgw",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnswzr0001tjnstc47jh8u",
+    "name": "Abdominal canivete com bola",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=WFjTjENjJYQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnsxju0007tjnsgt2f514v",
+    "name": "Abdominal infra na paralela",
+    "muscleGroup": "Core",
+    "description": "Apoiado nos antebraços na paralela, eleve as pernas flexionando os joelhos em direção ao abdômen.",
+    "videoUrl": "https://www.youtube.com/watch?v=jEn6g6AzoZw",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkjk9000stjw0d5gcevmv",
+    "name": "Abdominal supra",
+    "muscleGroup": "Core",
+    "description": "Deitado de costas, flexione o tronco aproximando as costelas do quadril tirando as escápulas do chão.",
+    "videoUrl": "https://www.youtube.com/watch?v=RoUF4-uMy6s",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnszcq000rtjns5e249fcc",
+    "name": "Afundo com halteres",
+    "muscleGroup": "Pernas",
+    "description": "Dê um passo à frente e desça o quadril verticalmente até que o joelho de trás quase toque o chão.",
+    "videoUrl": "https://www.youtube.com/shorts/BeOtD76Z6nU",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vqzug000ztja0tpf58irx",
+    "name": "Agachamento búlgaro",
+    "muscleGroup": "Pernas",
+    "description": "Mantenha um pé apoiado atrás em um banco ou step, flexione o joelho da perna da frente até formar um ângulo de 90 graus, mantendo o tronco levemente inclinado.",
+    "videoUrl": "https://www.youtube.com/watch?v=yP5_YstB1Wc",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt2i2001qtjnsc3a1y75f",
+    "name": "Alongamento de posterior dinâmico com fita",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=m_VQQY4N4sE",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkiez000etjw0ehfehcs7",
+    "name": "Cadeira extensora",
+    "muscleGroup": "Pernas",
+    "description": "Sente-se com as costas apoiadas e faça a extensão completa dos joelhos de forma controlada.",
+    "videoUrl": "https://www.youtube.com/shorts/Pj4zPwCDLN0",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vr5er002otja0m8p6ndih",
+    "name": "Desenvolvimento Arnold",
+    "muscleGroup": "Ombros",
+    "description": "Sentado com halteres na altura dos ombros e palmas viradas para você, empurre-os para cima rotacionando os punhos para que as palmas terminem viradas para frente.",
+    "videoUrl": "https://www.youtube.com/watch?v=6PG2S4KzW68",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vr81w003htja01w266v6n",
+    "name": "Encolhimento com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Segure os halteres ao lado do corpo e eleve os ombros em direção às orelhas de forma vertical, mantendo os braços estendidos.",
+    "videoUrl": "https://www.youtube.com/watch?v=GkQWJ0F8N-k",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vr8it003mtja0z6ry04wx",
+    "name": "Extensão lombar (Banco Romano)",
+    "muscleGroup": "Core",
+    "description": "Apoie o quadril no banco romano, flexione o tronco para frente e retorne até alinhar a coluna com o corpo, contraindo a lombar.",
+    "videoUrl": "https://www.youtube.com/watch?v=2pA4u2_Qv9I",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuytm000ktj14z85nk8tg",
+    "name": "Glúteo 4 apoios perna estendida",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=6I1vXzcf1zw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkic3000dtjw0ir7hlegz",
+    "name": "Leg press 45",
+    "muscleGroup": "Pernas",
+    "description": "Apoie os pés na plataforma na largura dos ombros, empurre e desça flexionando os joelhos até 90 graus.",
+    "videoUrl": "https://www.youtube.com/shorts/HITlVV4eXSA",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfkihy000ftjw08lkn4uet",
+    "name": "Mesa flexora",
+    "muscleGroup": "Pernas",
+    "description": "Deitado de bruços, flexione os joelhos trazendo os calcanhares em direção ao glúteo.",
+    "videoUrl": "https://www.youtube.com/shorts/DYfZ_m-yciE",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntbvf004mtjnstxw7wx47",
+    "name": "Mobilidade de tornozelo semiajoelhado",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=SYFux3PSpmQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntbyo004ntjns8vb6fm8a",
+    "name": "Mobilidade de tornozelo semiajoelhado 2",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=JgxmviF87_M",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntc8b004qtjnseb7mg34k",
+    "name": "Mobilidade torácica gato e camelo",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1H5QPV3JkIw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfueww000dtj80pqvismim",
+    "name": "Rotação externa bilateral halter decúbito dorsal",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=hD-63xfepcM",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfudw70001tj80xinn2ky7",
+    "name": "Seated leg press",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=9e-Plzvvj3E",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfue5q0004tj80s4i77qw8",
+    "name": "Snatch alternado",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=KA0lSCTI06I",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfudsz0000tj80wfl1ze6n",
+    "name": "Snatch landmine",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=7HIkxErc7iI",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt5jx002otjnsduhxrltd",
+    "name": "Desenvolvimento livre com halteres",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=JqdK1KMI1us",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vraca0046tja0u4ee91q9",
+    "name": "Glúteo quatro apoios com caneleira",
+    "muscleGroup": "Pernas",
+    "description": "Em quatro apoios no solo com caneleira, eleve a perna flexionando o joelho em direção ao teto, contraindo o glúteo.",
+    "videoUrl": "https://www.youtube.com/watch?v=7_h2y0f86Gg",
+    "gifUrl": null,
+    "equipment": "Caneleira",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrbzm004otja065opn4mw",
+    "name": "Mergulho nas paralelas",
+    "muscleGroup": "Braços",
+    "description": "Apoie-se nas barras paralelas, flexione os cotovelos descendo o corpo de forma controlada até que os braços fiquem paralelos ao chão e empurre de volta.",
+    "videoUrl": "https://www.youtube.com/watch?v=2z8JmcrW-As",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrbwb004ntja0arpt4voc",
+    "name": "Manguito rotador (Rotação externa na polia)",
+    "muscleGroup": "Ombros",
+    "description": "Com o cotovelo flexionado a 90 graus junto ao corpo, realize a rotação externa do ombro puxando o cabo para fora.",
+    "videoUrl": "https://www.youtube.com/watch?v=680D1T2dY-8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrdwk0059tja0ay0f33pk",
+    "name": "Passada com halteres",
+    "muscleGroup": "Pernas",
+    "description": "Dê passos à frente flexionando o joelho da perna avançada até formar 90 graus, alternando as pernas em movimento contínuo.",
+    "videoUrl": "https://www.youtube.com/watch?v=QyD7aDugzB8",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuhar0016tj800xehm2ph",
+    "name": "Polichinelo",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=RQlKDwSw7gg",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfug8a000ttj80b0bavbna",
+    "name": "Pulley articulado",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Dhgbx9myv3s",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuh1s0013tj806mldi3s5",
+    "name": "Pulley articulado unilateral",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=C3gltd1a-Ls",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfugpy000ztj80uihzvbj3",
+    "name": "Pulley frontal aberto",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=fKhu0pUQ294",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfugb7000utj80g5lcugp5",
+    "name": "Pulley frontal barra anatômica",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=JFdegj1GNcc",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfugmz000ytj80cbuum712",
+    "name": "Rdl",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=cm0YHXsOrh0",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfugh2000wtj800cnbv5fn",
+    "name": "Rdl unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=O6rl-6JQnxM",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfufnp000mtj80vyf8pfv9",
+    "name": "Recuo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=NcFqOJqZ_GA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfufwj000ptj809ic3bc8i",
+    "name": "Remada articulada aberta",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=h-glAsX6gqo",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfufkq000ltj80dhfo2y9x",
+    "name": "Remada articulada fechada",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ItPYxgnQZBM",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfufqm000ntj80qsk227y4",
+    "name": "Remada articulada fechada unilateral",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=VvtgoP5u_Ks",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfudze0002tj80ovitnp72",
+    "name": "Stiff abduzido",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=FMHw-exGgxI",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrn5p0080tja0jquh8bna",
+    "name": "Superman",
+    "muscleGroup": "Core",
+    "description": "Deitado de barriga para baixo, eleve simultaneamente os braços e pernas mantendo a contração da região lombar por alguns segundos.",
+    "videoUrl": "https://www.youtube.com/watch?v=Psz8iL75b9k",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrn8z0081tja0xzsadbks",
+    "name": "Supino declinado com barra",
+    "muscleGroup": "Peito",
+    "description": "Deitado em um banco declinado, desça a barra até a parte inferior do peito e empurre-a verticalmente para cima de forma controlada.",
+    "videoUrl": "https://www.youtube.com/watch?v=vVj44yvY21k",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfugvv0011tj803qfiwwrv",
+    "name": "Pulley supinado",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=xC1hFQVuZv8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrfjm005rtja0kqt27by3",
+    "name": "Pullover com halter",
+    "muscleGroup": "Peito",
+    "description": "Deitado de costas no banco, segure um halter com as duas mãos acima do peito e desça-o por trás da cabeça mantendo os braços ligeiramente flexionados.",
+    "videoUrl": "https://www.youtube.com/watch?v=5V9kCgA1p3g",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfufzh000qtj80v6i8dgff",
+    "name": "Remada baixa aberta",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=oU8VDKR-xIA",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfug2g000rtj806u4499jq",
+    "name": "Remada baixa barra anatômica",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=suC3mO2NrKk",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfueqy000btj80sx680l2o",
+    "name": "Remada baixa supinada",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=MMzBG3lUeDo",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuf8w000htj80y560kk0w",
+    "name": "Remada baixa unilateral",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=sOnXPISYgXg",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuf2t000ftj807w52v4pa",
+    "name": "Remada unilateral polia alta sentado",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=r9Lmo_EX_V8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0vrjvf0072tja0iyvdmk8a",
+    "name": "Rosca inversa",
+    "muscleGroup": "Braços",
+    "description": "Segure a barra com a pegada pronada (palmas para baixo) e realize a flexão dos cotovelos, trabalhando o bíceps e principalmente os antebraços.",
+    "videoUrl": "https://www.youtube.com/watch?v=F_fPszw64QY",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfukkh0005tjy8125dffzl",
+    "name": "Remada cavalinho máquina",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=sJOQr0mSPFU",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuocy001ftjy8g29iuc61",
+    "name": "Rosca bíceps 21",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=G0m5jP7C-1A",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfunmg0016tjy8oieti6w5",
+    "name": "Rosca direta alternada",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=S83rJFTBOp8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuolx001itjy82rmr3ebw",
+    "name": "Rosca direta banco 60°",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=fCFUtsinDuM",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfunam0012tjy8tge3044r",
+    "name": "Rosca direta pegada pronada",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=CafXdOgww4I",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuo72001dtjy8ym9cvdor",
+    "name": "Rosca martelo alternada",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=yqYdPpXrCAA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuo44001ctjy8ds882lpv",
+    "name": "Rosca martelo banco 60°",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=wlISRIeP8tg",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuorv001ktjy8d529ekbv",
+    "name": "Rosca martelo barra h",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gocf3-nePpI",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuoiw001htjy807ub8d59",
+    "name": "Rosca scott barra reta",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=cdo1wAOnBZ0",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuoow001jtjy8uco9epvn",
+    "name": "Rosca spider",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gYr2VIIobcw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0wm6o70001tj484919domf",
+    "name": "Crucifixo inverso com halteres",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0wm6uj0002tj489xxd7iw6",
+    "name": "Voador inverso",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmq0wm6i10000tj48kwv4isge",
+    "name": "Elevação frontal com triângulo sentado no cross",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfukzb000atjy8z2hpivna",
+    "name": "Abdominal canivete",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=GKE_laVIxFk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphful89000dtjy8h89xy2jx",
+    "name": "Abdominal canivete cruzado",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=TdG-b4E7fro",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfulh5000gtjy8xecp3utl",
+    "name": "Abdominal canivete isometrico",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=e1DRNdwyBMQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfule6000ftjy8cqcs8xr4",
+    "name": "Abdominal canoa isometrico",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=XkYdcYEyjKM",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfulk4000htjy88vaea8cq",
+    "name": "Abdominal giro russo",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=eRb8_FTwr0s",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphful5a000ctjy8mixuyazi",
+    "name": "Abdominal infra isometrico",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Nu9Y0RTDib4",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfukte0008tjy881rxruo7",
+    "name": "Abdominal inrfra alternado",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ATio7MMIltA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfumvu000xtjy8px29w22x",
+    "name": "Desenvolvimento frontal barra h",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=a8euMgeGj7g",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfumsv000wtjy8mczjiueg",
+    "name": "Elevação frontal barra h",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=WEW99wQk_-Y",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfulyv000mtjy8rua4435e",
+    "name": "Passada caranguejo estático",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=spoN9Rvq5a8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfusq7002wtjy88xgwm9gw",
+    "name": "Tríceps martelo unilateral",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=sUZvir4UKvo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfusw5002ytjy8ayx58vdt",
+    "name": "Tríceps testa barra h",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=xLQkiwFcvQM",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfur92002etjy87u0c593u",
+    "name": "Elevação conjugada",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=KRfgko2Iroo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuqo30027tjy8uxzaz8af",
+    "name": "Elevação frontal neutra",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=zVBuEsaQoEQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuq390020tjy8s8fmp5zg",
+    "name": "Elevação lateral",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=SgKwoMb4D9U",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuq670021tjy8h69hqw8d",
+    "name": "Elevação lateral neutra",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=iCQpV0WuY30",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuq0b001ztjy83lmsudck",
+    "name": "Elevação lateral sentado",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=PC9Hmnkd4Ew",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfupxe001ytjy832x9ire9",
+    "name": "Elevação y",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=LT1bmEr18lA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfup0s001ntjy8zg27oo0n",
+    "name": "Rosca bíceps barra W",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=nmY1EM6WI0w",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfup9o001qtjy8ll2pcp6d",
+    "name": "Rosca punho antebraço",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=w0ZSoP9QivE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfup6q001ptjy8mocasp45",
+    "name": "Rosca scott barra h",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=pECq6xDL5jk",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuoxs001mtjy8kqju1ncb",
+    "name": "Rosca scott barra W",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=kzgkkHKty1I",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfupfk001stjy83kds8kpv",
+    "name": "Thruster landmine",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=8nTbHpIZTcQ",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfupii001ttjy8lrgudrk3",
+    "name": "Tibial anterior",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=I8EG9Zz2ynI",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfut510031tjy8876m2056",
+    "name": "Touch down",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=GxeaOzYEo1Y",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfut220030tjy8xka8lpma",
+    "name": "Tríceps arremesso barra reta",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=98toqd2XkCE",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfusz4002ztjy8embcspne",
+    "name": "Tríceps arremesso barra W",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=5SAL8hTOfPM",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfus5k002ptjy8p0mfeiq8",
+    "name": "Tríceps corda",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=2Xo32BKyTVk",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfusbf002rtjy8lzfoa1db",
+    "name": "Tríceps francês",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Sa1Go2jK4cY",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfust7002xtjy8n0c5du7f",
+    "name": "Tríceps francês unilateral",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=vGbZLj1l5EM",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuska002utjy8fgayv8h5",
+    "name": "Tríceps inverso",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=nc9btW9-7oo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfus2m002otjy89rf3m4ns",
+    "name": "Tríceps testa barra W",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=wKDgqNrESIE",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfused002stjy8zkhtrfzc",
+    "name": "Tríceps testa barra W inclinado",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ZVEUdGPYQDs",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfurzo002ntjy81ehinlpt",
+    "name": "Tríceps unilateral supinado",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=WPPdgxA2bHA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfurtr002ltjy80nr1shst",
+    "name": "Voador",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Kr5U8ZUjroM",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfurwp002mtjy8gttx51rw",
+    "name": "Wall ball",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Q3pj-DRsiQQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfurkw002itjy8smstibmu",
+    "name": "Wall drill",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=6Y37ckJ4BA0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "a3666fee-d6d0-4af1-bbba-c18d446c37dd",
+    "name": "Encolhimento no cross",
+    "muscleGroup": "Ombros",
+    "description": "Encolhimento de ombros utilizando a polia do cross.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "df44bf89-3fac-474d-9558-82efc3e8d3b6",
+    "name": "Encolhimento com barra",
+    "muscleGroup": "Ombros",
+    "description": "Encolhimento de ombros com barra reta.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "8ae19062-6d00-4aee-9f70-b94eb57f3e88",
+    "name": "Encolhimento na máquina",
+    "muscleGroup": "Ombros",
+    "description": "Encolhimento de ombros na máquina específica.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "0e4a3936-2b59-49c4-b375-5cce9ccdafc0",
+    "name": "Encolhimento com barra por trás",
+    "muscleGroup": "Ombros",
+    "description": "Encolhimento de ombros com a barra posicionada atrás do corpo.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "299c26b3-212a-41bd-8af7-3852b794f871",
+    "name": "Crucifixo inverso inclinado com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Crucifixo inverso deitado com o peito apoiado em banco inclinado.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "b502fb39-89d0-4a35-b875-7209d6379142",
+    "name": "Crucifixo inverso curvado com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Crucifixo inverso em pé com o tronco curvado para frente.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "994c8f1a-6812-40a1-9128-ddca063d4c3f",
+    "name": "Face pull com corda",
+    "muscleGroup": "Ombros",
+    "description": "Puxada para o rosto com corda na polia alta, focando deltóide posterior e manguito rotador.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "04c3943a-286d-4adb-9e19-cdff41956936",
+    "name": "Face pull com rotação externa",
+    "muscleGroup": "Ombros",
+    "description": "Face pull na polia com rotação externa dos ombros no final do movimento.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "c6a12b95-46b1-455b-80dc-938bbdb0788c",
+    "name": "Elevação posterior curvado com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Elevação posterior com tronco inclinado à frente, focando no deltóide posterior.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "31b5995f-123a-409b-8db2-c1ca3a943901",
+    "name": "Elevação posterior sentado com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Elevação posterior sentado no banco com tronco apoiado nas coxas.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "e9e11c0b-cf11-4f5c-b15a-dc50d738b3b0",
+    "name": "Elevação posterior unilateral na polia",
+    "muscleGroup": "Ombros",
+    "description": "Elevação posterior unilateral com polia baixa, focando deltóide posterior.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "6cce7b74-bfb8-439f-945d-ee9cd0e078c4",
+    "name": "Puxada alta com barra (remada alta)",
+    "muscleGroup": "Ombros",
+    "description": "Remada alta com barra, cotovelos apontando para cima, trabalha deltóide posterior e trapézio.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "d87c63e3-f924-4a9b-b077-d65e911a90b0",
+    "name": "Band pull-apart",
+    "muscleGroup": "Ombros",
+    "description": "Abertura horizontal de elástico à altura do peito, focando deltóide posterior.",
+    "videoUrl": null,
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxtl0008tj14phywhlv4",
+    "name": "Levantamento terra barra hexagonal",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=eSY_fyndzFM",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuztv000wtj14eqd9au36",
+    "name": "Extensora tronco inclinado",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=WsL3F6GYquw",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxdn0003tj14iy3cz6s2",
+    "name": "Mesa flexora unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=DHKPeaW49VM",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuuge003htjy8hlr3xeuy",
+    "name": "Stiff",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=QE9oPdgm9z0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuzwy000xtj14xspabgnj",
+    "name": "Extensora unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=YlWMKiYvqlE",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuzks000ttj14ish02dcp",
+    "name": "Face pull",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=zM43C_-p1EM",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt5tn002rtjns9yme0q2u",
+    "name": "Elevação frontal com anilha",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=EpiifwInlp8",
+    "gifUrl": null,
+    "equipment": "Anilha",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuudc003gtjy85fpbkfoi",
+    "name": "Stiff reverso",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=HqaBUet26_w",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuzns000utj148ihaywqy",
+    "name": "Elevação pélvica",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=-d8elW_SqHQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuzqv000vtj14t520nk1i",
+    "name": "Elíptico",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=CFyy1lOWKh8",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuz2l000ntj14iv8x19nj",
+    "name": "Flexão nórdica",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Kwj_NznO7rE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuyzm000mtj148ry4x1vj",
+    "name": "Flexão nórdica reversa",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=IbFv9J4o-gI",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuz8o000ptj14mnloc6sw",
+    "name": "Fly inclinado",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ZAOsoTbAk8I",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuykn000htj149kptclyn",
+    "name": "Glúteo 4 apoios perna flexionada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=xGWthEoq8KQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuupc003ktjy8o6zhjsxz",
+    "name": "Stiff unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=xpLsFO1Zhz0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuyho000gtj14pynyt9qn",
+    "name": "Glúteo concha",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=YXvNbClsjA8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuynm000itj14wxtek9ei",
+    "name": "Glúteo estendido cruzado",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=yZ49_0xjX8k",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuy5q000ctj141cjlk9v6",
+    "name": "Landmine press semi ajoelhado",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=5v3RHdurh-M",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxgw0004tj14xzpawi1k",
+    "name": "Leg 180 pés altos",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=SNmpBS4robY",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxwo0009tj14sg76td3j",
+    "name": "Leg 180 pés baixos",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=jIfL0U-YEcw",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxag0002tj14mt7fd73c",
+    "name": "Leg 180 unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=B5cQunAv4K0",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuybp000etj14xfd44ixn",
+    "name": "Leg 35",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=FsanVfvUcII",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuy8q000dtj14fo57q13u",
+    "name": "Leg 45 pés abduzidos",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=954tc-olxAk",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuyqm000jtj14gct8ytj0",
+    "name": "Leg 45 pés altos",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=zl0IoxfuEuU",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxne0006tj14vnzvtxr5",
+    "name": "Leg 45 pés baixos",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Zxx5_Yo-g_0",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuxk60005tj14d7uz2azi",
+    "name": "Levantamento sumô",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=VmKJ3gect58",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuu4j003dtjy82ltxp4t9",
+    "name": "Supino inclinado barra guiada",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=8wyfA27ORKo",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuu7g003etjy883gmwk68",
+    "name": "Supino inclinado máquina funcional",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=CStHJSJFAFY",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfutms0037tjy8l4r7wmv2",
+    "name": "Supino reto barra guiada",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=9uR1ykwA8EY",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfutso0039tjy8vzslniad",
+    "name": "Swing",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ORIHpdApWp0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfutpp0038tjy84xoud9v7",
+    "name": "Thruster",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=NRCBhzkOCwY",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfutgw0035tjy8rocqwhxl",
+    "name": "Tríceps arremesso corda",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gz8T2thf3BI",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfutdy0034tjy8m3nju7y7",
+    "name": "Tríceps arremesso pronado",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=am6WQW0iwc8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv2ic001stj148gwmqz00",
+    "name": "Anti-rotação pallof press",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=4nZcepfPtK4",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv2rh001vtj146wao0fj3",
+    "name": "Arremesso",
+    "muscleGroup": "Core",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=l57W92VD5Sw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1nx001itj14afj56i9x",
+    "name": "Avanço",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=BcOe805l8uk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv4rn002jtj14xinq178c",
+    "name": "Adutora",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=eivdSyNGxhs",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv4oo002itj14j8qkl68w",
+    "name": "Afundo explosivo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Tfe4fqz0UUk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv235001ntj14fofw7lqz",
+    "name": "Barra fixa graviton aberta",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=YRigeNY1QlY",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv30j001ytj1441s2nd75",
+    "name": "Agachamento barra hexagonal",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Ha-E7AUmjY0",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1x0001ltj14oz32m6nr",
+    "name": "Barra fixa graviton fechada",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=X1Lc5yWsQHM",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv4cp002etj14dx1mi9gc",
+    "name": "Agachamento frontal anilha",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=0xPJJLHHiiI",
+    "gifUrl": null,
+    "equipment": "Anilha",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv3lm0025tj14xq401d0z",
+    "name": "Agachamento insiste",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=-We7g2bgq0A",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv49o002dtj14i7n2rkfm",
+    "name": "Agachamento livre",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=xoGNyB4UQOI",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv46n002ctj14hj3sfuxz",
+    "name": "Agachamento overhead",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ixhShnTJIsY",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv3ol0026tj14aj8oizjy",
+    "name": "Agachamento peso corporal",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1enl54eMLGc",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv3rk0027tj14fxg13wto",
+    "name": "Agachamento sumô",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1qpgAGYSsyU",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv40k002atj14jfk66v3j",
+    "name": "Agachamento tripla extensão",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=eVOHjIlsmUo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv3xj0029tj14ngpkkpfr",
+    "name": "Agachamento tripla extensão barra guiada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=JyM46ENseoo",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1kx001htj14n0xtixqq",
+    "name": "Barra fixa pronada",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=8JtgV1g2g7k",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1ty001ktj149ddqimak",
+    "name": "Barra fixa supinada",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=QH64ZHr6lgo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv298001ptj141uyooz3b",
+    "name": "Bike",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=rbLBH4CkLoM",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv267001otj142158579n",
+    "name": "Bom dia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ezzB_vnG1UE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1qy001jtj14u205uqy8",
+    "name": "Búlgaro",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=DmkCSyzVXJc",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1hx001gtj14zz95xj5w",
+    "name": "Búlgaro explosivo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=3VpZ8YZeZHo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv0tw0018tj14bjfn4oo8",
+    "name": "Cadeira flexora",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=3G6G3LXEvUQ",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv18w001dtj14e7p70449",
+    "name": "Cadeira flexora unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=aINWvk_g_t4",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1ex001ftj14uypvtmjh",
+    "name": "Corda naval alternado",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=r0XLK4E_yDs",
+    "gifUrl": null,
+    "equipment": "Corda Naval",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv12x001btj14q50qk23z",
+    "name": "Corda naval bilateral",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=KJNiABJBMX4",
+    "gifUrl": null,
+    "equipment": "Corda Naval",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv1bv001etj14lxviub5p",
+    "name": "Corrida estacionária",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=pT-ZCJjdYZc",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv0qw0017tj144rxpdqp2",
+    "name": "Cross over",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ogzsr19m4rs",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv0hx0014tj14ktf1xsds",
+    "name": "Elevação pélvica unilateral banco",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=IDEZ77rdD2E",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv0ex0013tj14rpkfgzr2",
+    "name": "Elevação pélvica unilateral solo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=xpdmT6NPmpQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt6ji002ztjns28jk8im0",
+    "name": "Elevação lateral na polia unilateral",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=d1I658GMUvg",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt6py0031tjns0lwsrb9w",
+    "name": "Elevação lateral peito apoiado no banco",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=iTjxX9CWqBs",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt9co003utjnsk8ky0z32",
+    "name": "Flexão plantar com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=f85OjocSOrA",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv5it002stj14s25kvxzg",
+    "name": "Abdutora tronco inclinado atrás",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=UtBtasGfPug",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv4uo002ktj148hotcp1l",
+    "name": "Afundo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=rGcSMLbU4IA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt7zd003ftjnscw3byt0x",
+    "name": "Extensão de quadril com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=x4T_3o3tLI0",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt9j5003wtjnsmmwstc9o",
+    "name": "Gêmeos em pé na máquina",
+    "muscleGroup": "Pernas",
+    "description": "Apoie os ombros nas almofadas, posicione as pontas dos pés na plataforma e faça a extensão do tornozelo.",
+    "videoUrl": "https://www.youtube.com/watch?v=2DXK28kqnfQ",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv53p002ntj14wt81u4em",
+    "name": "Agachamento frontal",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=z6dmHQOreGE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt6wf0033tjns3vmpj3sp",
+    "name": "Elevação lateral unilateral inclinado na polia",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=05dtpG6ep_8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt72w0035tjnsmx0ijbum",
+    "name": "Elevação pélvica com elástico solo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=rGVsmsIglRQ",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt82m003gtjnsej54mho0",
+    "name": "Extensão de quadril na polia (coice)",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=kvz1Knfhvak",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv50o002mtj14wsoko41p",
+    "name": "Agachamento taça",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=wNsszcBSPnQ",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt7650036tjnsw6kurqum",
+    "name": "Elevação pélvica isométrica com abdução",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=q2P2y7ujpZA",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt85v003htjns23zgo9f9",
+    "name": "Extensão de quadril na polia perna estendida",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=lrvcVGDQT0M",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv08y0011tj14lidgvzll",
+    "name": "Extensora bilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=sHIFVwfbcLA",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt8mr003mtjnsmv6wn2s7",
+    "name": "Flexão de braço",
+    "muscleGroup": "Peito",
+    "description": "Apoie as mãos no chão ligeiramente mais abertas que os ombros e flexione os cotovelos até quase tocar o peito.",
+    "videoUrl": "https://www.youtube.com/shorts/dTCO9wDonTE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt8t8003otjnsh7tjp4an",
+    "name": "Flexão de braços ajoelhado",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=hHHx3AqESik",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt8wg003ptjns7seysluw",
+    "name": "Flexão de joelho em pé caneleira",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=RveboRfM0to",
+    "gifUrl": null,
+    "equipment": "Caneleira",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt8zp003qtjnscbk20tgb",
+    "name": "Flexão de joelho em pé na polia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=HNr9TY1p-4c",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt92y003rtjnso4snw8n2",
+    "name": "Flexão de quadril com elástico",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=VWNJhoEzu7Q",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt9md003xtjns2ezmswnf",
+    "name": "Gêmeos sentado na máquina",
+    "muscleGroup": "Pernas",
+    "description": "Sentado na máquina de panturrilha, solte o freio e realize a flexão plantar completa.",
+    "videoUrl": "https://www.youtube.com/watch?v=2DXK28kqnfQ",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv59q002ptj146x75s1mc",
+    "name": "Abdutora",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Zv6-elri_8c",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv5rx002vtj14hqdidnpk",
+    "name": "Abdutora quadril suspenso",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=dzN_llBOGHo",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv5lu002ttj14rko3ncj7",
+    "name": "Abdutora tronco inclinado",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Z7qSNTjTE7s",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfv5xy002xtj14m56yxve1",
+    "name": "Ativação glúteo médio",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=I59H2IqzBC8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt5wv002stjnssyct86vu",
+    "name": "Elevação frontal com aproximação",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=20Q1L7ndbDU",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt79e0037tjns736fyyif",
+    "name": "Elevação pélvica na máquina/barra",
+    "muscleGroup": "Pernas",
+    "description": "Apoie as costas no banco e a barra no quadril, faça a extensão do quadril empurrando com os calcanhares.",
+    "videoUrl": "https://www.youtube.com/watch?v=KCVEEVzbPIs",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt604002ttjnsz8mbzx4r",
+    "name": "Elevação frontal com halteres",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=PNMsAivexFE",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt63c002utjnstweff5xc",
+    "name": "Elevação frontal na polia com corda",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=58nhcBdE6F4",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt66l002vtjnsy239bm7u",
+    "name": "Elevação frontal na polia pegada pronada",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=GAlVCffg7f8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt6ga002ytjnsfmzggin0",
+    "name": "Elevação lateral com halteres",
+    "muscleGroup": "Ombros",
+    "description": "Em pé, eleve os halteres lateralmente até a altura dos ombros, focando na contração do deltoide lateral.",
+    "videoUrl": "https://www.youtube.com/shorts/0WxSGB5cvEw",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt7fx0039tjnshd39h2yn",
+    "name": "Elevacao pélvica unilateral com abdução",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=OgMgWDV276g",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt7pn003ctjns2pw2aybj",
+    "name": "Elevação y com elástico",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=6m8rozpDahk",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnt7w5003etjnsn2b4fvch",
+    "name": "Estabilização de escápulas no espaldar",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=dqT6Oc22b-A",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntcuy004xtjnspnglxko7",
+    "name": "Panturrilha no solo na barra guiada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=5nOaGAnHlxI",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntdo40056tjns525x1ms3",
+    "name": "Prancha lateral com abdução de pernas",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=wMZKeIB_AWk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntdrc0057tjnsxangooj6",
+    "name": "Prancha lateral com glúteo concha",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=X2T25FNVLb0",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntc54004ptjns4bwtamwk",
+    "name": "Mobilidade torácica e de ombro na parede semi ajoelhado",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=RuyhUaHlGw8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntcy6004ytjnsn71uoj3f",
+    "name": "Panturrilha no step",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=odFX9wkQKWw",
+    "gifUrl": null,
+    "equipment": "Step",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntd1f004ztjns5p1lf3nw",
+    "name": "Panturrilha no step unilateral",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=wMH4YZDwb7g",
+    "gifUrl": null,
+    "equipment": "Step",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntd4n0050tjnsf6tg7fde",
+    "name": "Passada caranguejo com movimento",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gCqHpHUP6Ow",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntduk0058tjnst0vcc97s",
+    "name": "Pull down com barra reta",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=XF7uc-Mz_ZM",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntdxs0059tjnsswt5eii8",
+    "name": "Pull down com corda",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=cljclnFIKCo",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnte11005atjnsi8h8qrps",
+    "name": "Pull down com corda sentado",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=N-Ivf7_kfBA",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnteh9005ftjnsz1rlfkbv",
+    "name": "Pulley frontal com barra estribo curta",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=KFPsvhQtqnc",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntekh005gtjns08ipv54x",
+    "name": "Pulley frontal com triângulo",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=AqVJvaYsi5I",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnteqy005itjnsbnzjmllm",
+    "name": "Puxada aberta na polia alta",
+    "muscleGroup": "Costas",
+    "description": "Puxe a barra em direção ao peito inclinando levemente o tronco para trás e esmagando as escápulas.",
+    "videoUrl": "https://www.youtube.com/shorts/58l3JzLKhf8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntfae005otjns1yyk2l3l",
+    "name": "Recuo na barra guiada",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Rj25-lXI9vo",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntfdn005ptjnse2buxq67",
+    "name": "Recuo no step",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=XS22Tngv8nI",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfufbv000itj80met9ou7e",
+    "name": "Remada articulada aberta unilateral",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=14vSLvxgKVc",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntg0i005wtjns8t399i02",
+    "name": "Remada baixa com barra estribo curta",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ACgU7gH8NYU",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntg3p005xtjnseuaz6tdh",
+    "name": "Remada baixa com triângulo",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Dq5QoRYbCrs",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntgjv0062tjnsnhazgaic",
+    "name": "Remada cavalinho no suporte",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=3YlMCwa5C9A",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntgn30063tjnsz4zvglbk",
+    "name": "Remada curvada com barra",
+    "muscleGroup": "Costas",
+    "description": "Incline o tronco à frente a 45 graus, mantendo a coluna alinhada, e puxe a barra na direção do umbigo.",
+    "videoUrl": "https://www.youtube.com/shorts/ZCLySTuhTyg",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntgqb0064tjnse4rykb16",
+    "name": "Remada na polia alta com corda",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ZRMwgEAgfQo",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntgtj0065tjns0xxauwoi",
+    "name": "Remada na polia baixa com triângulo",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=BXjBtkNHLf8",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntgwq0066tjnstx94ovob",
+    "name": "Remada na polia baixa supinada",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=pk7mAWFQw7Q",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntgzy0067tjns6nh22urs",
+    "name": "Remada unilateral com halter (serrote)",
+    "muscleGroup": "Costas",
+    "description": "Apoiado no banco plano, puxe o halter na lateral do tronco trazendo o cotovelo além da linha das costas.",
+    "videoUrl": "https://www.youtube.com/shorts/95WbXV7LKCo",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnth370068tjnsiv05ghwm",
+    "name": "Remada unilateral na polia baixa",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=rSqlQUmiJMg",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnth9o006atjns5yo81ljx",
+    "name": "Retração de escapulas no pulley",
+    "muscleGroup": "Costas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=aTwQVcizDsA",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnthpr006ftjns7ylq29au",
+    "name": "Rosca bíceps com giro",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=PqShZz6N-xM",
+    "gifUrl": null,
+    "equipment": "Kettlebell",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnthsz006gtjnszrtcmk60",
+    "name": "Rosca bíceps corda na polia",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=oMTC9Ifm7Vw",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnthw7006htjnsfycc0mff",
+    "name": "Rosca bíceps na polia alta",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=KpVkjHSYWvo",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnthzf006itjnsho1jjyw8",
+    "name": "Rosca com giro banco 60°",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gxJnGF_pKio",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnta2k0042tjns0nhwfaec",
+    "name": "Kipping + flexão de braços",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=5ihTyFNWDPw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnta5s0043tjns7rdizgoa",
+    "name": "Landmine press em pé",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=OZedIWKaCTA",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntbby004gtjnshvc1xdxt",
+    "name": "Liberação na torácica",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=-3mgBUY6UUo",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntbf9004htjns2lb591v1",
+    "name": "Lift posição de afundo",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=bA37GcoJfgw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntbs5004ltjnsj3j4xdft",
+    "name": "Mobilidade de tornozelo no caixote",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=UWBaYxrQWjw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuhpk001btj804hg6i118",
+    "name": "Mobilidade torácica caixote bastão",
+    "muscleGroup": "Aquecimento e Mobilidade",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=t5zw3_aPIr4",
+    "gifUrl": null,
+    "equipment": "Outros",
+    "alternatives": []
+  },
+  {
+    "id": "cmphfuqc50023tjy8x8s7ny5u",
+    "name": "Panturrilha inclinado joelho elevado à frente",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=kikubfpx8Zw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntcoh004vtjnsjy2ctr8s",
+    "name": "Panturrilha na barra guiada com step",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=54hhKYNu9d8",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntcrq004wtjnsvq0qhi7i",
+    "name": "Panturrilha na maquina de agachamento",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=F8agcVvigNc",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntdhl0054tjns540evct1",
+    "name": "Prancha frontal com elástico e movimentação de pernas",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ugR56aDVxHM",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntn1t0082tjnsm4nbv9w0",
+    "name": "Tibial anterior na parede",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=RFHshgcWjs8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntoy2008ntjnsm9eid93w",
+    "name": "Tríceps testa com barra W",
+    "muscleGroup": "Braços",
+    "description": "Deitado, segure a barra acima do peito e flexione os cotovelos trazendo a barra na direção da testa.",
+    "videoUrl": "https://www.youtube.com/shorts/x9lbdH8qbHM",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntp1c008otjns99g04zr7",
+    "name": "Tríceps testa com halter",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=7Lb3Z1Wvsuo",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntiiw006otjns51141o77",
+    "name": "Rosca direta com halteres",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=jTYbykP91vI",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntjvi0073tjnsnmveia5c",
+    "name": "Rosca unilateral na polia",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=AjP7irEtB-A",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntl29007gtjnsji1wi3hl",
+    "name": "Stiff com halteres",
+    "muscleGroup": "Pernas",
+    "description": "Flexione levemente os joelhos e desça os halteres rente às pernas, empurrando o quadril para trás.",
+    "videoUrl": "https://www.youtube.com/shorts/Z4aQruKglOM",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntl5i007htjnsubj48ttb",
+    "name": "Stiff na máquina",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=GSWxaUuc36I",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntl8s007itjnsqor20lxr",
+    "name": "Stiff na polia",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=2oJkwwqg9XU",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntlil007ltjnsxvb4h7kc",
+    "name": "Subida no caixote",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=ra3RcUYVwZ8",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntllv007mtjnswwg313x6",
+    "name": "Subida no caixote over burpeer",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=eDR0doEfVFE",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntlp3007ntjnspeuasr5q",
+    "name": "Subida no caixote over sprawls",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=6SXL6T79A2U",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntlse007otjnsvgygn4c9",
+    "name": "Subida no caixote perna estática",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=DiSFfxUlh4w",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntlyw007qtjns4tq7wwxj",
+    "name": "Supino inclinado com barra",
+    "muscleGroup": "Peito",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=1Y7MQ2IGvFk",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntm25007rtjns4m5lc82t",
+    "name": "Supino inclinado com halteres",
+    "muscleGroup": "Peito",
+    "description": "Sentado em banco inclinado a 30-45 graus, empurre os halteres para cima de forma controlada.",
+    "videoUrl": "https://www.youtube.com/watch?v=L5mYF7tfl4A",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntmbv007utjns4m8oz2v0",
+    "name": "Supino reto com barra",
+    "muscleGroup": "Peito",
+    "description": "Deitado no banco plano, desça a barra até tocar levemente o peito e empurre-a de volta para a posição inicial.",
+    "videoUrl": "https://www.youtube.com/shorts/ZL-sw4fqkE4",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntmf3007vtjnsk895mpki",
+    "name": "Supino reto com halteres",
+    "muscleGroup": "Peito",
+    "description": "Deitado no banco reto, empurre os halteres para cima mantendo a estabilidade dos ombros.",
+    "videoUrl": "https://www.youtube.com/shorts/JlnIpcMpkuw",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntmow007ytjnszrsxbiv5",
+    "name": "Thruster com halter",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=Ik57T5PQxj0",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntnla0088tjnsk46o9sbv",
+    "name": "Tríceps arremesso unilateral com corda",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=LtoxYz8yEtM",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntnok0089tjnsz98ldwae",
+    "name": "Tríceps coice com corda",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=N5QDpZ5m_Vo",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntnrs008atjnsmyensvdi",
+    "name": "Tríceps coice com halter",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=i2vsWh6Hiq0",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnto1j008dtjnsaoq9yk6u",
+    "name": "Tríceps francês com halter",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=gTF-0imbH1g",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntoel008htjnsj4wf34ua",
+    "name": "Tríceps na polia barra reta",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=oWDmzZAh5t0",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntohu008itjnsbhkkyl6a",
+    "name": "Tríceps na polia barra W",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=FhOlDndu_Fs",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntp4l008ptjnsmuvwlh7a",
+    "name": "Tríceps testa na polia baixa",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=358kK-VQNBE",
+    "gifUrl": null,
+    "equipment": "Polia",
+    "alternatives": []
+  },
+  {
+    "id": "cmphnticf006mtjnssybicfpu",
+    "name": "Rosca direta com barra W",
+    "muscleGroup": "Braços",
+    "description": "Em pé, flexione os cotovelos trazendo a barra na direção dos ombros sem mover os braços para frente.",
+    "videoUrl": "https://www.youtube.com/watch?v=35BxIpDbLD8",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntifo006ntjnsdr5gvkph",
+    "name": "Rosca direta com desenvolvimento",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=vIDHNQrK3Tg",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntim4006ptjnsvws6izjm",
+    "name": "Rosca direta na polia barra reta",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=_dC7hRgeR9Y",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntipc006qtjnsli86df4d",
+    "name": "Rosca direta no aparelho funcional",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=NJdoqVW4Yzs",
+    "gifUrl": null,
+    "equipment": "Máquina",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntj5j006vtjnszpeptao1",
+    "name": "Rosca martelo com elástico",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=LW7EC4a4Tow",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntj8s006wtjns7q0jx3wj",
+    "name": "Rosca martelo com halteres",
+    "muscleGroup": "Braços",
+    "description": "Com pegada neutra (palmas para dentro), faça a flexão de cotovelos de forma alternada ou simultânea.",
+    "videoUrl": "https://www.youtube.com/shorts/BH4RDHryDbU",
+    "gifUrl": null,
+    "equipment": "Halteres",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntjc1006xtjnsa2y9y7n5",
+    "name": "Rosca martelo no scott unilateral",
+    "muscleGroup": "Braços",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=_-pecjXwuEU",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntk1z0075tjnskssl9635",
+    "name": "Rotação externa com barra unilateral",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=2FxJzyhh6Yw",
+    "gifUrl": null,
+    "equipment": "Barra",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntk5t0076tjns2vyxjhm7",
+    "name": "Rotação externa na parede",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=CsuweSHZMFc",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntk910077tjnssbqyj053",
+    "name": "Rotação externa unilateral com elástico",
+    "muscleGroup": "Ombros",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=zBwRcnj-PNE",
+    "gifUrl": null,
+    "equipment": "Elástico",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntkc90078tjns1ik3slzu",
+    "name": "Salto de corda",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=i4gMHCk5sKY",
+    "gifUrl": null,
+    "equipment": "Outros",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntkfi0079tjnsk7fn7cjj",
+    "name": "Salto no caixote",
+    "muscleGroup": "Cardio",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=6_5F_FiB5Uk",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  },
+  {
+    "id": "cmphntklz007btjnszkcytrqk",
+    "name": "Sentar e levantar",
+    "muscleGroup": "Pernas",
+    "description": null,
+    "videoUrl": "https://www.youtube.com/watch?v=OYAzBGS7xIw",
+    "gifUrl": null,
+    "equipment": "Peso Corporal",
+    "alternatives": []
+  }
+]

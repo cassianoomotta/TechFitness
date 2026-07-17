@@ -2272,10 +2272,22 @@ const exercisesData = [
   }
 ];
 
+const fs = require('fs');
+const path = require('path');
+
+function normalizeName(name) {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
 async function main() {
-  console.log("Iniciando seed de banco de dados expandido com links das playlists do YouTube...");
-  console.log("Inserindo/atualizando exercícios na biblioteca...");
+  console.log("Iniciando seed de banco de dados expandido...");
   
+  // 1. Processar os exercícios antigos (core) que já possuem videoUrl
+  console.log("Processando biblioteca core (exercícios originais)...");
   for (const exercise of exercisesData) {
     await prisma.exercise.upsert({
       where: { name: exercise.name },
@@ -2283,14 +2295,114 @@ async function main() {
         muscleGroup: exercise.muscleGroup,
         equipment: exercise.equipment,
         description: exercise.description,
-        videoUrl: exercise.videoUrl,
+        videoUrl: exercise.videoUrl, // Preserva a URL de vídeo original
       },
       create: exercise,
     });
   }
 
+  const dictionary = {
+    muscleGroups: {
+      'back': 'Costas', 'cardio': 'Cardio', 'chest': 'Peito', 'lower arms': 'Antebraços',
+      'lower legs': 'Panturrilhas', 'neck': 'Pescoço', 'shoulders': 'Ombros',
+      'upper arms': 'Braços', 'upper legs': 'Pernas', 'waist': 'Core'
+    },
+    equipments: {
+      'assisted': 'Máquina', 'band': 'Elástico', 'barbell': 'Barra', 'body weight': 'Peso Corporal',
+      'bosu ball': 'Acessório', 'cable': 'Polia', 'dumbbell': 'Halteres', 'elliptical machine': 'Máquina',
+      'ez barbell': 'Barra W', 'hammer': 'Máquina', 'kettlebell': 'Kettlebell', 'leverage machine': 'Máquina Articulada',
+      'medicine ball': 'Acessório', 'olympic barbell': 'Barra Olímpica', 'resistance band': 'Elástico',
+      'roller': 'Acessório', 'rope': 'Corda', 'skierg': 'Máquina', 'sled machine': 'Máquina',
+      'smith machine': 'Barra Guiada (Smith)', 'stability ball': 'Bola Suíça', 'stationary bike': 'Bicicleta',
+      'stepmill equipment': 'Simulador de Escada', 'suspension': 'Fita de Suspensão (TRX)',
+      'trap bar': 'Barra Hexagonal', 'wheel roller': 'Roda Abdominal'
+    }
+  };
+
+  const ptbrPath = path.join(__dirname, 'seeds', 'exercises_ptbr.json');
+  const rawPath = path.join(__dirname, 'seeds', 'exercises_raw.json');
+  
+  let newExercises = [];
+  
+  // Se a tradução finalizou e o arquivo está válido e com itens, usa ele
+  if (fs.existsSync(ptbrPath)) {
+    const ptbrData = JSON.parse(fs.readFileSync(ptbrPath, 'utf8'));
+    if (ptbrData.length > 50) {
+      console.log("Arquivo exercises_ptbr.json encontrado. Importando base traduzida...");
+      newExercises = ptbrData;
+    }
+  }
+
+  // Se não tem tradução pronta, usa o Raw e faz tradução instantânea dos grupos
+  if (newExercises.length === 0 && fs.existsSync(rawPath)) {
+    console.log("Usando base de dados crua (exercises_raw.json) com tradução instantânea de grupos e equipamentos...");
+    const rawData = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
+    newExercises = rawData.map(ex => ({
+      name: ex.name, // Nome em inglês
+      muscleGroup: dictionary.muscleGroups[ex.category || ex.body_part] || 'Geral',
+      equipment: dictionary.equipments[ex.equipment] || 'Outro',
+      description: null,
+      gifUrl: ex.gif_url || null,
+      videoUrl: null
+    }));
+  }
+
+  if (newExercises.length > 0) {
+    // Busca todos os exercícios atuais para comparação normalizada
+    const currentExercises = await prisma.exercise.findMany();
+    const normalizedMap = new Map();
+    for (const ex of currentExercises) {
+      normalizedMap.set(normalizeName(ex.name), ex);
+    }
+
+    let novos = 0;
+    let atualizados = 0;
+
+    for (const newEx of newExercises) {
+      const normName = normalizeName(newEx.name);
+      const existing = normalizedMap.get(normName);
+
+      if (existing) {
+        // Lógica de Mídia: Se o novo exercício possui GIF, ele substitui e apaga o vídeo antigo.
+        // Se o novo NÃO possui GIF, ele mantém o vídeo (ou GIF) antigo intacto.
+        const updatedGifUrl = newEx.gifUrl ? newEx.gifUrl : existing.gifUrl;
+        const updatedVideoUrl = newEx.gifUrl ? null : existing.videoUrl;
+
+        await prisma.exercise.update({
+          where: { id: existing.id },
+          data: {
+            muscleGroup: newEx.muscleGroup || existing.muscleGroup,
+            equipment: newEx.equipment || existing.equipment,
+            description: newEx.description || existing.description,
+            gifUrl: updatedGifUrl,
+            videoUrl: updatedVideoUrl,
+          }
+        });
+        atualizados++;
+      } else {
+        // Novo exercício: Inserir do zero
+        const created = await prisma.exercise.create({
+          data: {
+            name: newEx.name, // Nome com maiúsculas originais
+            muscleGroup: newEx.muscleGroup || 'Geral',
+            equipment: newEx.equipment || 'Peso Corporal',
+            description: newEx.description || null,
+            gifUrl: newEx.gifUrl || null,
+            videoUrl: newEx.videoUrl || null,
+          }
+        });
+        novos++;
+        // Atualiza o mapa para evitar conflito se o JSON novo tiver nomes duplicados
+        normalizedMap.set(normName, created);
+      }
+    }
+    console.log(`Nova base processada: ${novos} novos exercícios inseridos, ${atualizados} exercícios atualizados.`);
+  } else {
+    console.log("Nenhuma base de dados nova encontrada. Apenas a biblioteca core foi processada.");
+  }
+
   const total = await prisma.exercise.count();
-  console.log(`Seed finalizado com sucesso! ${exercisesData.length} exercícios processados. Total no banco: ${total}`);
+  console.log(`Seed finalizado com sucesso! Total de exercícios no banco: ${total}`);
 }
 
 main()
