@@ -275,7 +275,7 @@ export default function WorkoutSessionPlayer() {
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const response = await fetch(`/api/student/workout-plans/${planId}`);
+        const response = await fetch(`/api/student/workout-plans/${planId}`, { cache: 'no-store' });
         if (!response.ok) {
           router.push("/student/dashboard");
           return;

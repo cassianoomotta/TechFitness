@@ -347,7 +347,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await fetch("/api/student/workout-plans");
+        const response = await fetch("/api/student/workout-plans", { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setPlans(sortPlansByWeekDays(data.plans));
@@ -362,7 +362,7 @@ export default function StudentDashboard() {
 
     const fetchPrs = async () => {
       try {
-        const response = await fetch("/api/student/prs");
+        const response = await fetch("/api/student/prs", { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setPrs(data);
@@ -376,7 +376,7 @@ export default function StudentDashboard() {
 
     const fetchGamification = async () => {
       try {
-        const response = await fetch("/api/student/gamification");
+        const response = await fetch("/api/student/gamification", { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setGamification(data);
@@ -394,7 +394,7 @@ export default function StudentDashboard() {
 
     const fetchRanking = async () => {
       try {
-        const response = await fetch("/api/student/ranking");
+        const response = await fetch("/api/student/ranking", { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setRanking(data);

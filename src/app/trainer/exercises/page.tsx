@@ -117,7 +117,7 @@ export default function ExercisesPage() {
       if (selectedMuscle) params.append("muscle", selectedMuscle);
       if (selectedEquipment) params.append("equipment", selectedEquipment);
 
-      const response = await fetch(`/api/exercises?${params.toString()}`);
+      const response = await fetch(`/api/exercises?${params.toString()}`, { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         setExercises(data);
