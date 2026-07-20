@@ -2,10 +2,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const fixMap = {
-  'Stiff na barra guiada': 'videos/0752-UfePqpx.gif', // smith deadlift (closest to stiff na barra guiada)
-  'Stiff': 'videos/0752-UfePqpx.gif', // also update base Stiff just in case (or band stiff leg deadlift which is 1009)
-  'Pulley frontal com triângulo': 'videos/2616-4c9BhzB.gif', // cable lateral pulldown with v-bar
-  'Face pull': 'videos/0177-CuaWCmC.gif' // cable rear delt row (with rope) - exact face pull equivalent
+  'Stiff': 'videos/0116-hrVQWvE.gif', // barbell straight leg deadlift (perfect stiff legs)
+  'Face pull': 'videos/0233-ZfyAGhK.gif', // cable standing rear delt row (with rope) - true face pull
+  'Pulley frontal com triângulo': 'videos/0213-pwt0pnM.gif', // cable seated high row (v-bar)
+  'Remada unilateral polia alta sentado': 'videos/0214-vpp9Ku2.gif' // cable seated one arm alternate row
 };
 
 async function main() {
