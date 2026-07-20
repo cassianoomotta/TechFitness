@@ -1,21 +1,10 @@
+"use client";
+
 import BrandLogo from "@/components/BrandLogo";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Dumbbell, Shield, Trophy, Activity, ArrowRight, Zap } from "lucide-react";
 
-export default async function Home() {
-  const session = await getServerSession(authOptions);
-
-  // Redirecionamento automático no servidor se o usuário já estiver logado
-  if (session?.user) {
-    if (session.user.role === "TRAINER") {
-      redirect("/trainer/dashboard");
-    } else {
-      redirect("/student/dashboard");
-    }
-  }
+export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#F8FAFC] text-[#0F172A] selection:bg-[#2563EB]/20 selection:text-[#1D4ED8]">
