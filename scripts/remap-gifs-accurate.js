@@ -23,7 +23,6 @@ async function main() {
     try {
       // 1. Translate Portuguese name to English
       let query = orig.name;
-      // Pre-translate some common slang to make Bing's job easier
       query = query.replace(/polia/gi, 'cable');
       query = query.replace(/cross/gi, 'cable');
       query = query.replace(/guiada/gi, 'smith machine');
@@ -45,9 +44,7 @@ async function main() {
       
       const res = await translate(query, null, 'en');
       let englishName = res.translation;
-      if (!englishName) {
-        englishName = query; // fallback
-      }
+      if (!englishName) englishName = query;
       
       // 2. Find best match in rawExercises
       const matches = stringSimilarity.findBestMatch(englishName.toLowerCase(), rawNames);
@@ -56,11 +53,11 @@ async function main() {
       
       const matchedEx = rawExercises[bestMatchIndex];
       
-      // 3. Update in database if score is decent (>0.3)
+      // 3. Update in database if score is decent (>0.35)
       if (bestMatchScore > 0.35) {
         await prisma.exercise.update({
           where: { id: orig.id },
-          data: { gifUrl: matchedEx.gifUrl }
+          data: { gifUrl: matchedEx.gif_url } // FIXED KEY HERE
         });
         console.log(`[✔] ${orig.name} -> (translated: ${englishName}) -> ${matchedEx.name} (Score: ${bestMatchScore.toFixed(2)})`);
         successCount++;
@@ -72,9 +69,7 @@ async function main() {
         console.log(`[X] ${orig.name} -> (translated: ${englishName}) -> NO GOOD MATCH (Score: ${bestMatchScore.toFixed(2)})`);
       }
       
-      // Small delay to avoid rate limiting
       await new Promise(r => setTimeout(r, 100));
-      
     } catch (err) {
       console.error(`Error processing ${orig.name}:`, err.message);
     }
