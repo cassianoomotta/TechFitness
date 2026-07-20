@@ -3,12 +3,33 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+// Lista de domínios temporários/descartáveis bloqueados
+const DISPOSABLE_DOMAINS = [
+  "mailinator.com",
+  "tempmail.com",
+  "10minutemail.com",
+  "guerrillamail.com",
+  "trashmail.com",
+  "yopmail.com",
+];
+
 const registerSchema = z.object({
   name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Endereço de email inválido"),
+  email: z
+    .string()
+    .email("Endereço de email inválido")
+    .transform((val) => val.trim().toLowerCase())
+    .refine(
+      (val) => {
+        const domain = val.split("@")[1];
+        return !DISPOSABLE_DOMAINS.includes(domain);
+      },
+      { message: "Por favor, utilize um provedor de e-mail válido e permanente." }
+    ),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
   role: z.enum(["TRAINER", "STUDENT"]),
 });
+
 
 export async function POST(request: Request) {
   try {
