@@ -4,7 +4,10 @@
 
 **O seu parceiro digital para treinos de alta performance.**
 
+![Dashboard Preview](./public/screenshots/dashboard.png)
+
 O **TechFitness** é uma plataforma moderna e inteligente para gestão de treinamentos físicos, desenhada para conectar personal trainers aos seus alunos através de uma experiência fluida, interativa e impulsionada por Inteligência Artificial.
+
 
 ---
 
