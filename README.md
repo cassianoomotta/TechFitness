@@ -13,7 +13,7 @@ O **TechFitness** é uma plataforma moderna e inteligente para gestão de treina
 
 ## 💡 O que é o projeto?
 
-Criamos o TechFitness pensando em três públicos diferentes. Encontre o seu abaixo:
+Criei o TechFitness pensando em três públicos diferentes. Encontre o seu abaixo:
 
 ### 👥 Para quem treina (Leigos / Alunos)
 Sabe aquela ficha de papel amassada na academia ou aquele PDF difícil de ler no celular? O TechFitness é a evolução disso. É um aplicativo web onde você faz login e encontra exatamente o que precisa fazer no dia. 
