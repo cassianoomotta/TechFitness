@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-
+import { Prisma } from "@prisma/client";
 const updatePlanSchema = z.object({
   division: z.string().min(1, "A divisão não pode ser vazia").max(20, "Divisão muito longa")
     .transform((val) => val.replace(/<[^>]*>/g, "").trim()),
@@ -236,7 +236,7 @@ export async function PUT(
       where: { id },
       data: {
         division: division.trim(),
-        weekDays: weekDays ? (typeof weekDays === 'string' ? weekDays.split(',').map((d: string) => d.trim()) : weekDays) : null,
+        weekDays: weekDays ? (typeof weekDays === 'string' ? weekDays.split(',').map((d: string) => d.trim()) : weekDays) : Prisma.DbNull,
       },
     });
 
