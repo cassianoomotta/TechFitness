@@ -2,7 +2,20 @@ const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
 const { translate } = require('bing-translate-api');
-const stringSimilarity = require('string-similarity');
+const { stringSimilarity } = require('string-similarity-js');
+
+function findBestMatch(mainString, targetStrings) {
+  let bestMatchIndex = 0;
+  let highestScore = -1;
+  for (let i = 0; i < targetStrings.length; i++) {
+    const score = stringSimilarity(mainString, targetStrings[i]);
+    if (score > highestScore) {
+      highestScore = score;
+      bestMatchIndex = i;
+    }
+  }
+  return { bestMatchIndex, bestMatch: { rating: highestScore } };
+}
 
 const prisma = new PrismaClient();
 
@@ -47,7 +60,7 @@ async function main() {
       if (!englishName) englishName = query;
       
       // 2. Find best match in rawExercises
-      const matches = stringSimilarity.findBestMatch(englishName.toLowerCase(), rawNames);
+      const matches = findBestMatch(englishName.toLowerCase(), rawNames);
       const bestMatchIndex = matches.bestMatchIndex;
       const bestMatchScore = matches.bestMatch.rating;
       
