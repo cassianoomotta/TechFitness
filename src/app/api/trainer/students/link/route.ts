@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const linkStudentSchema = z.object({
+  studentId: z.string().min(1, "ID do aluno é obrigatório"),
+  forceReassign: z.boolean().optional().default(false),
+});
 
 export async function POST(request: Request) {
   try {
@@ -27,25 +33,46 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { studentId } = body;
+    const validation = linkStudentSchema.safeParse(body);
 
-    if (!studentId) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "ID do aluno é obrigatório." },
+        { errors: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
+    const { studentId, forceReassign } = validation.data;
+
     // Verificar se o perfil do aluno existe
     const student = await prisma.studentProfile.findUnique({
       where: { id: studentId },
-      include: { user: true }
+      include: {
+        user: true,
+        trainer: {
+          include: {
+            user: { select: { name: true } },
+          },
+        },
+      },
     });
 
     if (!student) {
       return NextResponse.json(
         { error: "Aluno não encontrado." },
         { status: 404 }
+      );
+    }
+
+    // Impedir roubo de aluno: verificar se já tem trainer vinculado
+    if (student.trainerId && student.trainerId !== trainerProfile.id && !forceReassign) {
+      return NextResponse.json(
+        {
+          error: `Este aluno já está vinculado ao treinador "${student.trainer?.user.name || "Outro"}". Use a opção de reatribuição para transferir.`,
+          currentTrainer: student.trainer?.user.name || null,
+          requiresForceReassign: true,
+        },
+        { status: 409 }
       );
     }
 

@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const updatePlanSchema = z.object({
+  division: z.string().min(1, "A divisão não pode ser vazia").max(20, "Divisão muito longa")
+    .transform((val) => val.replace(/<[^>]*>/g, "").trim()),
+  weekDays: z.string().max(50).optional().nullable()
+    .transform((val) => val ? val.replace(/<[^>]*>/g, "").trim() : val),
+});
 
 // GET: Buscar um plano de treino específico (WorkoutPlan) do aluno logado
 export async function GET(
@@ -171,14 +179,16 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { division, weekDays } = body;
+    const validation = updatePlanSchema.safeParse(body);
 
-    if (!division || division.trim() === "") {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "A divisão não pode ser vazia." },
+        { errors: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const { division, weekDays } = validation.data;
 
     // Buscar o plano de treino
     const plan = await prisma.workoutPlan.findUnique({

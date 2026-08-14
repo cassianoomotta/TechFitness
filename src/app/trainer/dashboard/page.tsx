@@ -48,7 +48,7 @@ export default function TrainerDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentEmail, setNewStudentEmail] = useState("");
-  const [newStudentPassword, setNewStudentPassword] = useState("123456"); // Senha padrão sugerida
+  const [newStudentPassword, setNewStudentPassword] = useState(""); // Sem senha padrão — trainer deve definir
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState("");
   const [modalSuccess, setModalSuccess] = useState(false);

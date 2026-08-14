@@ -15,7 +15,12 @@ const measurementSchema = z.object({
   thighRight: z.number().positive().optional().nullable(),
   calfLeft: z.number().positive().optional().nullable(),
   calfRight: z.number().positive().optional().nullable(),
-  photos: z.array(z.string()).optional(),
+  photos: z.array(
+    z.string().refine(
+      (str) => /^data:image\/(jpeg|png|webp);base64,/.test(str) && str.length < 7_000_000,
+      "Imagem inválida ou muito grande (máx ~5MB). Use JPEG, PNG ou WebP."
+    )
+  ).optional(),
 });
 
 // GET: Buscar histórico de avaliações físicas de um aluno
@@ -34,6 +39,44 @@ export async function GET(
     }
 
     const { id: studentId } = await params;
+
+    // Verificar ownership baseado na role do usuário
+    if (session.user.role === "TRAINER") {
+      // Trainer: verificar se o aluno pertence a este trainer
+      const trainerProfile = await prisma.trainerProfile.findUnique({
+        where: { userId: session.user.id },
+      });
+
+      if (!trainerProfile) {
+        return NextResponse.json(
+          { error: "Perfil de treinador não encontrado." },
+          { status: 404 }
+        );
+      }
+
+      const student = await prisma.studentProfile.findUnique({
+        where: { id: studentId },
+      });
+
+      if (!student || student.trainerId !== trainerProfile.id) {
+        return NextResponse.json(
+          { error: "Acesso negado. Este aluno não está vinculado a você." },
+          { status: 403 }
+        );
+      }
+    } else if (session.user.role === "STUDENT") {
+      // Student: só pode ver as próprias medições
+      const studentProfile = await prisma.studentProfile.findUnique({
+        where: { userId: session.user.id },
+      });
+
+      if (!studentProfile || studentProfile.id !== studentId) {
+        return NextResponse.json(
+          { error: "Acesso negado. Você só pode visualizar suas próprias medições." },
+          { status: 403 }
+        );
+      }
+    }
 
     // Buscar as avaliações
     const measurements = await prisma.bodyMeasurement.findMany({

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 const exerciseSchema = z.object({
   name: z.string().min(2, "O nome do exercício deve ter pelo menos 2 caracteres"),
@@ -17,12 +18,21 @@ const exerciseSchema = z.object({
 // GET: Buscar todos os exercícios com suporte a busca e filtros
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Não autorizado. Faça login para acessar os exercícios." },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const muscle = searchParams.get("muscle") || "";
     const equipment = searchParams.get("equipment") || "";
 
-    const whereClause: any = {};
+    const whereClause: Prisma.ExerciseWhereInput = {};
 
     if (search) {
       whereClause.OR = [

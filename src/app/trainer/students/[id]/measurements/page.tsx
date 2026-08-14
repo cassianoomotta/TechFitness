@@ -103,10 +103,27 @@ export default function StudentMeasurementsPage() {
     }
   }, [studentId, router]);
 
-  // Converter arquivo de imagem em base64
+  // Converter arquivo de imagem em base64 (com validação de tipo e tamanho)
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: "frente" | "lado" | "costas") => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      alert("Tipo de arquivo inválido. Use JPEG, PNG ou WebP.");
+      e.target.value = "";
+      return;
+    }
+
+    // Validar tamanho do arquivo
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("Arquivo muito grande. O tamanho máximo é 5MB.");
+      e.target.value = "";
+      return;
+    }
 
     const reader = new FileReader();
     reader.onloadend = () => {

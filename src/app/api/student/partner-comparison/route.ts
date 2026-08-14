@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const partnerComparisonSchema = z.object({
+  partnerId: z.string().min(1, "ID do parceiro de treino é obrigatório"),
+});
 
 // GET: Retornar outros alunos vinculados ao mesmo treinador para seleção
 export async function GET(request: Request) {
@@ -73,14 +78,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const { partnerId } = await request.json();
+    const body = await request.json();
+    const validation = partnerComparisonSchema.safeParse(body);
 
-    if (!partnerId) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "ID do parceiro de treino é obrigatório." },
+        { errors: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const { partnerId } = validation.data;
 
     // 1. Aluno logado
     const student = await prisma.studentProfile.findUnique({
@@ -100,6 +108,14 @@ export async function POST(request: Request) {
 
     if (!partner) {
       return NextResponse.json({ error: "Parceiro de treino não encontrado." }, { status: 404 });
+    }
+
+    // IDOR FIX: Verificar que o parceiro é do mesmo treinador
+    if (!student.trainerId || student.trainerId !== partner.trainerId) {
+      return NextResponse.json(
+        { error: "Acesso negado. Você só pode comparar com parceiros do mesmo treinador." },
+        { status: 403 }
+      );
     }
 
     // 3. Coletar estatísticas do aluno logado

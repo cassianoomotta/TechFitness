@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const updateExerciseNameSchema = z.object({
+  customName: z.string().max(100, "Nome muito longo").optional().nullable()
+    .transform((val) => val ? val.replace(/<[^>]*>/g, "").trim() : val),
+});
 
 export async function PUT(
   request: Request,
@@ -19,7 +25,16 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { customName } = body;
+    const validation = updateExerciseNameSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { errors: validation.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { customName } = validation.data;
 
     // Buscar o exercício do plano
     const planExercise = await prisma.workoutPlanExercise.findUnique({

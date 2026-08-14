@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const suggestSchema = z.object({
+  exerciseId: z.string().min(1, "ID do exercício é obrigatório"),
+});
 
 // POST: Suggest an alternative exercise from the same muscle group
 export async function POST(request: Request) {
@@ -16,14 +21,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { exerciseId } = body;
+    const validation = suggestSchema.safeParse(body);
 
-    if (!exerciseId) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "ID do exercício é obrigatório." },
+        { errors: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const { exerciseId } = validation.data;
 
     // Find the current exercise to know its muscle group
     const currentExercise = await prisma.exercise.findUnique({
