@@ -1,5 +1,7 @@
 import { defineConfig } from '@prisma/config'
 
 export default defineConfig({
-  seed: 'node prisma/seed.js',
+  migrations: {
+    seed: 'node prisma/seed.js',
+  },
 })
