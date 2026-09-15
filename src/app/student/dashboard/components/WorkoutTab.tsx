@@ -1,9 +1,19 @@
-import React from 'react';
-import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords, Sparkles, Camera, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import UserAvatar from '@/components/UserAvatar';
 
 export default function WorkoutTab(props: any) {
+  const [selectedCheckinPhoto, setSelectedCheckinPhoto] = useState<{
+    id: string;
+    photoUrl: string;
+    dayOfWeek: string;
+    dayOfWeekFull: string;
+    formattedDate: string;
+    studentName: string;
+    studentImage?: string | null;
+  } | null>(null);
+
   const {
     loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
     partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
@@ -321,8 +331,54 @@ export default function WorkoutTab(props: any) {
                       </span>
                     </div>
 
+                    {/* Mural Semanal de Check-ins dos Concorrentes (Últimos 7 Dias) */}
+                    {ranking.weeklyFeed && ranking.weeklyFeed.length > 0 && (
+                      <div className="space-y-3 pb-5 border-b border-[#E2E8F0]/70">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#0F172A] flex items-center gap-1.5 uppercase tracking-wider">
+                            <Camera className="w-3.5 h-3.5 text-[#2563EB]" />
+                            Check-ins da Semana (Últimos 7 Dias)
+                          </span>
+                          <span className="text-[10px] text-[#64748B] font-semibold">
+                            {ranking.weeklyFeed.length} foto{ranking.weeklyFeed.length !== 1 ? "s" : ""} recente{ranking.weeklyFeed.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        
+                        <div className="flex gap-2.5 overflow-x-auto pb-2 pt-1">
+                          {ranking.weeklyFeed.map((feedItem: any) => (
+                            <div
+                              key={feedItem.id}
+                              onClick={() => setSelectedCheckinPhoto(feedItem)}
+                              className="w-24 sm:w-28 shrink-0 aspect-[3/4] rounded-2xl overflow-hidden relative group cursor-pointer border border-[#E2E8F0] shadow-sm hover:shadow-md hover:scale-[1.02] transition-all bg-slate-900"
+                              title={`Clique para ampliar: ${feedItem.studentName} (${feedItem.dayOfWeekFull})`}
+                            >
+                              <img
+                                src={feedItem.photoUrl}
+                                alt={feedItem.studentName}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-white text-[8px] font-extrabold uppercase tracking-wider">
+                                {feedItem.dayOfWeek} • {feedItem.formattedDate}
+                              </div>
+                              <div className="absolute inset-x-0 bottom-0 p-1.5 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex items-center gap-1">
+                                <UserAvatar
+                                  name={feedItem.studentName}
+                                  image={feedItem.studentImage}
+                                  size="xs"
+                                  className="border border-white/60 shrink-0"
+                                />
+                                <span className="text-[9px] font-bold text-white truncate">
+                                  {feedItem.studentName.split(" ")[0]}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Pódio visual (Top 3) */}
-                    <div className="grid grid-cols-3 gap-3 pt-4 pb-2 border-b border-[#E2E8F0]/50 items-end">
+                    <div className="grid grid-cols-3 gap-3 pt-2 pb-2 border-b border-[#E2E8F0]/50 items-end">
                       {/* 2º Lugar (Esquerda) */}
                       {ranking.top5[1] && (
                         <div className="flex flex-col items-center text-center space-y-1.5 order-1">
@@ -344,6 +400,22 @@ export default function WorkoutTab(props: any) {
                             <p className="text-[9px] text-slate-500 font-mono font-bold">
                               {ranking.top5[1].totalXp} XP
                             </p>
+                            {ranking.top5[1].weeklyCheckins && ranking.top5[1].weeklyCheckins.length > 0 && (
+                              <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
+                                {ranking.top5[1].weeklyCheckins.map((chk: any) => (
+                                  <button
+                                    key={chk.id}
+                                    type="button"
+                                    onClick={() => setSelectedCheckinPhoto({ ...chk, studentName: ranking.top5[1].name, studentImage: ranking.top5[1].image })}
+                                    className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 text-[#2563EB] border border-blue-200/80 hover:bg-blue-100 flex items-center gap-0.5 cursor-pointer transition-colors"
+                                    title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
+                                  >
+                                    <Camera className="w-2.5 h-2.5" />
+                                    {chk.dayOfWeek}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div className="w-full h-10 bg-slate-200/50 rounded-t-lg border-x border-t border-slate-200 flex items-center justify-center">
                             <span className="text-[9px] font-extrabold text-slate-500 font-mono">2º</span>
@@ -372,6 +444,22 @@ export default function WorkoutTab(props: any) {
                             <p className="text-[10px] text-amber-500 font-mono font-bold">
                               {ranking.top5[0].totalXp} XP
                             </p>
+                            {ranking.top5[0].weeklyCheckins && ranking.top5[0].weeklyCheckins.length > 0 && (
+                              <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
+                                {ranking.top5[0].weeklyCheckins.map((chk: any) => (
+                                  <button
+                                    key={chk.id}
+                                    type="button"
+                                    onClick={() => setSelectedCheckinPhoto({ ...chk, studentName: ranking.top5[0].name, studentImage: ranking.top5[0].image })}
+                                    className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200 flex items-center gap-0.5 cursor-pointer transition-colors"
+                                    title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
+                                  >
+                                    <Camera className="w-2.5 h-2.5" />
+                                    {chk.dayOfWeek}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div className="w-full h-14 bg-amber-100/40 rounded-t-lg border-x border-t border-amber-200/80 flex items-center justify-center shadow-inner">
                             <span className="text-xs font-black text-amber-600 font-mono">1º</span>
@@ -400,6 +488,22 @@ export default function WorkoutTab(props: any) {
                             <p className="text-[9px] text-amber-700/70 font-mono font-bold">
                               {ranking.top5[2].totalXp} XP
                             </p>
+                            {ranking.top5[2].weeklyCheckins && ranking.top5[2].weeklyCheckins.length > 0 && (
+                              <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
+                                {ranking.top5[2].weeklyCheckins.map((chk: any) => (
+                                  <button
+                                    key={chk.id}
+                                    type="button"
+                                    onClick={() => setSelectedCheckinPhoto({ ...chk, studentName: ranking.top5[2].name, studentImage: ranking.top5[2].image })}
+                                    className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 flex items-center gap-0.5 cursor-pointer transition-colors"
+                                    title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
+                                  >
+                                    <Camera className="w-2.5 h-2.5" />
+                                    {chk.dayOfWeek}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div className="w-full h-7 bg-amber-100/10 rounded-t-lg border-x border-t border-amber-200/30 flex items-center justify-center">
                             <span className="text-[9px] font-extrabold text-amber-700/70 font-mono">3º</span>
@@ -411,7 +515,7 @@ export default function WorkoutTab(props: any) {
                     {/* Lista dos demais (4º e 5º) */}
                     {(ranking.top5[3] || ranking.top5[4]) && (
                       <div className="space-y-2 pt-2">
-                        {ranking.top5.slice(3, 5).map((user: { id: string; name: string; image?: string | null; level: number; levelTitle: string; totalXp: number; totalSessions: number }, idx: number) => (
+                        {ranking.top5.slice(3, 5).map((user: { id: string; name: string; image?: string | null; level: number; levelTitle: string; totalXp: number; totalSessions: number; weeklyCheckins?: any[] }, idx: number) => (
                           <div
                             key={user.id}
                             className="flex items-center justify-between p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl hover:bg-zinc-100/30 hover:border-[#2563EB]/15 transition-all"
@@ -433,6 +537,22 @@ export default function WorkoutTab(props: any) {
                                 <p className="text-[9px] text-[#94A3B8]">
                                   Lvl {user.level} • {user.levelTitle}
                                 </p>
+                                {user.weeklyCheckins && user.weeklyCheckins.length > 0 && (
+                                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                    {user.weeklyCheckins.map((chk: any) => (
+                                      <button
+                                        key={chk.id}
+                                        type="button"
+                                        onClick={() => setSelectedCheckinPhoto({ ...chk, studentName: user.name, studentImage: user.image })}
+                                        className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 text-[#2563EB] border border-blue-200/80 hover:bg-blue-100 flex items-center gap-0.5 cursor-pointer transition-colors"
+                                        title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
+                                      >
+                                        <Camera className="w-2.5 h-2.5" />
+                                        {chk.dayOfWeek}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="text-right">
@@ -470,6 +590,60 @@ export default function WorkoutTab(props: any) {
                 )}
               </div>
             )}
-          </>
+
+      {/* Modal Zoom Check-in do Concorrente — Vertical Adaptativo */}
+      {selectedCheckinPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
+          onClick={() => setSelectedCheckinPhoto(null)}
+        >
+          <div
+            className="bg-white rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <UserAvatar
+                  name={selectedCheckinPhoto.studentName}
+                  image={selectedCheckinPhoto.studentImage}
+                  size="md"
+                  className="border border-slate-200"
+                />
+                <div>
+                  <h4 className="text-xs font-bold text-[#0F172A]">
+                    {selectedCheckinPhoto.studentName}
+                  </h4>
+                  <p className="text-[10px] text-[#64748B]">
+                    {selectedCheckinPhoto.dayOfWeekFull} • {selectedCheckinPhoto.formattedDate}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedCheckinPhoto(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Imagem Vertical Adaptativa */}
+            <div className="p-3 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden">
+              <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
+                <img
+                  src={selectedCheckinPhoto.photoUrl}
+                  alt={`Check-in de ${selectedCheckinPhoto.studentName}`}
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 text-center text-[11px] text-[#64748B] font-medium border-t border-slate-100">
+              Check-in comprovado • Disponível por 7 dias para os concorrentes
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

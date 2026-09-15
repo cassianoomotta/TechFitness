@@ -455,7 +455,7 @@ export default function StudentProgressPage() {
           onClick={() => setSelectedPhoto(null)}
         >
           <div
-            className="bg-white rounded-3xl overflow-hidden max-w-lg w-full shadow-2xl border border-slate-100"
+            className="bg-white rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -475,17 +475,19 @@ export default function StudentProgressPage() {
               <button
                 type="button"
                 onClick={() => setSelectedPhoto(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-4 bg-slate-950 flex items-center justify-center max-h-[70vh] overflow-hidden">
-              <img
-                src={selectedPhoto.url}
-                alt="Comprovante de Treino"
-                className="max-h-[65vh] w-auto object-contain rounded-xl shadow-lg"
-              />
+            <div className="p-3 sm:p-4 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden">
+              <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
+                <img
+                  src={selectedPhoto.url}
+                  alt="Comprovante de Treino"
+                  className="w-full h-full object-contain rounded-xl shadow-lg"
+                />
+              </div>
             </div>
             <div className="p-3 bg-slate-50 text-center text-xs text-slate-600 font-semibold border-t border-slate-100">
               Atleta: {studentName} • Check-in verificado com sucesso 🏆

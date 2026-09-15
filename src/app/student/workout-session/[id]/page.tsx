@@ -977,19 +977,19 @@ export default function WorkoutSessionPlayer() {
                 />
 
                 {workoutPhoto ? (
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 bg-slate-50">
+                  <div className="relative w-full max-w-[260px] sm:max-w-[300px] mx-auto aspect-[3/4] rounded-2xl overflow-hidden border-2 border-emerald-500/40 bg-slate-950 shadow-md flex items-center justify-center">
                     <img
                       src={workoutPhoto}
                       alt="Foto de Comprovação"
-                      className="w-full h-40 object-cover"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold flex items-center gap-1 shadow-md">
+                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold flex items-center gap-1 shadow-md">
                       <Check className="w-3 h-3" /> Foto Anexada
                     </div>
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
-                      className="absolute bottom-2 right-2 px-3 py-1 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold transition-all"
+                      className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-sm text-white text-[10px] font-bold transition-all cursor-pointer"
                     >
                       Tirar Outra
                     </button>
@@ -1005,7 +1005,7 @@ export default function WorkoutSessionPlayer() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-[#0F172A]">Tirar Selfie / Foto do Treino</p>
-                      <p className="text-[10px] text-[#94A3B8] mt-0.5">Toque para abrir a câmera ou galeria</p>
+                      <p className="text-[10px] text-[#94A3B8] mt-0.5">Formato vertical • Câmera ou galeria</p>
                     </div>
                   </button>
                 )}
@@ -1057,7 +1057,7 @@ export default function WorkoutSessionPlayer() {
                 {finishLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : workoutPhoto ? (
-                  "Confirmar Conclusão & Ver Vitória"
+                  "Concluir e Salvar Treino"
                 ) : (
                   "Tire uma foto para concluir"
                 )}
