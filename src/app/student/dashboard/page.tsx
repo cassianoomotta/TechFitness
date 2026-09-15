@@ -169,8 +169,16 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState<"fichas" | "conquistas" | "dupla" | "peso">("fichas");
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+  const [mediaLoading, setMediaLoading] = useState(true);
+  const [mediaError, setMediaError] = useState(false);
   const [selectedTier, setSelectedTier] = useState<number>(1);
   const [achievementFilter, setAchievementFilter] = useState<"all" | "unlocked" | "locked">("all");
+
+  const handleOpenMedia = (url: string | null) => {
+    setMediaLoading(true);
+    setMediaError(false);
+    setActiveVideoUrl(url);
+  };
 
   const getYouTubeEmbedUrl = (url: string | null) => {
     if (!url) return null;
@@ -188,7 +196,7 @@ export default function StudentDashboard() {
       return url;
     }
     if (url.startsWith("videos/") || url.startsWith("images/")) {
-      return `https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/${url}`;
+      return `/api/media/${url}`;
     }
     return url;
   };
@@ -1022,7 +1030,7 @@ export default function StudentDashboard() {
                     {(ex.videoUrl || ex.gifUrl) && (
                       <button
                         type="button"
-                        onClick={() => setActiveVideoUrl(ex.gifUrl || ex.videoUrl || null)}
+                        onClick={() => handleOpenMedia(ex.gifUrl || ex.videoUrl || null)}
                         className="p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#2563EB] transition-all cursor-pointer animate-pulse-subtle"
                         title="Ver execução do exercício"
                       >
@@ -1070,9 +1078,40 @@ export default function StudentDashboard() {
             </button>
 
             {/* Container Iframe Proporcional 16:9 */}
-            <div className="aspect-video w-full bg-black">
+            <div className="aspect-video w-full bg-black relative flex items-center justify-center overflow-hidden">
               {activeVideoUrl?.endsWith('.gif') ? (
-                <img src={getMediaUrl(activeVideoUrl)} alt="Execução" className="w-full h-full object-contain bg-black" />
+                <>
+                  {mediaLoading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-zinc-400 bg-black z-10">
+                      <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
+                      <span className="text-xs text-zinc-400 font-medium">Carregando demonstração...</span>
+                    </div>
+                  )}
+                  <img
+                    src={getMediaUrl(activeVideoUrl)}
+                    alt="Execução do exercício"
+                    className={`w-full h-full object-contain bg-black transition-opacity duration-300 ${mediaLoading ? 'opacity-0' : 'opacity-100'}`}
+                    onLoad={() => setMediaLoading(false)}
+                    onError={() => {
+                      setMediaLoading(false);
+                      setMediaError(true);
+                    }}
+                  />
+                  {mediaError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-400 p-6 text-center bg-zinc-950 z-20">
+                      <Tv className="w-10 h-10 text-zinc-600 mb-2" />
+                      <p className="text-xs font-semibold text-zinc-300">Não foi possível carregar a demonstração visual.</p>
+                      <a
+                        href={`https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/${activeVideoUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-400 hover:underline mt-2 inline-flex items-center gap-1"
+                      >
+                        Tentar abrir externamente <ArrowRight className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </>
               ) : getYouTubeEmbedUrl(activeVideoUrl) ? (
                 <iframe
                   src={getYouTubeEmbedUrl(activeVideoUrl) || ""}

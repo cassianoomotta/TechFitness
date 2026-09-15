@@ -181,7 +181,7 @@ export default function WorkoutSessionPlayer() {
       return url;
     }
     if (url.startsWith("videos/") || url.startsWith("images/")) {
-      return `https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/${url}`;
+      return `/api/media/${url}`;
     }
     return url;
   };

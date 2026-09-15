@@ -41,20 +41,34 @@ export default function WeatherCard() {
       }
     };
 
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          fetchWeather(position.coords.latitude, position.coords.longitude, "Localização Atual");
-        },
-        (err) => {
-          console.warn("Geolocalização negada/falha. Usando padrão.", err);
-          fetchWeather(defaultLat, defaultLon, defaultCity);
-        },
-        { timeout: 5000, maximumAge: 300000 }
-      );
-    } else {
-      fetchWeather(defaultLat, defaultLon, defaultCity);
-    }
+    const tryGeolocation = async () => {
+      let hasPermission = false;
+      try {
+        if ("permissions" in navigator) {
+          const permission = await navigator.permissions.query({ name: "geolocation" });
+          hasPermission = permission.state === "granted";
+        }
+      } catch (e) {
+        // Ignore fallback
+      }
+
+      if (hasPermission && "geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            fetchWeather(position.coords.latitude, position.coords.longitude, "Localização Atual");
+          },
+          (err) => {
+            console.warn("Geolocalização falhou. Usando padrão.", err);
+            fetchWeather(defaultLat, defaultLon, defaultCity);
+          },
+          { timeout: 5000, maximumAge: 300000 }
+        );
+      } else {
+        fetchWeather(defaultLat, defaultLon, defaultCity);
+      }
+    };
+
+    tryGeolocation();
   }, []);
 
   if (loading) {
