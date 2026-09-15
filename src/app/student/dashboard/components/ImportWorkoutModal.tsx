@@ -121,7 +121,7 @@ export default function ImportWorkoutModal({
       }, 1000);
 
       setTimeout(() => {
-        setLoadingStep("Cruzando com a biblioteca de 1.470 animações...");
+        setLoadingStep("Vinculando exercícios e movimentos...");
       }, 2000);
 
       const response = await fetch("/api/student/workout-plans/import-file", {

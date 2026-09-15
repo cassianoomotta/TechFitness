@@ -127,39 +127,52 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
 
     let rawContent = "";
 
-    // 1. Tentar Gemini 3.6 Flash
-    if (geminiKey) {
-      try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`;
-        const geminiResponse = await fetch(geminiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts,
-              },
-            ],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.1,
-            },
-          }),
-        });
+    // 1. Pool de modelos Gemini em ordem de prioridade (com fallback instantâneo se houver 503)
+    const GEMINI_MODELS = [
+      "gemini-flash-lite-latest",
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.7-flash",
+    ];
 
-        if (geminiResponse.ok) {
-          const geminiResult = await geminiResponse.json();
-          rawContent = geminiResult.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        } else {
-          const errText = await geminiResponse.text();
-          console.error("Erro na resposta do Gemini:", geminiResponse.status, errText);
+    if (geminiKey) {
+      for (const modelName of GEMINI_MODELS) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`;
+          const geminiResponse = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts,
+                },
+              ],
+              generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.1,
+              },
+            }),
+          });
+
+          if (geminiResponse.ok) {
+            const geminiResult = await geminiResponse.json();
+            const text = geminiResult.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text && text.trim()) {
+              rawContent = text.trim();
+              break; // Modelo respondeu com sucesso!
+            }
+          } else {
+            const errText = await geminiResponse.text();
+            console.warn(`[TechFitness AI] Modelo ${modelName} retornou status ${geminiResponse.status}: ${errText.slice(0, 150)}`);
+          }
+        } catch (err) {
+          console.error(`[TechFitness AI] Exceção na chamada do modelo ${modelName}:`, err);
         }
-      } catch (err) {
-        console.error("Exceção na chamada do Gemini:", err);
       }
     }
 
-    // 2. Fallback para OpenAI se Gemini falhou ou não tem chave
+    // 2. Fallback para OpenAI se todos os modelos Gemini falharem ou não tiver chave
     if (!rawContent && openAiKey) {
       try {
         type OpenAiContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
@@ -213,14 +226,101 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       );
     }
 
-    let parsedPlan: GeminiExtractionResponse;
+    // Limpeza de blocos de código Markdown caso presentes
+    let cleanJson = rawContent.trim();
+    if (cleanJson.startsWith("```json")) {
+      cleanJson = cleanJson.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (cleanJson.startsWith("```")) {
+      cleanJson = cleanJson.replace(/^```\s*/, "").replace(/\s*```$/, "");
+    }
+    cleanJson = cleanJson.trim();
+
+    let rawObj: Record<string, unknown> = {};
     try {
-      parsedPlan = JSON.parse(rawContent);
+      rawObj = JSON.parse(cleanJson);
     } catch (e) {
-      console.error("Falha ao fazer parse do JSON do Gemini:", rawContent);
+      console.error("Falha ao fazer parse do JSON da IA:", rawContent);
       return NextResponse.json(
-        { error: "Falha na formatação dos dados pela IA. Tente novamente com outra foto." },
+        { error: "A IA não conseguiu estruturar os dados. Tente novamente com outra foto ou formato de texto." },
         { status: 500 }
+      );
+    }
+
+    // Normalização flexível dos metadados da ficha
+    const planName = String(
+      rawObj.name ||
+      rawObj.nome ||
+      rawObj.titulo ||
+      (rawObj.treino as Record<string, unknown>)?.nome ||
+      (rawObj.workout as Record<string, unknown>)?.name ||
+      "Treino Importado com IA"
+    );
+
+    const planDivision = String(
+      rawObj.division ||
+      rawObj.divisao ||
+      rawObj.letra ||
+      "A"
+    ).toUpperCase();
+
+    const planDescription = String(
+      rawObj.description ||
+      rawObj.descricao ||
+      "Ficha digitalizada automaticamente via IA"
+    );
+
+    const rawDays = rawObj.weekDays || rawObj.dias || rawObj.diasSemana;
+    const planWeekDays: string[] = Array.isArray(rawDays) ? rawDays.map(String) : [];
+
+    // Localizar a lista de exercícios em qualquer chave comum (PT ou EN)
+    let rawExercises: unknown[] = [];
+    if (Array.isArray(rawObj.exercises)) {
+      rawExercises = rawObj.exercises;
+    } else if (Array.isArray(rawObj.exercicios)) {
+      rawExercises = rawObj.exercicios;
+    } else if (Array.isArray(rawObj.itens)) {
+      rawExercises = rawObj.itens;
+    } else if (Array.isArray(rawObj.items)) {
+      rawExercises = rawObj.items;
+    } else if (Array.isArray((rawObj.treino as Record<string, unknown>)?.exercicios)) {
+      rawExercises = (rawObj.treino as Record<string, unknown>).exercicios as unknown[];
+    } else if (Array.isArray((rawObj.workout as Record<string, unknown>)?.exercises)) {
+      rawExercises = (rawObj.workout as Record<string, unknown>).exercises as unknown[];
+    } else if (Array.isArray(rawObj)) {
+      rawExercises = rawObj;
+    }
+
+    interface ExtractedCleanItem {
+      name: string;
+      sets: number;
+      reps: string;
+      restSeconds: number;
+      method: string;
+      notes: string;
+    }
+
+    const cleanExtractedList: ExtractedCleanItem[] = [];
+
+    for (const rawItem of rawExercises) {
+      if (!rawItem || typeof rawItem !== "object") continue;
+      const it = rawItem as Record<string, unknown>;
+
+      const name = String(it.name || it.nome || it.exercicio || it.exercise || "").trim();
+      if (!name) continue;
+
+      const sets = Number(it.sets || it.series || it.set) || 4;
+      const reps = String(it.reps || it.repeticoes || it.rep || "10-12");
+      const restSeconds = Number(it.restSeconds || it.descanso || it.rest || it.tempo_descanso) || 60;
+      const method = String(it.method || it.metodo || it.tecnica || "Normal");
+      const notes = String(it.notes || it.observacoes || it.obs || "");
+
+      cleanExtractedList.push({ name, sets, reps, restSeconds, method, notes });
+    }
+
+    if (cleanExtractedList.length === 0) {
+      return NextResponse.json(
+        { error: "Nenhum exercício legível foi identificado na ficha. Certifique-se de que a imagem ou texto contenha a lista de exercícios." },
+        { status: 422 }
       );
     }
 
@@ -237,7 +337,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
     });
 
     // Mapear e cruzar com os exercícios oficiais
-    const mappedExercises = (parsedPlan.exercises || []).map((ext, idx) => {
+    const mappedExercises = cleanExtractedList.map((ext, idx) => {
       const cleanExt = ext.name.toLowerCase().trim();
 
       let bestMatch: (typeof allDbExercises)[0] | null = null;
@@ -259,8 +359,8 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
         }
       }
 
-      // Considerar match válido se similaridade >= 40%
-      const matched = highestRating >= 0.40 ? bestMatch : null;
+      // Considerar match válido se similaridade >= 35%
+      const matched = highestRating >= 0.35 ? bestMatch : null;
 
       return {
         order: idx,
@@ -273,21 +373,21 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
         gifUrl: matched ? matched.gifUrl : null,
         videoUrl: matched ? matched.videoUrl : null,
         confidence: Number(highestRating.toFixed(2)),
-        sets: Number(ext.sets) || 4,
-        reps: String(ext.reps || "10-12"),
-        restSeconds: Number(ext.restSeconds) || 60,
-        method: ext.method || "Normal",
-        notes: ext.notes || "",
+        sets: ext.sets,
+        reps: ext.reps,
+        restSeconds: ext.restSeconds,
+        method: ext.method,
+        notes: ext.notes,
       };
     });
 
     return NextResponse.json({
       success: true,
       plan: {
-        name: parsedPlan.name || "Treino Importado com IA",
-        division: parsedPlan.division || "A",
-        description: parsedPlan.description || "Ficha digitalizada automaticamente via IA",
-        weekDays: parsedPlan.weekDays || [],
+        name: planName,
+        division: planDivision,
+        description: planDescription,
+        weekDays: planWeekDays,
         exercises: mappedExercises,
       },
     });
