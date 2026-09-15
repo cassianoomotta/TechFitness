@@ -32,10 +32,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    const rawGeminiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.GOOGLE_AI_API_KEY ||
+      process.env.GEMINI_KEY;
+    const geminiKey = rawGeminiKey ? rawGeminiKey.replace(/^["']|["']$/g, "").trim() : "";
+    const rawOpenAiKey = process.env.OPENAI_API_KEY;
+    const openAiKey = rawOpenAiKey ? rawOpenAiKey.replace(/^["']|["']$/g, "").trim() : "";
+
+    if (!geminiKey && !openAiKey) {
       return NextResponse.json(
-        { error: "Serviço de IA não configurado no servidor. Contate o suporte." },
+        { error: "Serviço de IA não configurado no servidor. Configure a variável GEMINI_API_KEY na Vercel (Settings > Environment Variables) e faça um Redeploy." },
         { status: 500 }
       );
     }
@@ -86,6 +94,9 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
 
     const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
 
+    let fileBase64 = "";
+    let fileMimeType = "image/jpeg";
+
     if (rawText && rawText.trim()) {
       parts.push({
         text: `${promptText}\n\nTEXTO DO TREINO PARA EXTRAÇÃO:\n"""\n${rawText.trim()}\n"""`,
@@ -99,54 +110,103 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       }
 
       const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const base64Data = buffer.toString("base64");
-      const mimeType = file.type || "image/jpeg";
+      fileBase64 = Buffer.from(bytes).toString("base64");
+      fileMimeType = file.type || "image/jpeg";
 
       parts.push({ text: promptText });
       parts.push({
         inlineData: {
-          mimeType,
-          data: base64Data,
+          mimeType: fileMimeType,
+          data: fileBase64,
         },
       });
     }
 
-    // Chamar Gemini 3.6 Flash
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+    let rawContent = "";
 
-    const geminiResponse = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts,
-          },
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        },
-      }),
-    });
+    // 1. Tentar Gemini 3.6 Flash
+    if (geminiKey) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`;
+        const geminiResponse = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts,
+              },
+            ],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.1,
+            },
+          }),
+        });
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      console.error("Erro na resposta do Gemini:", geminiResponse.status, errText);
-      return NextResponse.json(
-        { error: "A IA não conseguiu interpretar o documento. Certifique-se de que a imagem esteja nítida." },
-        { status: 502 }
-      );
+        if (geminiResponse.ok) {
+          const geminiResult = await geminiResponse.json();
+          rawContent = geminiResult.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        } else {
+          const errText = await geminiResponse.text();
+          console.error("Erro na resposta do Gemini:", geminiResponse.status, errText);
+        }
+      } catch (err) {
+        console.error("Exceção na chamada do Gemini:", err);
+      }
     }
 
-    const geminiResult = await geminiResponse.json();
-    const rawContent = geminiResult.candidates?.[0]?.content?.parts?.[0]?.text;
+    // 2. Fallback para OpenAI se Gemini falhou ou não tem chave
+    if (!rawContent && openAiKey) {
+      try {
+        type OpenAiContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+        const contentParts: OpenAiContentPart[] = [];
+
+        if (rawText && rawText.trim()) {
+          contentParts.push({
+            type: "text",
+            text: `${promptText}\n\nTEXTO DO TREINO PARA EXTRAÇÃO:\n"""\n${rawText.trim()}\n"""`,
+          });
+        } else if (fileBase64) {
+          contentParts.push({ type: "text", text: promptText });
+          contentParts.push({
+            type: "image_url",
+            image_url: {
+              url: `data:${fileMimeType};base64,${fileBase64}`,
+            },
+          });
+        }
+
+        const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openAiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: contentParts }],
+            response_format: { type: "json_object" },
+            temperature: 0.1,
+          }),
+        });
+
+        if (openAiResponse.ok) {
+          const openAiResult = await openAiResponse.json();
+          rawContent = openAiResult.choices?.[0]?.message?.content || "";
+        } else {
+          const errText = await openAiResponse.text();
+          console.error("Erro na resposta da OpenAI:", openAiResponse.status, errText);
+        }
+      } catch (err) {
+        console.error("Exceção na chamada da OpenAI:", err);
+      }
+    }
 
     if (!rawContent) {
       return NextResponse.json(
-        { error: "Nenhum dado legível foi extraído da imagem fornecida." },
-        { status: 422 }
+        { error: "A IA não conseguiu interpretar o documento. Verifique a nitidez da imagem ou tente colar o treino em texto." },
+        { status: 502 }
       );
     }
 
