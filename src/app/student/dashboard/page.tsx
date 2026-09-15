@@ -307,13 +307,27 @@ export default function StudentDashboard() {
     levelTitle: string;
     totalSessions: number;
   }
+  interface WeeklyCheckinFeedItem {
+    id: string;
+    date: string;
+    dayOfWeek: string;
+    dayOfWeekFull: string;
+    formattedDate: string;
+    photoUrl: string;
+    durationMinutes: number;
+    studentId: string;
+    studentName: string;
+    studentImage?: string | null;
+  }
   interface RankingData {
     top5: RankingUser[];
     userPosition: number;
     totalParticipants: number;
+    weeklyFeed?: WeeklyCheckinFeedItem[];
   }
   const [ranking, setRanking] = useState<RankingData | null>(null);
   const [rankingLoading, setRankingLoading] = useState(true);
+  const [selectedDashboardPhoto, setSelectedDashboardPhoto] = useState<WeeklyCheckinFeedItem | null>(null);
 
 
   // Estados para edição de Ficha (Divisão & Dias)
@@ -623,31 +637,31 @@ export default function StudentDashboard() {
           <BrandLogo size={36} />
 
           <div className="flex items-center gap-3">
-            {/* User Avatar & Profile Click */}
-            <button
-              type="button"
-              onClick={() => setIsProfilePhotoModalOpen(true)}
-              className="relative group p-0.5 rounded-full hover:ring-2 hover:ring-[#2563EB]/40 transition-all cursor-pointer"
-              title="Alterar foto de perfil"
+            {/* User Avatar & Profile Click -> Redireciona para /student/profile */}
+            <Link
+              href="/student/profile"
+              className="flex items-center gap-2.5 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
+              title="Meu Perfil & Configurações da Conta"
             >
-              <UserAvatar
-                name={session?.user?.name}
-                image={profilePhoto || session?.user?.image}
-                size="md"
-              />
-              <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white">
-                <Camera className="w-2.5 h-2.5" />
-              </span>
-            </button>
-
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-[#0F172A]">
-                {session?.user?.name || "Aluno"}
-              </p>
-              <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
-                Atleta
-              </p>
-            </div>
+              <div className="relative">
+                <UserAvatar
+                  name={session?.user?.name}
+                  image={profilePhoto || session?.user?.image}
+                  size="md"
+                />
+                <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white">
+                  <Camera className="w-2.5 h-2.5" />
+                </span>
+              </div>
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors leading-tight">
+                  {session?.user?.name || "Aluno"}
+                </p>
+                <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
+                  Minha Conta & Senha
+                </p>
+              </div>
+            </Link>
 
             {/* Bell Icon & Dropdown */}
             <div className="relative" ref={notificationRef}>
@@ -825,6 +839,90 @@ export default function StudentDashboard() {
                 />
               </div>
             </div>
+          </section>
+        )}
+
+        {/* Seção de Fotos do Dia e da Semana dos Concorrentes na Tela Inicial */}
+        {!rankingLoading && ranking && (
+          <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-5 sm:p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-50 text-[#2563EB] rounded-xl border border-blue-100">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
+                    Check-ins da Turma (Fotos da Semana)
+                  </h3>
+                  <p className="text-[11px] text-[#94A3B8]">
+                    Fotos de treino dos concorrentes nos últimos 7 dias
+                  </p>
+                </div>
+              </div>
+
+              {ranking.weeklyFeed && ranking.weeklyFeed.length > 0 && (
+                <span className="text-[10px] font-bold bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded-full">
+                  {ranking.weeklyFeed.length} {ranking.weeklyFeed.length === 1 ? "foto recente" : "fotos recentes"}
+                </span>
+              )}
+            </div>
+
+            {ranking.weeklyFeed && ranking.weeklyFeed.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+                {ranking.weeklyFeed.map((chk) => {
+                  const isToday =
+                    new Date(chk.date).toDateString() === new Date().toDateString();
+
+                  return (
+                    <div
+                      key={chk.id}
+                      onClick={() => setSelectedDashboardPhoto(chk)}
+                      className="w-28 sm:w-36 shrink-0 aspect-[3/4] rounded-2xl overflow-hidden relative group cursor-pointer border border-[#E2E8F0] shadow-sm hover:shadow-md hover:scale-[1.02] transition-all bg-slate-950"
+                      title={`Ver foto de ${chk.studentName} (${chk.dayOfWeekFull})`}
+                    >
+                      <img
+                        src={chk.photoUrl}
+                        alt={`Check-in de ${chk.studentName}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+
+                      {/* Tag do Dia da Semana */}
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                        {isToday ? (
+                          <span className="text-emerald-400 font-black">HOJE</span>
+                        ) : (
+                          <span>{chk.dayOfWeek}</span>
+                        )}
+                        <span className="text-white/60">•</span>
+                        <span>{chk.formattedDate}</span>
+                      </div>
+
+                      {/* Barra Inferior com Avatar do Concorrente */}
+                      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-center gap-1.5">
+                        <UserAvatar
+                          name={chk.studentName}
+                          image={chk.studentImage}
+                          size="xs"
+                          className="border border-white/60 shrink-0"
+                        />
+                        <span className="text-[10px] font-bold text-white truncate">
+                          {chk.studentName.split(" ")[0]}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
+                <p className="text-xs text-[#64748B] font-semibold">
+                  Nenhum colega postou foto de treino hoje ainda.
+                </p>
+                <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                  Conclua seu treino com foto para liderar o mural da assessoria! 🚀
+                </p>
+              </div>
+            )}
           </section>
         )}
 
@@ -1278,6 +1376,59 @@ export default function StudentDashboard() {
           }
         }}
       />
+
+      {/* Modal Zoom Foto do Concorrente na Tela Inicial */}
+      {selectedDashboardPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
+          onClick={() => setSelectedDashboardPhoto(null)}
+        >
+          <div
+            className="bg-white rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <UserAvatar
+                  name={selectedDashboardPhoto.studentName}
+                  image={selectedDashboardPhoto.studentImage}
+                  size="md"
+                  className="border border-slate-200"
+                />
+                <div>
+                  <h4 className="text-xs font-bold text-[#0F172A]">
+                    {selectedDashboardPhoto.studentName}
+                  </h4>
+                  <p className="text-[10px] text-[#64748B]">
+                    {selectedDashboardPhoto.dayOfWeekFull} • {selectedDashboardPhoto.formattedDate}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDashboardPhoto(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden">
+              <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
+                <img
+                  src={selectedDashboardPhoto.photoUrl}
+                  alt={`Check-in de ${selectedDashboardPhoto.studentName}`}
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 text-center text-[11px] text-[#64748B] font-medium border-t border-slate-100">
+              Check-in comprovado • Disponível por 7 dias na tela inicial dos atletas
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

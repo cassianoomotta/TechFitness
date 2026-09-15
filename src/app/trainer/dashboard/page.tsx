@@ -375,39 +375,32 @@ export default function TrainerDashboard() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div
-              className="relative group cursor-pointer"
-              onClick={() => setIsPhotoModalOpen(true)}
-              title="Clique para alterar foto de perfil"
+            <Link
+              href="/trainer/profile"
+              className="flex items-center gap-3 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
+              title="Meu Perfil & Configurações da Conta"
             >
-              <UserAvatar
-                name={session?.user?.name || "Professor"}
-                image={profileImage || session?.user?.image}
-                size="md"
-                className="border-2 border-blue-200 shadow-sm transition-transform group-hover:scale-105"
-              />
-              <button
-                type="button"
-                className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-colors"
-                title="Alterar foto de perfil"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsPhotoModalOpen(true);
-                }}
-              >
-                <Camera className="w-2.5 h-2.5" />
-              </button>
-            </div>
+              <div className="relative">
+                <UserAvatar
+                  name={session?.user?.name || "Professor"}
+                  image={profileImage || session?.user?.image}
+                  size="md"
+                  className="border-2 border-blue-200 shadow-sm transition-transform group-hover:scale-105"
+                />
+                <span className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full shadow-md group-hover:bg-blue-700 transition-colors border border-white">
+                  <Camera className="w-2.5 h-2.5" />
+                </span>
+              </div>
 
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-[#0F172A]">
-                {session?.user?.name || "Professor"}
-              </p>
-              <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
-                Personal Trainer
-              </p>
-            </div>
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors leading-tight">
+                  {session?.user?.name || "Professor"}
+                </p>
+                <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
+                  Minha Conta & Senha
+                </p>
+              </div>
+            </Link>
 
             {/* Bell Icon & Dropdown */}
             <div className="relative" ref={notificationRef}>
