@@ -143,3 +143,115 @@ export async function GET() {
     );
   }
 }
+
+interface SaveExercisePayload {
+  exerciseId?: string | null;
+  name: string;
+  customName?: string | null;
+  muscleGroup?: string;
+  equipment?: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  method?: string;
+  notes?: string;
+}
+
+// POST: Salvar ficha de treino importada ou criada pelo aluno
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "STUDENT") {
+      return NextResponse.json(
+        { error: "Não autorizado. Apenas alunos podem salvar treinos nesta rota." },
+        { status: 401 }
+      );
+    }
+
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!studentProfile) {
+      return NextResponse.json(
+        { error: "Perfil de aluno não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const { name, division, description, weekDays, exercises } = body;
+
+    if (!name || !Array.isArray(exercises) || exercises.length === 0) {
+      return NextResponse.json(
+        { error: "Dados incompletos. Informe o nome da ficha e ao menos um exercício." },
+        { status: 400 }
+      );
+    }
+
+    const exercisesPayload = exercises as SaveExercisePayload[];
+    const exercisesData = [];
+
+    for (let i = 0; i < exercisesPayload.length; i++) {
+      const ex = exercisesPayload[i];
+      let targetId = ex.exerciseId;
+
+      if (!targetId) {
+        const createdOrFound = await prisma.exercise.upsert({
+          where: { name: ex.name },
+          update: {},
+          create: {
+            name: ex.name,
+            muscleGroup: ex.muscleGroup || "Geral",
+            equipment: ex.equipment || "Livre",
+            description: "Exercício cadastrado via importação de treino",
+            gifUrl: null,
+            videoUrl: null,
+          },
+        });
+        targetId = createdOrFound.id;
+      }
+
+      exercisesData.push({
+        exerciseId: targetId,
+        customName: ex.customName || null,
+        sets: Number(ex.sets) || 4,
+        reps: String(ex.reps || "10-12"),
+        restSeconds: Number(ex.restSeconds) || 60,
+        method: ex.method || "Normal",
+        notes: ex.notes || null,
+        order: i,
+      });
+    }
+
+    const newPlan = await prisma.workoutPlan.create({
+      data: {
+        studentId: studentProfile.id,
+        name: String(name),
+        division: String(division || "A"),
+        description: description ? String(description) : "Importado com IA",
+        weekDays: Array.isArray(weekDays) ? weekDays : [],
+        exercises: {
+          create: exercisesData,
+        },
+      },
+      include: {
+        exercises: {
+          include: {
+            exercise: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({ success: true, plan: newPlan });
+  } catch (error: unknown) {
+    console.error("ERRO AO SALVAR TREINO IMPORTADO:", error);
+    return NextResponse.json(
+      { error: "Ocorreu um erro interno ao salvar o treino." },
+      { status: 500 }
+    );
+  }
+}
+

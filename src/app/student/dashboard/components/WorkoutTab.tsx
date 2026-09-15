@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords } from 'lucide-react';
+import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WorkoutTab(props: any) {
@@ -7,7 +7,7 @@ export default function WorkoutTab(props: any) {
     loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
     partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
     measurements, measurementsLoading, newWeight, setNewWeight, newWeightDate, setNewWeightDate, savingWeight, handleSaveWeight, selectedPhotoForZoom, setSelectedPhotoForZoom,
-    selectedTier, setSelectedTier, achievementFilter, setAchievementFilter
+    selectedTier, setSelectedTier, achievementFilter, setAchievementFilter, onOpenImportModal
   } = props;
 
   return (
@@ -39,19 +39,45 @@ export default function WorkoutTab(props: any) {
           ))}
         </div>
       ) : plans.length === 0 ? (
-              <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8]">
-                <Dumbbell className="w-12 h-12 mx-auto text-[#475569] mb-4" />
-                <p className="text-base font-semibold text-zinc-850">Nenhum treino atribuído</p>
-                <p className="text-xs mt-1">Seu personal trainer ainda não cadastrou nenhuma ficha de treino para você.</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {plans.map((plan: any) => (
-                  <div
-                    key={plan.id}
-                    className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80 flex flex-col justify-between group hover:border-[#2563EB]/30 transition-all duration-300 relative overflow-hidden"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-6">
+        <div className="glass-card rounded-3xl p-8 sm:p-12 text-center text-[#94A3B8] border border-dashed border-slate-200">
+          <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <Sparkles className="w-8 h-8" />
+          </div>
+          <p className="text-base font-bold text-slate-800">Nenhum treino atribuído ainda</p>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            Você pode aguardar o seu treinador prescrever uma ficha ou importar a sua ficha atual por foto ou PDF!
+          </p>
+          <button
+            type="button"
+            onClick={onOpenImportModal}
+            className="mt-6 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-lg hover:scale-105 transition-all inline-flex items-center gap-2 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            Importar Minha Ficha com IA (Foto / PDF)
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between pb-1">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Suas Fichas de Treino</h3>
+              <p className="text-[11px] text-slate-500">{plans.length} ficha{plans.length > 1 ? 's' : ''} ativa{plans.length > 1 ? 's' : ''}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenImportModal}
+              className="px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              Importar com IA
+            </button>
+          </div>
+          {plans.map((plan: any) => (
+            <div
+              key={plan.id}
+              className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80 flex flex-col justify-between group hover:border-[#2563EB]/30 transition-all duration-300 relative overflow-hidden"
+            >
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-6">
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-base font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors">

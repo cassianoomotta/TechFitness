@@ -5,6 +5,7 @@ import PartnerTab from "./components/PartnerTab";
 import WeightTab from "./components/WeightTab";
 import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
+import ImportWorkoutModal from "./components/ImportWorkoutModal";
 
 import { getAchievementStatusHint } from "@/lib/gamification";
 
@@ -173,6 +174,7 @@ export default function StudentDashboard() {
   const [mediaError, setMediaError] = useState(false);
   const [selectedTier, setSelectedTier] = useState<number>(1);
   const [achievementFilter, setAchievementFilter] = useState<"all" | "unlocked" | "locked">("all");
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const handleOpenMedia = (url: string | null) => {
     setMediaLoading(true);
@@ -843,7 +845,8 @@ export default function StudentDashboard() {
   loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
   partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
   measurements, measurementsLoading, newWeight, setNewWeight, newWeightDate, setNewWeightDate, savingWeight, handleSaveWeight, selectedPhotoForZoom, setSelectedPhotoForZoom,
-  selectedTier, setSelectedTier, achievementFilter, setAchievementFilter
+  selectedTier, setSelectedTier, achievementFilter, setAchievementFilter,
+  onOpenImportModal: () => setIsImportModalOpen(true)
 }} />}
 
 
@@ -1201,6 +1204,26 @@ export default function StudentDashboard() {
           </button>
         </div>
       </div>
+
+      {/* Modal de Importação de Treinos com IA */}
+      <ImportWorkoutModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onPlanImported={async () => {
+          try {
+            setLoading(true);
+            const response = await fetch("/api/student/workout-plans", { cache: 'no-store' });
+            if (response.ok) {
+              const data = await response.json();
+              setPlans(sortPlansByWeekDays(data.plans));
+            }
+          } catch (e) {
+            console.error("Erro ao atualizar fichas após importação:", e);
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
 
     </div>
   );
