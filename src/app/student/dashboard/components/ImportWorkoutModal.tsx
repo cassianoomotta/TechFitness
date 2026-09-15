@@ -429,7 +429,7 @@ export default function ImportWorkoutModal({
                     className="w-full rounded-2xl border border-slate-200 p-4 text-xs font-mono text-slate-800 focus:border-blue-500 focus:outline-none bg-slate-50/50 resize-none transition-colors"
                   />
                   <p className="text-[11px] text-slate-400">
-                    A IA identifica automaticamente as séries, repetições e descansa para você.
+                    A IA identifica automaticamente os exercícios, séries, repetições e tempos de descanso para você.
                   </p>
                 </div>
               )}
