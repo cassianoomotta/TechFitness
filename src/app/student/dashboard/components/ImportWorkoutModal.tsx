@@ -64,12 +64,15 @@ export default function ImportWorkoutModal({
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
+  const [parsedPlans, setParsedPlans] = useState<ParsedPlan[]>([]);
+  const [activePlanIndex, setActivePlanIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const parsedPlan = parsedPlans[activePlanIndex] || null;
 
   if (!isOpen) return null;
 
@@ -135,8 +138,12 @@ export default function ImportWorkoutModal({
         throw new Error(data.error || "Falha ao processar treino com a IA.");
       }
 
-      if (data.plan) {
-        setParsedPlan(data.plan);
+      if (data.plans && Array.isArray(data.plans) && data.plans.length > 0) {
+        setParsedPlans(data.plans);
+        setActivePlanIndex(0);
+      } else if (data.plan) {
+        setParsedPlans([data.plan]);
+        setActivePlanIndex(0);
       } else {
         throw new Error("Não foi possível extrair os exercícios fornecidos.");
       }
@@ -149,14 +156,16 @@ export default function ImportWorkoutModal({
   };
 
   const handleSavePlan = async () => {
-    if (!parsedPlan || parsedPlan.exercises.length === 0) {
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current || current.exercises.length === 0) {
       setError("Adicione ao menos um exercício antes de salvar.");
       return;
     }
 
     // Se for o Treinador preenchendo o formulário de novo treino
     if (onPlanSelectedForTrainer) {
-      onPlanSelectedForTrainer(parsedPlan);
+      onPlanSelectedForTrainer(current);
       handleResetAndClose();
       return;
     }
@@ -169,17 +178,13 @@ export default function ImportWorkoutModal({
         ? `/api/trainer/students/${targetStudentId}/workout-plans`
         : "/api/student/workout-plans";
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: parsedPlan.name,
-          division: parsedPlan.division,
-          description: parsedPlan.description,
-          weekDays: parsedPlan.weekDays,
-          exercises: parsedPlan.exercises.map((ex) => ({
+      const payload = parsedPlans.length > 1 ? {
+        plans: parsedPlans.map((p) => ({
+          name: p.name,
+          division: p.division,
+          description: p.description,
+          weekDays: p.weekDays,
+          exercises: p.exercises.map((ex) => ({
             exerciseId: ex.exerciseId,
             name: ex.name,
             customName: ex.customName,
@@ -191,7 +196,32 @@ export default function ImportWorkoutModal({
             method: ex.method,
             notes: ex.notes,
           })),
-        }),
+        }))
+      } : {
+        name: current.name,
+        division: current.division,
+        description: current.description,
+        weekDays: current.weekDays,
+        exercises: current.exercises.map((ex) => ({
+          exerciseId: ex.exerciseId,
+          name: ex.name,
+          customName: ex.customName,
+          muscleGroup: ex.muscleGroup,
+          equipment: ex.equipment,
+          sets: ex.sets,
+          reps: ex.reps,
+          restSeconds: ex.restSeconds,
+          method: ex.method,
+          notes: ex.notes,
+        })),
+      };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -218,7 +248,8 @@ export default function ImportWorkoutModal({
     setPastedText("");
     setLoading(false);
     setError(null);
-    setParsedPlan(null);
+    setParsedPlans([]);
+    setActivePlanIndex(0);
     setSaving(false);
     setSuccess(false);
     onClose();
@@ -229,25 +260,42 @@ export default function ImportWorkoutModal({
     field: keyof ParsedExercise,
     value: string | number
   ) => {
-    if (!parsedPlan) return;
-    const updated = [...parsedPlan.exercises];
-    updated[index] = {
-      ...updated[index],
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    const updatedExercises = [...current.exercises];
+    updatedExercises[index] = {
+      ...updatedExercises[index],
       [field]: value,
     };
-    setParsedPlan({
-      ...parsedPlan,
-      exercises: updated,
-    });
+    const updatedPlans = [...parsedPlans];
+    updatedPlans[activePlanIndex] = {
+      ...current,
+      exercises: updatedExercises,
+    };
+    setParsedPlans(updatedPlans);
   };
 
   const handleRemoveExercise = (index: number) => {
-    if (!parsedPlan) return;
-    const filtered = parsedPlan.exercises.filter((_, idx) => idx !== index);
-    setParsedPlan({
-      ...parsedPlan,
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    const filtered = current.exercises.filter((_, idx) => idx !== index);
+    const updatedPlans = [...parsedPlans];
+    updatedPlans[activePlanIndex] = {
+      ...current,
       exercises: filtered,
-    });
+    };
+    setParsedPlans(updatedPlans);
+  };
+
+  const handleUpdatePlanMeta = (field: "name" | "division", val: string) => {
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    const updatedPlans = [...parsedPlans];
+    updatedPlans[activePlanIndex] = {
+      ...current,
+      [field]: val,
+    };
+    setParsedPlans(updatedPlans);
   };
 
   return (
@@ -459,6 +507,41 @@ export default function ImportWorkoutModal({
           ) : (
             /* ETAPA 2: Conferência e Edição dos Exercícios */
             <div className="space-y-4 animate-fade-in">
+              {/* Seletor de Abas quando houver múltiplos treinos */}
+              {parsedPlans.length > 1 && (
+                <div className="space-y-1.5 pb-1">
+                  <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
+                    <span>{parsedPlans.length} treinos identificados:</span>
+                    <span className="text-[11px] text-blue-600">Alterne para revisar cada um</span>
+                  </div>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
+                    {parsedPlans.map((p, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActivePlanIndex(idx)}
+                        className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                          activePlanIndex === idx
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span>{p.division ? `Divisão ${p.division}` : `Treino ${idx + 1}`}</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+                            activePlanIndex === idx
+                              ? "bg-white/20 text-white"
+                              : "bg-white text-slate-500"
+                          }`}
+                        >
+                          {p.exercises.length}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Cabeçalho do Treino Identificado */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -469,9 +552,7 @@ export default function ImportWorkoutModal({
                     <input
                       type="text"
                       value={parsedPlan.name}
-                      onChange={(e) =>
-                        setParsedPlan({ ...parsedPlan, name: e.target.value })
-                      }
+                      onChange={(e) => handleUpdatePlanMeta("name", e.target.value)}
                       className="w-full text-base font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none transition-colors"
                     />
                   </div>
@@ -481,9 +562,7 @@ export default function ImportWorkoutModal({
                       type="text"
                       value={parsedPlan.division}
                       maxLength={4}
-                      onChange={(e) =>
-                        setParsedPlan({ ...parsedPlan, division: e.target.value.toUpperCase() })
-                      }
+                      onChange={(e) => handleUpdatePlanMeta("division", e.target.value.toUpperCase())}
                       className="w-12 text-center text-sm font-black text-blue-600 bg-blue-50 border border-blue-200 rounded-lg py-1 uppercase"
                     />
                   </div>
@@ -580,7 +659,7 @@ export default function ImportWorkoutModal({
               <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setParsedPlan(null)}
+                  onClick={() => setParsedPlans([])}
                   disabled={saving}
                   className="py-3.5 px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
                 >
@@ -596,12 +675,18 @@ export default function ImportWorkoutModal({
                   {saving ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Salvando ficha de treino...</span>
+                      <span>{parsedPlans.length > 1 ? `Salvando ${parsedPlans.length} fichas...` : "Salvando ficha de treino..."}</span>
                     </>
                   ) : (
                     <>
                       <Check className="w-5 h-5" />
-                      <span>{onPlanSelectedForTrainer ? "Preencher no Treino" : "Confirmar e Salvar Ficha"}</span>
+                      <span>
+                        {onPlanSelectedForTrainer
+                          ? "Preencher no Treino"
+                          : parsedPlans.length > 1
+                          ? `Confirmar e Salvar ${parsedPlans.length} Fichas`
+                          : "Confirmar e Salvar Ficha"}
+                      </span>
                     </>
                   )}
                 </button>

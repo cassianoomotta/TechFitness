@@ -63,34 +63,41 @@ export async function POST(request: NextRequest) {
     }
 
     const promptText = `Você é um treinador de musculação de elite e especialista em leitura e estruturação de fichas de academia.
-Analise o conteúdo fornecido (seja uma imagem, PDF ou texto digitado/colado) e extraia com precisão todos os treinos e exercícios presentes.
+Analise o conteúdo fornecido (seja imagem, PDF ou texto colado). O conteúdo pode conter UM ÚNICO TREINO ou MÚLTIPLOS TREINOS (ex: Treino 1, Treino 2, Treino 3... ou Treino A, B, C, D, E).
 
-Orientações cruciais:
-1. "name": Nome do treino/ficha (ex: "Treino A - Peito e Tríceps", "Treino Inferiores", etc.). Se não houver explícito, deduza pelos grupos musculares.
-2. "division": A letra ou identificador da divisão (ex: "A", "B", "C", "D", "Superior", "Inferior").
-3. "weekDays": Dias sugeridos (ex: ["Seg", "Qua", "Sex"]) caso constem. Se não constar, retorne array vazio [].
-4. Para cada exercício:
-   - "name": Nome completo em português claro (resolva abreviações de instrutor, ex: "Sup. Reto" -> "Supino reto com barra", "Pux. Alta" -> "Pulley frontal com triângulo", "Elev. Lat." -> "Elevação lateral com halteres", "Leg 45" -> "Leg press 45", "Extensora" -> "Cadeira extensora", "Flexora" -> "Cadeira flexora").
-   - "sets": Número inteiro de séries (padrão 4 se omitido).
-   - "reps": Repetições em texto (ex: "10-12", "8 a 10", "Até a falha", etc. Padrão "10-12").
-   - "restSeconds": Descanso em segundos (inteiro, padrão 60).
-   - "method": Técnica (ex: "Normal", "Drop Set", "Rest Pause", "Bi-Set", etc. Padrão "Normal").
-   - "notes": Observações de pegada ou execução caso existam.
+Identifique e extraia TODOS os treinos encontrados.
+Para cada treino:
+- "name": Nome do treino (ex: "Treino 1 - Costa e Peito", "Treino 2 - Perna Completo", "Treino A - Peito e Tríceps", etc.).
+- "division": A letra da divisão ("A", "B", "C", "D", "E"... onde Treino 1 é A, Treino 2 é B, etc.).
+- "description": "Ficha importada via IA"
+- "weekDays": Dias da semana sugeridos (array vazio [] se não especificado).
+- "exercises": Lista de TODOS os exercícios deste respectivo treino.
+  Para cada exercício:
+  - "name": Nome completo em português claro (resolva abreviações: "Abs supra" -> "Abdominal supra", "Pux. alta" -> "Puxada alta", "Leg 45" -> "Leg press 45", "Extensora" -> "Cadeira extensora", etc.).
+  - "sets": Número inteiro de séries (ex: 4).
+  - "reps": Faixa de repetições em texto (ex: "12", "12-10-10-8", "20", etc. Padrão "10-12").
+  - "restSeconds": Descanso em segundos (inteiro, padrão 60).
+  - "method": Técnica ("Normal", "Drop Set", etc.).
+  - "notes": Observações caso existam.
 
 Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
 {
-  "name": "Treino A - Peito e Tríceps",
-  "division": "A",
-  "description": "Ficha importada via IA",
-  "weekDays": ["Seg", "Qua"],
-  "exercises": [
+  "plans": [
     {
-      "name": "Supino reto com barra",
-      "sets": 4,
-      "reps": "10-12",
-      "restSeconds": 60,
-      "method": "Normal",
-      "notes": ""
+      "name": "Treino 1 - Costa e Peito",
+      "division": "A",
+      "description": "Ficha importada via IA",
+      "weekDays": [],
+      "exercises": [
+        {
+          "name": "Puxada alta na barra",
+          "sets": 4,
+          "reps": "12",
+          "restSeconds": 60,
+          "method": "Normal",
+          "notes": ""
+        }
+      ]
     }
   ]
 }`;
@@ -246,85 +253,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       );
     }
 
-    // Normalização flexível dos metadados da ficha
-    const planName = String(
-      rawObj.name ||
-      rawObj.nome ||
-      rawObj.titulo ||
-      (rawObj.treino as Record<string, unknown>)?.nome ||
-      (rawObj.workout as Record<string, unknown>)?.name ||
-      "Treino Importado com IA"
-    );
-
-    const planDivision = String(
-      rawObj.division ||
-      rawObj.divisao ||
-      rawObj.letra ||
-      "A"
-    ).toUpperCase();
-
-    const planDescription = String(
-      rawObj.description ||
-      rawObj.descricao ||
-      "Ficha digitalizada automaticamente via IA"
-    );
-
-    const rawDays = rawObj.weekDays || rawObj.dias || rawObj.diasSemana;
-    const planWeekDays: string[] = Array.isArray(rawDays) ? rawDays.map(String) : [];
-
-    // Localizar a lista de exercícios em qualquer chave comum (PT ou EN)
-    let rawExercises: unknown[] = [];
-    if (Array.isArray(rawObj.exercises)) {
-      rawExercises = rawObj.exercises;
-    } else if (Array.isArray(rawObj.exercicios)) {
-      rawExercises = rawObj.exercicios;
-    } else if (Array.isArray(rawObj.itens)) {
-      rawExercises = rawObj.itens;
-    } else if (Array.isArray(rawObj.items)) {
-      rawExercises = rawObj.items;
-    } else if (Array.isArray((rawObj.treino as Record<string, unknown>)?.exercicios)) {
-      rawExercises = (rawObj.treino as Record<string, unknown>).exercicios as unknown[];
-    } else if (Array.isArray((rawObj.workout as Record<string, unknown>)?.exercises)) {
-      rawExercises = (rawObj.workout as Record<string, unknown>).exercises as unknown[];
-    } else if (Array.isArray(rawObj)) {
-      rawExercises = rawObj;
-    }
-
-    interface ExtractedCleanItem {
-      name: string;
-      sets: number;
-      reps: string;
-      restSeconds: number;
-      method: string;
-      notes: string;
-    }
-
-    const cleanExtractedList: ExtractedCleanItem[] = [];
-
-    for (const rawItem of rawExercises) {
-      if (!rawItem || typeof rawItem !== "object") continue;
-      const it = rawItem as Record<string, unknown>;
-
-      const name = String(it.name || it.nome || it.exercicio || it.exercise || "").trim();
-      if (!name) continue;
-
-      const sets = Number(it.sets || it.series || it.set) || 4;
-      const reps = String(it.reps || it.repeticoes || it.rep || "10-12");
-      const restSeconds = Number(it.restSeconds || it.descanso || it.rest || it.tempo_descanso) || 60;
-      const method = String(it.method || it.metodo || it.tecnica || "Normal");
-      const notes = String(it.notes || it.observacoes || it.obs || "");
-
-      cleanExtractedList.push({ name, sets, reps, restSeconds, method, notes });
-    }
-
-    if (cleanExtractedList.length === 0) {
-      return NextResponse.json(
-        { error: "Nenhum exercício legível foi identificado na ficha. Certifique-se de que a imagem ou texto contenha a lista de exercícios." },
-        { status: 422 }
-      );
-    }
-
-    // Carregar exercícios da biblioteca do sistema para cruzamento
+    // Carregar exercícios da biblioteca do sistema para cruzamento uma única vez
     const allDbExercises = await prisma.exercise.findMany({
       select: {
         id: true,
@@ -336,60 +265,155 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       },
     });
 
-    // Mapear e cruzar com os exercícios oficiais
-    const mappedExercises = cleanExtractedList.map((ext, idx) => {
-      const cleanExt = ext.name.toLowerCase().trim();
+    // Identificar se a IA retornou múltiplos treinos ou um único
+    let rawPlansList: Record<string, unknown>[] = [];
 
-      let bestMatch: (typeof allDbExercises)[0] | null = null;
-      let highestRating = 0;
+    if (Array.isArray(rawObj.plans) && rawObj.plans.length > 0) {
+      rawPlansList = rawObj.plans as Record<string, unknown>[];
+    } else if (Array.isArray(rawObj.treinos) && rawObj.treinos.length > 0) {
+      rawPlansList = rawObj.treinos as Record<string, unknown>[];
+    } else if (Array.isArray(rawObj.fichas) && rawObj.fichas.length > 0) {
+      rawPlansList = rawObj.fichas as Record<string, unknown>[];
+    } else if (Array.isArray(rawObj) && rawObj.length > 0) {
+      rawPlansList = rawObj as Record<string, unknown>[];
+    } else {
+      rawPlansList = [rawObj];
+    }
 
-      for (const dbEx of allDbExercises) {
-        const cleanDb = dbEx.name.toLowerCase().trim();
+    const mappedPlans = [];
 
-        if (cleanExt === cleanDb) {
-          bestMatch = dbEx;
-          highestRating = 1.0;
-          break;
-        }
+    for (let pIdx = 0; pIdx < rawPlansList.length; pIdx++) {
+      const planItem = rawPlansList[pIdx];
+      if (!planItem || typeof planItem !== "object") continue;
 
-        const score = stringSimilarity(cleanExt, cleanDb);
-        if (score > highestRating) {
-          highestRating = score;
-          bestMatch = dbEx;
-        }
+      const fallbackDivision = String.fromCharCode(65 + (pIdx % 26)); // A, B, C, D...
+      const planName = String(
+        planItem.name ||
+        planItem.nome ||
+        planItem.titulo ||
+        (planItem.treino as Record<string, unknown>)?.nome ||
+        `Treino ${fallbackDivision}`
+      );
+
+      const planDivision = String(
+        planItem.division ||
+        planItem.divisao ||
+        planItem.letra ||
+        fallbackDivision
+      ).toUpperCase();
+
+      const planDescription = String(
+        planItem.description ||
+        planItem.descricao ||
+        "Ficha digitalizada via IA"
+      );
+
+      const rawDays = planItem.weekDays || planItem.dias || planItem.diasSemana;
+      const planWeekDays: string[] = Array.isArray(rawDays) ? rawDays.map(String) : [];
+
+      // Localizar exercícios do treino
+      let rawExercises: unknown[] = [];
+      if (Array.isArray(planItem.exercises)) {
+        rawExercises = planItem.exercises;
+      } else if (Array.isArray(planItem.exercicios)) {
+        rawExercises = planItem.exercicios;
+      } else if (Array.isArray(planItem.itens)) {
+        rawExercises = planItem.itens;
+      } else if (Array.isArray(planItem.items)) {
+        rawExercises = planItem.items;
       }
 
-      // Considerar match válido se similaridade >= 35%
-      const matched = highestRating >= 0.35 ? bestMatch : null;
+      const cleanExercises: Array<{
+        name: string;
+        sets: number;
+        reps: string;
+        restSeconds: number;
+        method: string;
+        notes: string;
+      }> = [];
 
-      return {
-        order: idx,
-        extractedName: ext.name,
-        exerciseId: matched ? matched.id : null,
-        name: matched ? matched.name : ext.name,
-        customName: matched ? ext.name : null,
-        muscleGroup: matched ? matched.muscleGroup : "Geral",
-        equipment: matched ? matched.equipment : "Livre",
-        gifUrl: matched ? matched.gifUrl : null,
-        videoUrl: matched ? matched.videoUrl : null,
-        confidence: Number(highestRating.toFixed(2)),
-        sets: ext.sets,
-        reps: ext.reps,
-        restSeconds: ext.restSeconds,
-        method: ext.method,
-        notes: ext.notes,
-      };
-    });
+      for (const rawEx of rawExercises) {
+        if (!rawEx || typeof rawEx !== "object") continue;
+        const it = rawEx as Record<string, unknown>;
 
-    return NextResponse.json({
-      success: true,
-      plan: {
+        const name = String(it.name || it.nome || it.exercicio || it.exercise || "").trim();
+        if (!name) continue;
+
+        const sets = Number(it.sets || it.series || it.set) || 4;
+        const reps = String(it.reps || it.repeticoes || it.rep || "10-12");
+        const restSeconds = Number(it.restSeconds || it.descanso || it.rest || it.tempo_descanso) || 60;
+        const method = String(it.method || it.metodo || it.tecnica || "Normal");
+        const notes = String(it.notes || it.observacoes || it.obs || "");
+
+        cleanExercises.push({ name, sets, reps, restSeconds, method, notes });
+      }
+
+      if (cleanExercises.length === 0) continue;
+
+      // Cruzamento dos exercícios da ficha com a base oficial
+      const mappedExercises = cleanExercises.map((ext, idx) => {
+        const cleanExt = ext.name.toLowerCase().trim();
+
+        let bestMatch: (typeof allDbExercises)[0] | null = null;
+        let highestRating = 0;
+
+        for (const dbEx of allDbExercises) {
+          const cleanDb = dbEx.name.toLowerCase().trim();
+
+          if (cleanExt === cleanDb) {
+            bestMatch = dbEx;
+            highestRating = 1.0;
+            break;
+          }
+
+          const score = stringSimilarity(cleanExt, cleanDb);
+          if (score > highestRating) {
+            highestRating = score;
+            bestMatch = dbEx;
+          }
+        }
+
+        const matched = highestRating >= 0.35 ? bestMatch : null;
+
+        return {
+          order: idx,
+          extractedName: ext.name,
+          exerciseId: matched ? matched.id : null,
+          name: matched ? matched.name : ext.name,
+          customName: matched ? ext.name : null,
+          muscleGroup: matched ? matched.muscleGroup : "Geral",
+          equipment: matched ? matched.equipment : "Livre",
+          gifUrl: matched ? matched.gifUrl : null,
+          videoUrl: matched ? matched.videoUrl : null,
+          confidence: Number(highestRating.toFixed(2)),
+          sets: ext.sets,
+          reps: ext.reps,
+          restSeconds: ext.restSeconds,
+          method: ext.method,
+          notes: ext.notes,
+        };
+      });
+
+      mappedPlans.push({
         name: planName,
         division: planDivision,
         description: planDescription,
         weekDays: planWeekDays,
         exercises: mappedExercises,
-      },
+      });
+    }
+
+    if (mappedPlans.length === 0) {
+      return NextResponse.json(
+        { error: "Nenhum exercício legível foi identificado na ficha. Certifique-se de que a imagem ou texto contenha a lista de exercícios." },
+        { status: 422 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      plans: mappedPlans,
+      plan: mappedPlans[0], // Retrocompatibilidade caso o chamador espere um plano único
     });
   } catch (error: unknown) {
     console.error("Erro interno ao importar treino:", error);

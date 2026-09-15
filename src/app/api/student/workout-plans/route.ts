@@ -181,6 +181,82 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+
+    const createPlanRecord = async (plan: {
+      name: string;
+      division?: string;
+      description?: string;
+      weekDays?: string[] | null;
+      exercises: SaveExercisePayload[];
+    }) => {
+      const exercisesPayload = plan.exercises;
+      const exercisesData = [];
+
+      for (let i = 0; i < exercisesPayload.length; i++) {
+        const ex = exercisesPayload[i];
+        let targetId = ex.exerciseId;
+
+        if (!targetId) {
+          const createdOrFound = await prisma.exercise.upsert({
+            where: { name: ex.name },
+            update: {},
+            create: {
+              name: ex.name,
+              muscleGroup: ex.muscleGroup || "Geral",
+              equipment: ex.equipment || "Livre",
+              description: "Exercício cadastrado via importação de treino",
+              gifUrl: null,
+              videoUrl: null,
+            },
+          });
+          targetId = createdOrFound.id;
+        }
+
+        exercisesData.push({
+          exerciseId: targetId,
+          customName: ex.customName || null,
+          sets: Number(ex.sets) || 4,
+          reps: String(ex.reps || "10-12"),
+          restSeconds: Number(ex.restSeconds) || 60,
+          method: ex.method || "Normal",
+          notes: ex.notes || null,
+          order: i,
+        });
+      }
+
+      return await prisma.workoutPlan.create({
+        data: {
+          studentId: studentProfile.id,
+          name: String(plan.name),
+          division: String(plan.division || "A"),
+          description: plan.description ? String(plan.description) : "Importado com IA",
+          weekDays: Array.isArray(plan.weekDays) ? plan.weekDays : [],
+          exercises: {
+            create: exercisesData,
+          },
+        },
+        include: {
+          exercises: {
+            include: {
+              exercise: true,
+            },
+          },
+        },
+      });
+    };
+
+    // Suporte a lote de fichas (múltiplos treinos: Treino 1, 2, 3...)
+    if (Array.isArray(body.plans) && body.plans.length > 0) {
+      const createdPlans = [];
+      for (const p of body.plans) {
+        if (p.name && Array.isArray(p.exercises) && p.exercises.length > 0) {
+          const created = await createPlanRecord(p);
+          createdPlans.push(created);
+        }
+      }
+      return NextResponse.json({ success: true, count: createdPlans.length, plans: createdPlans });
+    }
+
     const { name, division, description, weekDays, exercises } = body;
 
     if (!name || !Array.isArray(exercises) || exercises.length === 0) {
@@ -190,60 +266,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const exercisesPayload = exercises as SaveExercisePayload[];
-    const exercisesData = [];
-
-    for (let i = 0; i < exercisesPayload.length; i++) {
-      const ex = exercisesPayload[i];
-      let targetId = ex.exerciseId;
-
-      if (!targetId) {
-        const createdOrFound = await prisma.exercise.upsert({
-          where: { name: ex.name },
-          update: {},
-          create: {
-            name: ex.name,
-            muscleGroup: ex.muscleGroup || "Geral",
-            equipment: ex.equipment || "Livre",
-            description: "Exercício cadastrado via importação de treino",
-            gifUrl: null,
-            videoUrl: null,
-          },
-        });
-        targetId = createdOrFound.id;
-      }
-
-      exercisesData.push({
-        exerciseId: targetId,
-        customName: ex.customName || null,
-        sets: Number(ex.sets) || 4,
-        reps: String(ex.reps || "10-12"),
-        restSeconds: Number(ex.restSeconds) || 60,
-        method: ex.method || "Normal",
-        notes: ex.notes || null,
-        order: i,
-      });
-    }
-
-    const newPlan = await prisma.workoutPlan.create({
-      data: {
-        studentId: studentProfile.id,
-        name: String(name),
-        division: String(division || "A"),
-        description: description ? String(description) : "Importado com IA",
-        weekDays: Array.isArray(weekDays) ? weekDays : [],
-        exercises: {
-          create: exercisesData,
-        },
-      },
-      include: {
-        exercises: {
-          include: {
-            exercise: true,
-          },
-        },
-      },
-    });
+    const newPlan = await createPlanRecord({ name, division, description, weekDays, exercises });
 
     return NextResponse.json({ success: true, plan: newPlan });
   } catch (error: unknown) {
