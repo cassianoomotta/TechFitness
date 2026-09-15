@@ -215,7 +215,7 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
     let apiErrors: string[] = [];
 
     // 1. Tentar Gemini primeiro
-    if (geminiKey && geminiKey !== "SUA_CHAVE_AQUI" && geminiKey !== "") {
+    if (geminiKey && geminiKey.trim().length > 10) {
       try {
         console.log("Tentando gerar treino com Gemini...");
         const response = await fetch(
@@ -224,7 +224,7 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key": geminiKey,
+              "x-goog-api-key": geminiKey.trim(),
             },
             body: JSON.stringify({
               contents: [
@@ -257,7 +257,7 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
     }
 
     // 2. Tentar OpenAI se Gemini falhou ou não tem chave
-    if (!workoutPlan && openAiKey && openAiKey !== "SUA_CHAVE_AQUI" && openAiKey !== "") {
+    if (!workoutPlan && openAiKey && openAiKey.trim().length > 10) {
       try {
         console.log("Tentando gerar treino com OpenAI...");
         const response = await fetch("https://api.openai.com/v1/chat/completions", {

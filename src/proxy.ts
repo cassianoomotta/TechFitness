@@ -25,6 +25,8 @@ export default withAuth(
       // Se não for aluno, redireciona para a home de personal trainer
       return NextResponse.redirect(new URL("/trainer/dashboard", req.url));
     }
+
+    return NextResponse.next();
   },
   {
     callbacks: {

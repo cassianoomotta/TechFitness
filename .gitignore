@@ -1,6 +1,47 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# ==========================================
+# 🔒 SEGURANÇA E AUDITORIAS (ESTRITAMENTE LOCAL)
+# ==========================================
+# Relatórios de segurança, pentests, gráficos e scripts de auditoria
+docs/
+docs/security-audit/
+*.pdf
+*relatorio*
+*audit*
+Relatorio_Executivo_TechFitness_B2B.html
+
+# Ambientes virtuais e caches de scripts Python locais
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+
+# ==========================================
+# 🔑 SEGREDOS, CHAVES E CREDENCIAIS
+# ==========================================
+# Variáveis de ambiente (permitir apenas template de exemplo sem dados sensíveis)
+.env*
+!.env.example
+
+# Certificados, chaves privadas e keystores
+*.pem
+*.key
+*.crt
+*.cert
+*.pfx
+*.p12
+*.keystore
+id_rsa*
+id_ed25519*
+client_secret*.json
+credentials.json
+
+# ==========================================
+# 📦 DEPENDÊNCIAS
+# ==========================================
 /node_modules
 /.pnp
 .pnp.*
@@ -10,43 +51,58 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# ==========================================
+# 🏗️ BUILDS E TESTES
+# ==========================================
 /.next/
 /out/
-
-# production
 /build
+/coverage
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
-*.pem
+# Prisma generated & local database dumps
+/src/generated/prisma
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.gz
+*.backup
 
-# debug
+# ==========================================
+# ☁️ CLOUD E DEPLOYS
+# ==========================================
+.vercel
+.aws/
+.azure/
+.gcp/
+
+# ==========================================
+# 📝 LOGS E TEMPORÁRIOS
+# ==========================================
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ==========================================
+# 💻 SISTEMA OPERACIONAL E EDITORES
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.sublime-workspace
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-/src/generated/prisma
-
-# Prisma local database
-*.db
-*.db-journal
-
-# Local agent configs & skills
+# ==========================================
+# 🤖 AGENTES E CONFIGURAÇÕES LOCAIS DE IA
+# ==========================================
 .gemini/
-Relatorio_Executivo_TechFitness_B2B.html
-.vercel
+.agents/

@@ -6,7 +6,6 @@ import { z } from "zod";
 
 const linkStudentSchema = z.object({
   studentId: z.string().min(1, "ID do aluno é obrigatório"),
-  forceReassign: z.boolean().optional().default(false),
 });
 
 export async function POST(request: Request) {
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { studentId, forceReassign } = validation.data;
+    const { studentId } = validation.data;
 
     // Verificar se o perfil do aluno existe
     const student = await prisma.studentProfile.findUnique({
@@ -65,12 +64,16 @@ export async function POST(request: Request) {
     }
 
     // Impedir roubo de aluno: verificar se já tem trainer vinculado
-    if (student.trainerId && student.trainerId !== trainerProfile.id && !forceReassign) {
+    if (student.trainerId) {
+      if (student.trainerId === trainerProfile.id) {
+        return NextResponse.json(
+          { error: "Este aluno já está vinculado ao seu painel." },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
         {
-          error: `Este aluno já está vinculado ao treinador "${student.trainer?.user.name || "Outro"}". Use a opção de reatribuição para transferir.`,
-          currentTrainer: student.trainer?.user.name || null,
-          requiresForceReassign: true,
+          error: "Este aluno já está vinculado a outro personal trainer. A desvinculação deve ser solicitada pelo aluno ou realizada por um administrador.",
         },
         { status: 409 }
       );

@@ -14,9 +14,7 @@ const exerciseUpdateSchema = z.object({
   alternatives: z.array(z.string()).optional(),
 });
 
-// PUT: Atualizar dados de um exercício específico
-// TRAINER/ADMIN: podem editar todos os campos
-// STUDENT: pode editar apenas o nome (renomear)
+// PUT: Atualizar dados de um exercício específico (apenas TRAINER ou ADMIN)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -32,54 +30,16 @@ export async function PUT(
     }
 
     const isTrainerOrAdmin = session.user.role === "TRAINER" || session.user.role === "ADMIN";
-    const isStudent = session.user.role === "STUDENT";
 
-    if (!isTrainerOrAdmin && !isStudent) {
+    if (!isTrainerOrAdmin) {
       return NextResponse.json(
-        { error: "Não autorizado." },
-        { status: 401 }
+        { error: "Acesso negado. Apenas treinadores e administradores podem editar exercícios." },
+        { status: 403 }
       );
     }
 
     const { id } = await params;
     const body = await request.json();
-
-    // Se for aluno, permitir apenas renomear
-    if (isStudent) {
-      const renameSchema = z.object({
-        name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
-      });
-      const renameValidation = renameSchema.safeParse(body);
-      if (!renameValidation.success) {
-        return NextResponse.json(
-          { errors: renameValidation.error.flatten().fieldErrors },
-          { status: 400 }
-        );
-      }
-
-      const existingExercise = await prisma.exercise.findUnique({ where: { id } });
-      if (!existingExercise) {
-        return NextResponse.json({ error: "Exercício não encontrado." }, { status: 404 });
-      }
-
-      if (renameValidation.data.name !== existingExercise.name) {
-        const nameConflict = await prisma.exercise.findUnique({
-          where: { name: renameValidation.data.name },
-        });
-        if (nameConflict) {
-          return NextResponse.json(
-            { error: "Já existe outro exercício com este nome." },
-            { status: 400 }
-          );
-        }
-      }
-
-      const updated = await prisma.exercise.update({
-        where: { id },
-        data: { name: renameValidation.data.name },
-      });
-      return NextResponse.json(updated);
-    }
 
     // Fluxo completo para TRAINER/ADMIN
     const validation = exerciseUpdateSchema.safeParse(body);
@@ -142,10 +102,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user.role !== "TRAINER" && session.user.role !== "ADMIN")) {
+    if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json(
-        { error: "Não autorizado." },
-        { status: 401 }
+        { error: "Acesso negado. Apenas administradores do sistema podem excluir exercícios da biblioteca oficial." },
+        { status: 403 }
       );
     }
 

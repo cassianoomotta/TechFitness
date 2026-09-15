@@ -167,23 +167,31 @@ export default function WorkoutSessionPlayer() {
 
   const getYouTubeEmbedUrl = (url: string | null) => {
     if (!url) return null;
+    const clean = url.trim();
+    if (clean.toLowerCase().startsWith("javascript:") || clean.toLowerCase().startsWith("data:")) {
+      return null;
+    }
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    if (match && match[2].length === 11) {
+    const match = clean.match(regExp);
+    if (match && match[2] && match[2].length === 11 && /^[a-zA-Z0-9_-]{11}$/.test(match[2])) {
       return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
     }
-    return url;
+    return null;
   };
 
   const getMediaUrl = (url: string | null) => {
     if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
-      return url;
+    const clean = url.trim();
+    if (clean.toLowerCase().startsWith("javascript:") || clean.toLowerCase().startsWith("data:")) {
+      return "";
     }
-    if (url.startsWith("videos/") || url.startsWith("images/")) {
-      return `/api/media/${url}`;
+    if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("/")) {
+      return clean;
     }
-    return url;
+    if (clean.startsWith("videos/") || clean.startsWith("images/")) {
+      return `/api/media/${clean}`;
+    }
+    return "";
   };
 
 

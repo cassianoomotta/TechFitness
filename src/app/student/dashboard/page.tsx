@@ -184,23 +184,31 @@ export default function StudentDashboard() {
 
   const getYouTubeEmbedUrl = (url: string | null) => {
     if (!url) return null;
+    const clean = url.trim();
+    if (clean.toLowerCase().startsWith("javascript:") || clean.toLowerCase().startsWith("data:")) {
+      return null;
+    }
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    if (match && match[2].length === 11) {
+    const match = clean.match(regExp);
+    if (match && match[2] && match[2].length === 11 && /^[a-zA-Z0-9_-]{11}$/.test(match[2])) {
       return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
     }
-    return url;
+    return null;
   };
 
   const getMediaUrl = (url: string | null) => {
     if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
-      return url;
+    const clean = url.trim();
+    if (clean.toLowerCase().startsWith("javascript:") || clean.toLowerCase().startsWith("data:")) {
+      return "";
     }
-    if (url.startsWith("videos/") || url.startsWith("images/")) {
-      return `/api/media/${url}`;
+    if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("/")) {
+      return clean;
     }
-    return url;
+    if (clean.startsWith("videos/") || clean.startsWith("images/")) {
+      return `/api/media/${clean}`;
+    }
+    return "";
   };
 
 
@@ -1122,20 +1130,24 @@ export default function StudentDashboard() {
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  sandbox="allow-scripts allow-same-origin allow-presentation"
                   className="w-full h-full"
                 ></iframe>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 p-6 text-center">
                   <Tv className="w-12 h-12 text-zinc-600 mb-3" />
                   <p className="text-sm font-semibold">Não foi possível carregar o vídeo inline.</p>
-                  <a
-                    href={getMediaUrl(activeVideoUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-400 hover:underline mt-2 inline-flex items-center gap-1"
-                  >
-                    Abrir em nova aba externa <ArrowRight className="w-3 h-3" />
-                  </a>
+                  {getMediaUrl(activeVideoUrl) ? (
+                    <a
+                      href={getMediaUrl(activeVideoUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-400 hover:underline mt-2 inline-flex items-center gap-1"
+                    >
+                      Abrir em nova aba externa <ArrowRight className="w-3 h-3" />
+                    </a>
+                  ) : null}
                 </div>
               )}
             </div>

@@ -120,7 +120,7 @@ Gere em português, use formatação Markdown elegante e badges de impacto visua
     const apiKey = process.env.GEMINI_API_KEY;
     let analysisText = "";
 
-    if (apiKey && apiKey !== "SUA_CHAVE_AQUI" && apiKey !== "") {
+    if (apiKey && apiKey.trim().length > 10) {
       try {
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`,
@@ -128,7 +128,7 @@ Gere em português, use formatação Markdown elegante e badges de impacto visua
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key": apiKey,
+              "x-goog-api-key": apiKey.trim(),
             },
             body: JSON.stringify({
               contents: [
@@ -158,7 +158,7 @@ Gere em português, use formatação Markdown elegante e badges de impacto visua
 
     // Fallback para OpenAI se Gemini falhou ou não tem chave
     const openAiKey = process.env.OPENAI_API_KEY;
-    if (!analysisText && openAiKey && openAiKey !== "SUA_CHAVE_AQUI" && openAiKey !== "") {
+    if (!analysisText && openAiKey && openAiKey.trim().length > 10) {
       try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",

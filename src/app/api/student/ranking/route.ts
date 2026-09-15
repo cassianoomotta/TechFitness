@@ -5,6 +5,14 @@ import prisma from "@/lib/prisma";
 
 import { calculateXp, getLevelTitle } from "@/lib/gamification";
 
+function maskEmail(email: string): string {
+  const parts = email.split("@");
+  if (parts.length !== 2) return email;
+  const [name, domain] = parts;
+  const maskedName = name.length <= 2 ? name[0] + "***" : name.slice(0, 2) + "***" + name.slice(-1);
+  return `${maskedName}@${domain}`;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -26,6 +34,16 @@ export async function GET() {
         { error: "Perfil não encontrado." },
         { status: 404 }
       );
+    }
+
+    // Se o aluno ainda não possui treinador vinculado, não exibir ranking compartilhado
+    if (!currentUserProfile.trainerId) {
+      return NextResponse.json({
+        top5: [],
+        userPosition: null,
+        totalParticipants: 0,
+        message: "O ranking de XP fica disponível assim que você for vinculado ao seu treinador.",
+      });
     }
 
     // Buscar perfis de alunos do mesmo treinador apenas
@@ -68,7 +86,7 @@ export async function GET() {
       return {
         id: student.id,
         name: student.user.name || student.user.email.split("@")[0],
-        email: student.user.email,
+        email: maskEmail(student.user.email),
         image: student.user.image,
         totalXp,
         level,

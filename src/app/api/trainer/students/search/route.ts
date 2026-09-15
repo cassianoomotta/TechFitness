@@ -3,6 +3,14 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+function maskEmail(email: string): string {
+  const parts = email.split("@");
+  if (parts.length !== 2) return email;
+  const [name, domain] = parts;
+  const maskedName = name.length <= 2 ? name[0] + "***" : name.slice(0, 2) + "***" + name.slice(-1);
+  return `${maskedName}@${domain}`;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,9 +23,9 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q") || "";
+    const query = (searchParams.get("q") || "").trim();
 
-    if (query.trim().length < 2) {
+    if (query.length < 2) {
       return NextResponse.json([]);
     }
 
@@ -33,20 +41,29 @@ export async function GET(request: Request) {
       );
     }
 
-    // Buscar alunos existentes que batem com a busca e não estão vinculados a este treinador
+    const isEmailSearch = query.includes("@");
+
+    // Blindagem de privacidade: busca aberta exibe apenas alunos disponíveis (sem treinador)
+    // Se for pesquisa por e-mail exato, busca direta permitida
+    const whereClause = isEmailSearch
+      ? {
+          user: {
+            email: { equals: query.toLowerCase(), mode: "insensitive" as const },
+          },
+          NOT: { trainerId: trainerProfile.id },
+        }
+      : {
+          trainerId: null, // Apenas alunos que ainda não possuem personal vinculado
+          user: {
+            OR: [
+              { name: { contains: query, mode: "insensitive" as const } },
+              { email: { contains: query, mode: "insensitive" as const } },
+            ],
+          },
+        };
+
     const students = await prisma.studentProfile.findMany({
-      where: {
-        user: {
-          OR: [
-            { name: { contains: query } },
-            { email: { contains: query } },
-          ],
-        },
-        OR: [
-          { trainerId: null },
-          { NOT: { trainerId: trainerProfile.id } },
-        ],
-      },
+      where: whereClause,
       include: {
         user: {
           select: {
@@ -54,15 +71,6 @@ export async function GET(request: Request) {
             name: true,
             email: true,
             image: true,
-          },
-        },
-        trainer: {
-          include: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
           },
         },
       },
@@ -73,9 +81,9 @@ export async function GET(request: Request) {
       id: student.id,
       userId: student.user.id,
       name: student.user.name,
-      email: student.user.email,
+      email: maskEmail(student.user.email),
       image: student.user.image,
-      currentTrainer: student.trainer?.user.name || null,
+      alreadyHasTrainer: student.trainerId !== null,
     }));
 
     return NextResponse.json(formattedStudents);
