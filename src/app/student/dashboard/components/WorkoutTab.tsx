@@ -45,7 +45,7 @@ export default function WorkoutTab(props: any) {
           </div>
           <p className="text-base font-bold text-slate-800">Nenhum treino atribuído ainda</p>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Você pode aguardar o seu treinador prescrever uma ficha ou importar a sua ficha atual por foto ou PDF!
+            Você pode aguardar o seu treinador prescrever uma ficha ou importar a sua ficha atual por foto, PDF ou mensagem de WhatsApp!
           </p>
           <button
             type="button"
@@ -53,7 +53,7 @@ export default function WorkoutTab(props: any) {
             className="mt-6 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-lg hover:scale-105 transition-all inline-flex items-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
-            Importar Minha Ficha com IA (Foto / PDF)
+            Importar Minha Ficha com IA
           </button>
         </div>
       ) : (

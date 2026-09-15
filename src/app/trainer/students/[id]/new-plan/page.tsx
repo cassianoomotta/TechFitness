@@ -21,7 +21,9 @@ import {
   ArrowDown,
   Pencil,
   Check,
+  FileText,
 } from "lucide-react";
+import ImportWorkoutModal, { ParsedPlan } from "@/app/student/dashboard/components/ImportWorkoutModal";
 
 interface Exercise {
   id: string;
@@ -97,8 +99,9 @@ export default function NewPlanPage() {
   const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
   const [animatingDirection, setAnimatingDirection] = useState<"up" | "down" | null>(null);
 
-  // Estados da IA
+  // Estados de IA e Importação
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [aiGoal, setAiGoal] = useState("");
   const [aiNotes, setAiNotes] = useState("");
   const [generatingAi, setGeneratingAi] = useState(false);
@@ -413,10 +416,46 @@ export default function NewPlanPage() {
     }
   };
 
+  const handleImportedPlanForTrainer = (plan: ParsedPlan) => {
+    setWorkoutName(plan.name);
+    setDivision(plan.division || "A");
+    setDescription(plan.description || "");
+    if (plan.weekDays && plan.weekDays.length > 0) {
+      setWeekDays(plan.weekDays);
+    }
+
+    const mapped: WorkoutExerciseInput[] = plan.exercises.map((ex) => {
+      let exId = ex.exerciseId;
+      if (!exId && library.length > 0) {
+        const found = library.find((lib) => lib.name.toLowerCase() === ex.name.toLowerCase());
+        if (found) exId = found.id;
+        else exId = library[0].id;
+      }
+
+      return {
+        exerciseId: exId || "",
+        name: ex.name,
+        customName: ex.customName || null,
+        muscleGroup: ex.muscleGroup || "Geral",
+        equipment: ex.equipment || "Livre",
+        sets: ex.sets || 4,
+        reps: String(ex.reps || "10-12"),
+        restSeconds: ex.restSeconds || 60,
+        method: ex.method || "Normal",
+        recommendedRpe: null,
+        recommendedWeight: null,
+        notes: ex.notes || "",
+      };
+    });
+
+    setSelectedExercises(mapped);
+    setShowImportModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
       {/* Header */}
-      <header className="border-b border-[#E2E8F0] bg-white/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-[#E2E8F0] bg-white/85 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <BrandLogo size={36} />
@@ -448,7 +487,7 @@ export default function NewPlanPage() {
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-550/5 text-[#475569] hover:text-red-600 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-50 text-[#475569] hover:text-red-600 transition-all cursor-pointer"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -546,7 +585,7 @@ export default function NewPlanPage() {
                       <button
                         type="button"
                         onClick={() => handleAddExercise(exercise)}
-                        className="p-1.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB] hover:bg-[#00C2FF]/10 hover:text-[#2563EB] text-[#94A3B8] transition-all cursor-pointer flex-shrink-0"
+                        className="p-1.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB] hover:bg-[#2563EB]/10 hover:text-[#2563EB] text-[#94A3B8] transition-all cursor-pointer flex-shrink-0"
                         title="Adicionar à ficha"
                       >
                         <Plus className="w-4 h-4" />
@@ -621,6 +660,7 @@ export default function NewPlanPage() {
               )}
             </div>
           </section>
+
           {/* Coluna Direita: Construtor da Ficha */}
           <section className="w-full lg:w-7/12">
             <form onSubmit={handleSavePlan} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm space-y-6">
@@ -645,6 +685,15 @@ export default function NewPlanPage() {
                       Cancelar Edição
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(true)}
+                    className="px-3 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                    title="Importar ficha existente via foto, PDF ou mensagem de WhatsApp com IA"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                    Importar Ficha (IA)
+                  </button>
                   <button
                     type="button"
                     onClick={() => setShowAiModal(true)}
@@ -1028,6 +1077,14 @@ export default function NewPlanPage() {
           </div>
         </div>
       )}
+
+      {/* Modal Importar Treino com IA para o Treinador */}
+      <ImportWorkoutModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onPlanSelectedForTrainer={handleImportedPlanForTrainer}
+        targetStudentId={studentId}
+      />
     </div>
   );
 }

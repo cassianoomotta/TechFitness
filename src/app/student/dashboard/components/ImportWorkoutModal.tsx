@@ -11,14 +11,12 @@ import {
   X,
   Sparkles,
   Trash2,
-  Plus,
-  Play,
-  ArrowRight,
   Dumbbell,
   Check,
+  MessageSquare,
 } from "lucide-react";
 
-interface ParsedExercise {
+export interface ParsedExercise {
   order: number;
   extractedName: string;
   exerciseId: string | null;
@@ -36,7 +34,7 @@ interface ParsedExercise {
   notes: string;
 }
 
-interface ParsedPlan {
+export interface ParsedPlan {
   name: string;
   division: string;
   description: string;
@@ -47,14 +45,20 @@ interface ParsedPlan {
 interface ImportWorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPlanImported: () => void;
+  onPlanImported?: () => void;
+  onPlanSelectedForTrainer?: (plan: ParsedPlan) => void;
+  targetStudentId?: string;
 }
 
 export default function ImportWorkoutModal({
   isOpen,
   onClose,
   onPlanImported,
+  onPlanSelectedForTrainer,
+  targetStudentId,
 }: ImportWorkoutModalProps) {
+  const [inputMode, setInputMode] = useState<"file" | "text">("file");
+  const [pastedText, setPastedText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,27 +92,37 @@ export default function ImportWorkoutModal({
     }
   };
 
-  const handleProcessFile = async () => {
-    if (!file) {
-      setError("Selecione um arquivo de foto ou PDF primeiro.");
-      return;
+  const handleProcess = async () => {
+    setError(null);
+
+    const formData = new FormData();
+
+    if (inputMode === "file") {
+      if (!file) {
+        setError("Selecione um arquivo de foto ou PDF primeiro.");
+        return;
+      }
+      formData.append("file", file);
+      setLoadingStep("Lendo arquivo com Inteligência Artificial...");
+    } else {
+      if (!pastedText.trim()) {
+        setError("Cole o texto do seu treino antes de continuar.");
+        return;
+      }
+      formData.append("text", pastedText.trim());
+      setLoadingStep("Estruturando exercícios e séries...");
     }
 
     setLoading(true);
-    setError(null);
-    setLoadingStep("Lendo arquivo com IA do Gemini...");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
       setTimeout(() => {
         setLoadingStep("Identificando exercícios, séries e repetições...");
-      }, 1500);
+      }, 1000);
 
       setTimeout(() => {
         setLoadingStep("Cruzando com a biblioteca de 1.470 animações...");
-      }, 3000);
+      }, 2000);
 
       const response = await fetch("/api/student/workout-plans/import-file", {
         method: "POST",
@@ -118,13 +132,13 @@ export default function ImportWorkoutModal({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Falha ao processar arquivo com a IA.");
+        throw new Error(data.error || "Falha ao processar treino com a IA.");
       }
 
       if (data.plan) {
         setParsedPlan(data.plan);
       } else {
-        throw new Error("Não foi possível extrair os exercícios deste arquivo.");
+        throw new Error("Não foi possível extrair os exercícios fornecidos.");
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido ao processar.";
@@ -140,11 +154,22 @@ export default function ImportWorkoutModal({
       return;
     }
 
+    // Se for o Treinador preenchendo o formulário de novo treino
+    if (onPlanSelectedForTrainer) {
+      onPlanSelectedForTrainer(parsedPlan);
+      handleResetAndClose();
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/student/workout-plans", {
+      const endpoint = targetStudentId
+        ? `/api/trainer/students/${targetStudentId}/workout-plans`
+        : "/api/student/workout-plans";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +202,7 @@ export default function ImportWorkoutModal({
 
       setSuccess(true);
       setTimeout(() => {
-        onPlanImported();
+        if (onPlanImported) onPlanImported();
         handleResetAndClose();
       }, 1200);
     } catch (err: unknown) {
@@ -190,6 +215,7 @@ export default function ImportWorkoutModal({
   const handleResetAndClose = () => {
     setFile(null);
     setPreviewUrl(null);
+    setPastedText("");
     setLoading(false);
     setError(null);
     setParsedPlan(null);
@@ -234,14 +260,11 @@ export default function ImportWorkoutModal({
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">
                 Importar Treino com IA
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                  Gemini Flash
-                </span>
               </h3>
               <p className="text-xs text-slate-500">
-                Tire foto da ficha da academia ou envie um PDF
+                Tire foto da ficha, envie um PDF ou cole o texto do WhatsApp
               </p>
             </div>
           </div>
@@ -249,7 +272,7 @@ export default function ImportWorkoutModal({
             type="button"
             onClick={handleResetAndClose}
             disabled={loading || saving}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -275,98 +298,147 @@ export default function ImportWorkoutModal({
               </p>
             </div>
           ) : !parsedPlan ? (
-            /* ETAPA 1: Upload e Seleção de Arquivo */
+            /* ETAPA 1: Seleção entre Arquivo/Foto OU Texto */
             <div className="space-y-4">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
-                  file
-                    ? "border-blue-500 bg-blue-50/40"
-                    : "border-slate-200 hover:border-blue-400 hover:bg-slate-50/60"
-                }`}
-              >
-                {previewUrl ? (
-                  <div className="relative w-full max-h-48 rounded-2xl overflow-hidden mb-3 border border-slate-200 shadow-sm">
-                    <img
-                      src={previewUrl}
-                      alt="Prévia da ficha"
-                      className="w-full h-full object-contain bg-slate-950"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 shadow-inner">
-                    <UploadCloud className="w-7 h-7" />
-                  </div>
-                )}
-
-                {file ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-800 truncate max-w-xs sm:max-w-md">
-                      {file.name}
-                    </p>
-                    <p className="text-[11px] text-blue-600 font-semibold">
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB • Clique para trocar
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-800">
-                      Toque para escolher uma foto ou arquivo PDF
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Suporta fotos de fichas impressas, capturas de tela ou documentos PDF
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Botões de Ação Rápida */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Seletor de Modo */}
+              <div className="flex rounded-2xl bg-slate-100 p-1">
                 <button
                   type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm"
+                  onClick={() => setInputMode("file")}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    inputMode === "file"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
                 >
-                  <Camera className="w-4 h-4 text-blue-600" />
-                  Tirar Foto Agora
+                  <Camera className="w-4 h-4" />
+                  Foto ou PDF
                 </button>
-
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm"
+                  onClick={() => setInputMode("text")}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    inputMode === "text"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
                 >
-                  <FileText className="w-4 h-4 text-indigo-600" />
-                  Procurar Arquivo
+                  <MessageSquare className="w-4 h-4" />
+                  Colar Texto / WhatsApp
                 </button>
               </div>
 
-              {/* Inputs Ocultos */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) handleFileSelect(e.target.files[0]);
-                }}
-              />
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) handleFileSelect(e.target.files[0]);
-                }}
-              />
+              {inputMode === "file" ? (
+                /* Modo Arquivo */
+                <div className="space-y-3">
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
+                      file
+                        ? "border-blue-500 bg-blue-50/40"
+                        : "border-slate-200 hover:border-blue-400 hover:bg-slate-50/60"
+                    }`}
+                  >
+                    {previewUrl ? (
+                      <div className="relative w-full max-h-48 rounded-2xl overflow-hidden mb-3 border border-slate-200 shadow-sm">
+                        <img
+                          src={previewUrl}
+                          alt="Prévia da ficha"
+                          className="w-full h-full object-contain bg-slate-950"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 shadow-inner">
+                        <UploadCloud className="w-7 h-7" />
+                      </div>
+                    )}
 
-              {/* Barra de Ação de Envio */}
-              {file && (
+                    {file ? (
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-slate-800 truncate max-w-xs sm:max-w-md">
+                          {file.name}
+                        </p>
+                        <p className="text-[11px] text-blue-600 font-semibold">
+                          {(file.size / (1024 * 1024)).toFixed(2)} MB • Clique para trocar
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-slate-800">
+                          Toque para escolher uma foto ou arquivo PDF
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Fotos de fichas impressas, capturas de tela ou arquivos PDF
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                    >
+                      <Camera className="w-4 h-4 text-blue-600" />
+                      Tirar Foto Agora
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 text-indigo-600" />
+                      Procurar Arquivo
+                    </button>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleFileSelect(e.target.files[0]);
+                    }}
+                  />
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleFileSelect(e.target.files[0]);
+                    }}
+                  />
+                </div>
+              ) : (
+                /* Modo Texto / WhatsApp */
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+                    Cole a mensagem ou lista de exercícios:
+                  </label>
+                  <textarea
+                    value={pastedText}
+                    onChange={(e) => setPastedText(e.target.value)}
+                    rows={8}
+                    placeholder={`Exemplo de mensagem:\nTreino A - Peito e Tríceps\n1. Supino reto com barra 4x10\n2. Supino inclinado halteres 3x12\n3. Peck deck (voador) 4x15\n4. Tríceps testa 4x10\n5. Tríceps corda 3x12`}
+                    className="w-full rounded-2xl border border-slate-200 p-4 text-xs font-mono text-slate-800 focus:border-blue-500 focus:outline-none bg-slate-50/50 resize-none transition-colors"
+                  />
+                  <p className="text-[11px] text-slate-400">
+                    A IA identifica automaticamente as séries, repetições e descansa para você.
+                  </p>
+                </div>
+              )}
+
+              {/* Botão de Processar */}
+              {((inputMode === "file" && file) || (inputMode === "text" && pastedText.trim())) && (
                 <button
                   type="button"
-                  onClick={handleProcessFile}
+                  onClick={handleProcess}
                   disabled={loading}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
@@ -378,7 +450,7 @@ export default function ImportWorkoutModal({
                   ) : (
                     <>
                       <Sparkles className="w-5 h-5" />
-                      <span>Escanear Ficha com IA</span>
+                      <span>Identificar Exercícios com IA</span>
                     </>
                   )}
                 </button>
@@ -457,7 +529,7 @@ export default function ImportWorkoutModal({
                         <button
                           type="button"
                           onClick={() => handleRemoveExercise(idx)}
-                          className="text-slate-300 hover:text-rose-500 p-1 transition-colors"
+                          className="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer"
                           title="Remover exercício"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -510,7 +582,7 @@ export default function ImportWorkoutModal({
                   type="button"
                   onClick={() => setParsedPlan(null)}
                   disabled={saving}
-                  className="py-3.5 px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-all"
+                  className="py-3.5 px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   Voltar
                 </button>
@@ -529,7 +601,7 @@ export default function ImportWorkoutModal({
                   ) : (
                     <>
                       <Check className="w-5 h-5" />
-                      <span>Confirmar e Salvar Ficha</span>
+                      <span>{onPlanSelectedForTrainer ? "Preencher no Treino" : "Confirmar e Salvar Ficha"}</span>
                     </>
                   )}
                 </button>

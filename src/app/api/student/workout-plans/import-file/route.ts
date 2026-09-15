@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== "STUDENT") {
+    if (!session || (session.user.role !== "STUDENT" && session.user.role !== "TRAINER")) {
       return NextResponse.json(
-        { error: "Acesso restrito. Faça login como aluno para importar treinos." },
+        { error: "Acesso restrito. Faça login para importar treinos." },
         { status: 401 }
       );
     }
@@ -35,41 +35,29 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Chave da API do Gemini não configurada no servidor." },
+        { error: "Serviço de IA não configurado no servidor. Contate o suporte." },
         { status: 500 }
       );
     }
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const rawText = formData.get("text") as string | null;
 
-    if (!file) {
+    if (!file && (!rawText || !rawText.trim())) {
       return NextResponse.json(
-        { error: "Nenhum arquivo enviado. Envie uma foto ou PDF do seu treino." },
+        { error: "Nenhum arquivo ou texto enviado. Envie uma foto/PDF ou cole a mensagem do seu treino." },
         { status: 400 }
       );
     }
 
-    // Validar tamanho (máximo 12MB)
-    if (file.size > 12 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "Arquivo muito grande. O limite máximo é de 12MB." },
-        { status: 400 }
-      );
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64Data = buffer.toString("base64");
-    const mimeType = file.type || "image/jpeg";
-
-    const promptText = `Você é um treinador de musculação de elite e especialista em leitura e digitalização de fichas de academia.
-Analise a foto ou documento PDF fornecido e extraia com precisão todos os treinos e exercícios presentes.
+    const promptText = `Você é um treinador de musculação de elite e especialista em leitura e estruturação de fichas de academia.
+Analise o conteúdo fornecido (seja uma imagem, PDF ou texto digitado/colado) e extraia com precisão todos os treinos e exercícios presentes.
 
 Orientações cruciais:
 1. "name": Nome do treino/ficha (ex: "Treino A - Peito e Tríceps", "Treino Inferiores", etc.). Se não houver explícito, deduza pelos grupos musculares.
 2. "division": A letra ou identificador da divisão (ex: "A", "B", "C", "D", "Superior", "Inferior").
-3. "weekDays": Dias sugeridos (ex: ["Seg", "Qua", "Sex"]) caso apareça na ficha. Se não constar, retorne array vazio [].
+3. "weekDays": Dias sugeridos (ex: ["Seg", "Qua", "Sex"]) caso constem. Se não constar, retorne array vazio [].
 4. Para cada exercício:
    - "name": Nome completo em português claro (resolva abreviações de instrutor, ex: "Sup. Reto" -> "Supino reto com barra", "Pux. Alta" -> "Pulley frontal com triângulo", "Elev. Lat." -> "Elevação lateral com halteres", "Leg 45" -> "Leg press 45", "Extensora" -> "Cadeira extensora", "Flexora" -> "Cadeira flexora").
    - "sets": Número inteiro de séries (padrão 4 se omitido).
@@ -96,7 +84,35 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
   ]
 }`;
 
-    // Chamar Gemini 3.6 Flash com inlineData
+    const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+
+    if (rawText && rawText.trim()) {
+      parts.push({
+        text: `${promptText}\n\nTEXTO DO TREINO PARA EXTRAÇÃO:\n"""\n${rawText.trim()}\n"""`,
+      });
+    } else if (file) {
+      if (file.size > 12 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: "Arquivo muito grande. O limite máximo é de 12MB." },
+          { status: 400 }
+        );
+      }
+
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const base64Data = buffer.toString("base64");
+      const mimeType = file.type || "image/jpeg";
+
+      parts.push({ text: promptText });
+      parts.push({
+        inlineData: {
+          mimeType,
+          data: base64Data,
+        },
+      });
+    }
+
+    // Chamar Gemini 3.6 Flash
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     const geminiResponse = await fetch(geminiUrl, {
@@ -105,15 +121,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       body: JSON.stringify({
         contents: [
           {
-            parts: [
-              { text: promptText },
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data,
-                },
-              },
-            ],
+            parts,
           },
         ],
         generationConfig: {
