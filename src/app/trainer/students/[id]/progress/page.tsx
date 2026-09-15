@@ -18,13 +18,17 @@ import {
   Clock,
   Cpu,
   Info,
+  Camera,
+  X,
 } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
 
 interface SessionLog {
   id: string;
   date: string;
   durationMinutes: number;
   satisfaction: number;
+  photoUrl?: string | null;
 }
 
 interface ExerciseHistoryPoint {
@@ -57,10 +61,12 @@ export default function StudentProgressPage() {
 
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
+  const [studentImage, setStudentImage] = useState<string | null>(null);
   const [totalSessions, setTotalSessions] = useState(0);
   const [recentSessions, setRecentSessions] = useState<SessionLog[]>([]);
   const [progressData, setProgressData] = useState<ExerciseProgress[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; date: string } | null>(null);
   
   const [loading, setLoading] = useState(true);
 
@@ -80,6 +86,7 @@ export default function StudentProgressPage() {
         const data = await response.json();
         setStudentName(data.studentName);
         setStudentEmail(data.studentEmail);
+        setStudentImage(data.studentImage || null);
         setTotalSessions(data.totalSessionsCount);
         setRecentSessions(data.recentSessions);
         setProgressData(data.exerciseProgress);
@@ -212,6 +219,14 @@ export default function StudentProgressPage() {
             >
               <ChevronLeft className="w-4 h-4" />
             </Link>
+            {!loading && (
+              <UserAvatar
+                name={studentName}
+                image={studentImage}
+                size="md"
+                className="border border-blue-100 shadow-sm"
+              />
+            )}
             <div>
               <h2 className="font-display text-xl font-bold text-[#0F172A]">
                 {loading ? "Carregando evolução..." : `Evolução de Cargas: ${studentName}`}
@@ -356,7 +371,18 @@ export default function StudentProgressPage() {
                             {new Date(session.date).toLocaleDateString("pt-BR")}
                           </span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
+                          {session.photoUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedPhoto({ url: session.photoUrl!, date: new Date(session.date).toLocaleDateString("pt-BR") })}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-semibold text-[10px] transition-colors cursor-pointer"
+                              title="Ver foto de comprovação do treino"
+                            >
+                              <Camera className="w-3 h-3 text-emerald-600" />
+                              <span>Foto</span>
+                            </button>
+                          )}
                           <span className="font-mono text-[10px] text-[#94A3B8] bg-zinc-200/50 px-1.5 py-0.5 rounded">
                             {session.durationMinutes} min
                           </span>
@@ -420,6 +446,52 @@ export default function StudentProgressPage() {
 
           </div>
         </main>
+      )}
+
+      {/* Modal Zoom Foto Comprovante */}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div
+            className="bg-white rounded-3xl overflow-hidden max-w-lg w-full shadow-2xl border border-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#0F172A]">
+                    Comprovante de Treino
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Sessão concluída em {selectedPhoto.date}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPhoto(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 bg-slate-950 flex items-center justify-center max-h-[70vh] overflow-hidden">
+              <img
+                src={selectedPhoto.url}
+                alt="Comprovante de Treino"
+                className="max-h-[65vh] w-auto object-contain rounded-xl shadow-lg"
+              />
+            </div>
+            <div className="p-3 bg-slate-50 text-center text-xs text-slate-600 font-semibold border-t border-slate-100">
+              Atleta: {studentName} • Check-in verificado com sucesso 🏆
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -201,3 +201,72 @@ export function getAchievementStatusHint(achievement: AchievementWithProgress): 
       return `Falta(m) ${remaining} para atingir a meta de ${achievement.target}.`;
   }
 }
+
+// ── Volume de Carga & Tonelagem (Dopamina do Treino) ──
+
+export interface TonnageComparison {
+  tonnageKg: number;
+  label: string;
+  icon: string;
+  comparisonText: string;
+}
+
+export function calculateSessionVolume(
+  logs: { weightUsed: number; repsPerformed: number }[]
+): number {
+  return logs.reduce((acc, log) => {
+    const w = Number(log.weightUsed) || 0;
+    const r = Number(log.repsPerformed) || 0;
+    return acc + w * r;
+  }, 0);
+}
+
+export function getTonnageComparison(tonnageKg: number): TonnageComparison {
+  const rounded = Math.round(tonnageKg);
+  if (rounded < 1000) {
+    return {
+      tonnageKg: rounded,
+      label: "Moto Esportiva",
+      icon: "🏍️",
+      comparisonText: "Você levantou o peso de uma moto esportiva inteira hoje!",
+    };
+  }
+  if (rounded < 2500) {
+    return {
+      tonnageKg: rounded,
+      label: "Carro Popular",
+      icon: "🚗",
+      comparisonText: "Você levantou o peso de um carro popular inteiro hoje!",
+    };
+  }
+  if (rounded < 5000) {
+    return {
+      tonnageKg: rounded,
+      label: "Caminhonete 4x4",
+      icon: "🛻",
+      comparisonText: "Você levantou o peso de uma caminhonete 4x4 bruta hoje!",
+    };
+  }
+  if (rounded < 10000) {
+    return {
+      tonnageKg: rounded,
+      label: "Elefante Africano",
+      icon: "🐘",
+      comparisonText: "Impressionante! Você ergueu o peso de um elefante africano hoje!",
+    };
+  }
+  if (rounded < 20000) {
+    return {
+      tonnageKg: rounded,
+      label: "Caminhão de Carga",
+      icon: "🚛",
+      comparisonText: "Força de titã! Você movimentou o peso de um caminhão carregado!",
+    };
+  }
+  return {
+    tonnageKg: rounded,
+    label: "Avião Comercial",
+    icon: "✈️",
+    comparisonText: "Nível lendário! Você movimentou a tonelagem de um avião comercial!",
+  };
+}

@@ -11,6 +11,8 @@ import { getAchievementStatusHint } from "@/lib/gamification";
 
 import React, { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
+import UserAvatar from "@/components/UserAvatar";
+import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import Link from "next/link";
 import {
   Dumbbell,
@@ -38,8 +40,8 @@ import {
   Scale,
   Zap,
   Swords,
-  Lock,
   Crown,
+  Camera,
 } from "lucide-react";
 
 interface Achievement {
@@ -160,7 +162,16 @@ function sortPlansByWeekDays(plansList: WorkoutPlan[]) {
 }
 
 export default function StudentDashboard() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
+
+  const [isProfilePhotoModalOpen, setIsProfilePhotoModalOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session?.user?.image) {
+      setProfilePhoto(session.user.image);
+    }
+  }, [session?.user?.image]);
   
   const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [trainer, setTrainer] = useState<TrainerInfo | null>(null);
@@ -612,6 +623,23 @@ export default function StudentDashboard() {
           <BrandLogo size={36} />
 
           <div className="flex items-center gap-3">
+            {/* User Avatar & Profile Click */}
+            <button
+              type="button"
+              onClick={() => setIsProfilePhotoModalOpen(true)}
+              className="relative group p-0.5 rounded-full hover:ring-2 hover:ring-[#2563EB]/40 transition-all cursor-pointer"
+              title="Alterar foto de perfil"
+            >
+              <UserAvatar
+                name={session?.user?.name}
+                image={profilePhoto || session?.user?.image}
+                size="md"
+              />
+              <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white">
+                <Camera className="w-2.5 h-2.5" />
+              </span>
+            </button>
+
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-[#0F172A]">
                 {session?.user?.name || "Aluno"}
@@ -1233,6 +1261,20 @@ export default function StudentDashboard() {
             console.error("Erro ao atualizar fichas após importação:", e);
           } finally {
             setLoading(false);
+          }
+        }}
+      />
+
+      {/* Modal de Edição de Foto de Perfil */}
+      <EditProfilePhotoModal
+        isOpen={isProfilePhotoModalOpen}
+        onClose={() => setIsProfilePhotoModalOpen(false)}
+        currentImage={profilePhoto || session?.user?.image}
+        userName={session?.user?.name}
+        onPhotoUpdated={(newPhoto) => {
+          setProfilePhoto(newPhoto);
+          if (update) {
+            update();
           }
         }}
       />

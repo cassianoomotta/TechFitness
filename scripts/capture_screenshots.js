@@ -32,7 +32,7 @@ async function main() {
   // 3. Dashboard do Treinador
   console.log("3. Efetuando login como Treinador e capturando Dashboard...");
   await page.goto("http://localhost:3000/login");
-  await page.fill('input[type="email"]', "trainer@test.com");
+  await page.fill('input[type="email"]', "professor@gmail.com");
   await page.fill('input[type="password"]', "123456");
   await page.click('button[type="submit"]');
   await page.waitForURL("**/trainer/dashboard", { timeout: 15000 }).catch(() => {});
@@ -43,7 +43,7 @@ async function main() {
   console.log("4. Efetuando login como Aluno e capturando Dashboard/Gamificação...");
   await context.clearCookies();
   await page.goto("http://localhost:3000/login");
-  await page.fill('input[type="email"]', "student@test.com");
+  await page.fill('input[type="email"]', "abcde@gmail.com");
   await page.fill('input[type="password"]', "123456");
   await page.click('button[type="submit"]');
   await page.waitForURL("**/student/dashboard", { timeout: 15000 }).catch(() => {});

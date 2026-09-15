@@ -24,7 +24,10 @@ import {
   Copy,
   Check,
   ChevronRight,
+  Camera,
 } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
+import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 
 interface Student {
   id: string;
@@ -40,6 +43,15 @@ interface Student {
 export default function TrainerDashboard() {
   const { data: session } = useSession();
   
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.image) {
+      setProfileImage(session.user.image);
+    }
+  }, [session]);
+
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -364,6 +376,30 @@ export default function TrainerDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => setIsPhotoModalOpen(true)}
+              title="Clique para alterar foto de perfil"
+            >
+              <UserAvatar
+                name={session?.user?.name || "Professor"}
+                image={profileImage || session?.user?.image}
+                size="md"
+                className="border-2 border-blue-200 shadow-sm transition-transform group-hover:scale-105"
+              />
+              <button
+                type="button"
+                className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-colors"
+                title="Alterar foto de perfil"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPhotoModalOpen(true);
+                }}
+              >
+                <Camera className="w-2.5 h-2.5" />
+              </button>
+            </div>
+
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-[#0F172A]">
                 {session?.user?.name || "Professor"}
@@ -568,9 +604,12 @@ export default function TrainerDashboard() {
                   <div>
                     {/* Aluno Header */}
                     <div className="flex items-center gap-4 mb-5">
-                      <div className="w-12 h-12 rounded-xl bg-[#00C2FF]/10 border border-cyan-900/50 flex items-center justify-center font-display font-extrabold text-[#2563EB] tracking-wider">
-                        {initials}
-                      </div>
+                      <UserAvatar
+                        name={student.name}
+                        image={student.image}
+                        size="lg"
+                        className="rounded-xl border border-blue-100 shadow-sm"
+                      />
                       <div className="overflow-hidden">
                         <h4 className="text-base font-semibold text-[#0F172A] truncate leading-tight group-hover:text-[#2563EB] transition-colors">
                           {student.name}
@@ -1050,6 +1089,15 @@ export default function TrainerDashboard() {
           </div>
         </div>
       )}
+
+      {/* Modal para Alterar Foto de Perfil do Treinador */}
+      <EditProfilePhotoModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        currentImage={profileImage || session?.user?.image}
+        userName={session?.user?.name || "Professor"}
+        onPhotoUpdated={(newUrl) => setProfileImage(newUrl)}
+      />
     </div>
   );
 }

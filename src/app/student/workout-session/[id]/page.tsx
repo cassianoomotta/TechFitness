@@ -22,7 +22,10 @@ import {
   Award,
   Sparkles,
   Crown,
+  Camera,
+  Upload,
 } from "lucide-react";
+import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 
 
 interface Exercise {
@@ -222,14 +225,66 @@ export default function WorkoutSessionPlayer() {
     }
   };
 
-  // Modal de Finalização
+  // Modal de Finalização & Comprovação de Foto
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
+  const [workoutPhoto, setWorkoutPhoto] = useState<string | null>(null);
   const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
   const [finishLoading, setFinishLoading] = useState(false);
   const [finishSuccess, setFinishSuccess] = useState(false);
   const [finishError, setFinishError] = useState("");
   const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
+
+  // Modal de Vitória Épica
+  const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
+  const [victoryData, setVictoryData] = useState<any | null>(null);
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setFinishError("Selecione um arquivo de imagem válido.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL("image/jpeg", 0.85);
+          setWorkoutPhoto(compressed);
+          setFinishError("");
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Cronômetro Geral do Treino (Timestamp-based)
   useEffect(() => {
@@ -492,6 +547,12 @@ export default function WorkoutSessionPlayer() {
       return;
     }
 
+    if (!workoutPhoto) {
+      setFinishError("A foto de comprovação do treino é obrigatória para validar a sessão!");
+      setFinishLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/student/workout-sessions", {
         method: "POST",
@@ -499,6 +560,7 @@ export default function WorkoutSessionPlayer() {
         body: JSON.stringify({
           durationMs: Math.min(Math.max(0, Math.floor(totalSeconds * 1000)), 86400000),
           satisfaction: Number(satisfaction),
+          photoUrl: workoutPhoto,
           logs: logsPayload,
         }),
       });
@@ -508,7 +570,7 @@ export default function WorkoutSessionPlayer() {
       if (!response.ok) {
         if (data.errors) {
           console.error("Validation errors:", data.errors);
-          setFinishError("Erro de formato nos dados inseridos (ex: repetições devem ser números inteiros).");
+          setFinishError("Erro nos dados inseridos.");
         } else {
           setFinishError(data.error || "Erro ao salvar o treino.");
         }
@@ -516,19 +578,26 @@ export default function WorkoutSessionPlayer() {
       }
 
       setFinishSuccess(true);
-      // Limpar todos os dados de sessão do localStorage
+      // Limpar dados de sessão local
       localStorage.removeItem(`workout_start_time_${planId}`);
       localStorage.removeItem(`workout_sets_${planId}`);
       localStorage.removeItem(STORAGE_KEY_REST);
-      if (data.newAchievements && data.newAchievements.length > 0) {
-        setUnlockedAchievements(data.newAchievements);
-        setShowCelebration(true);
-        setIsFinishModalOpen(false);
-      } else {
-        setTimeout(() => {
-          router.push("/student/dashboard");
-        }, 1500);
-      }
+
+      // Dados para o modal de vitória
+      setVictoryData({
+        volumeKg: data.volumeKg || 0,
+        tonnageComparison: data.tonnageComparison,
+        photoUrl: workoutPhoto,
+        xpEarned: data.xpEarned || 300,
+        totalXp: data.totalXp,
+        level: data.level,
+        levelTitle: data.levelTitle,
+        prsBeaten: data.prsBeaten || [],
+        newAchievements: data.newAchievements || [],
+      });
+
+      setIsFinishModalOpen(false);
+      setIsVictoryModalOpen(true);
     } catch (err) {
       setFinishError("Erro de conexão ao salvar.");
     } finally {
@@ -864,51 +933,95 @@ export default function WorkoutSessionPlayer() {
         </div>
       )}
 
-      {/* Modal Finalizar Treino */}
+      {/* Modal Finalizar Treino com Foto Obrigatória */}
       {isFinishModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xs bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] text-center max-h-[90vh] overflow-y-auto">
             
             <button
               onClick={() => setIsFinishModalOpen(false)}
-              className="absolute right-4 top-4 p-1 rounded-lg hover:bg-white text-[#94A3B8] hover:text-[#0F172A]"
+              className="absolute right-4 top-4 p-1.5 rounded-xl hover:bg-slate-100 text-[#94A3B8] hover:text-[#0F172A]"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
-            <div className="bg-[#00C2FF]/10 p-3 rounded-full w-fit mx-auto text-[#2563EB] mb-4 animate-bounce">
+            <div className="bg-[#00C2FF]/10 p-3 rounded-full w-fit mx-auto text-[#2563EB] mb-3 animate-bounce">
               <Dumbbell className="w-6 h-6" />
             </div>
 
-            <h3 className="font-display font-semibold text-base text-zinc-950 mb-2">Concluir Treino</h3>
-            <p className="text-xs text-[#94A3B8] mb-6 leading-relaxed">
-              Como você avalia a intensidade e o esforço geral deste treino hoje?
+            <h3 className="font-display font-bold text-lg text-zinc-950 mb-1">Concluir Treino</h3>
+            <p className="text-xs text-[#94A3B8] mb-5 leading-relaxed">
+              Tire sua foto de check-in para comprovar seu treino e registrar seus pontos!
             </p>
 
             {finishError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[10px]">
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold text-left">
                 {finishError}
               </div>
             )}
 
-            {finishSuccess && (
-              <div className="mb-4 p-3 rounded-lg bg-[#00C2FF]/10 border border-[#2563EB]/30 text-[#1E40AF] text-xs">
-                Treino concluído com sucesso! Bom descanso!
+            <div className="space-y-4 text-left">
+              {/* Seção 1: Foto Comprobatória (Obrigatória) */}
+              <div>
+                <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block mb-1.5">
+                  1. Foto de Comprovação (Obrigatória):
+                </label>
+
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handlePhotoCapture}
+                />
+
+                {workoutPhoto ? (
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 bg-slate-50">
+                    <img
+                      src={workoutPhoto}
+                      alt="Foto de Comprovação"
+                      className="w-full h-40 object-cover"
+                    />
+                    <div className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold flex items-center gap-1 shadow-md">
+                      <Check className="w-3 h-3" /> Foto Anexada
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="absolute bottom-2 right-2 px-3 py-1 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold transition-all"
+                    >
+                      Tirar Outra
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-[#2563EB]/40 bg-[#2563EB]/5 hover:bg-[#2563EB]/10 transition-all flex flex-col items-center justify-center gap-2 text-center cursor-pointer group"
+                  >
+                    <div className="p-3 rounded-full bg-[#2563EB]/10 text-[#2563EB] group-hover:scale-110 transition-transform">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#0F172A]">Tirar Selfie / Foto do Treino</p>
+                      <p className="text-[10px] text-[#94A3B8] mt-0.5">Toque para abrir a câmera ou galeria</p>
+                    </div>
+                  </button>
+                )}
               </div>
-            )}
-            
-            <div className="space-y-4">
-              {/* Escala de RPE qualitativa */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block text-left">
-                  Selecione a Intensidade:
+
+              {/* Seção 2: Intensidade (RPE) */}
+              <div>
+                <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block mb-1.5">
+                  2. Intensidade do Treino:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { label: "Pouco Intensa", value: 3 },
                     { label: "Intensa", value: 6 },
                     { label: "Muito Intensa", value: 8 },
-                    { label: "Exaustiva", value: 10 }
+                    { label: "Exaustiva", value: 10 },
                   ].map((option) => {
                     const isSelected = satisfaction === option.value;
                     return (
@@ -916,7 +1029,7 @@ export default function WorkoutSessionPlayer() {
                         key={option.value}
                         type="button"
                         onClick={() => setSatisfaction(option.value)}
-                        className={`py-3 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                           isSelected
                             ? option.value === 3
                               ? "bg-blue-500 border-blue-500 text-white"
@@ -925,7 +1038,7 @@ export default function WorkoutSessionPlayer() {
                               : option.value === 8
                               ? "bg-amber-500 border-amber-500 text-white"
                               : "bg-red-500 border-red-500 text-white"
-                            : `bg-white border-[#E2E8F0] text-[#475569] hover:bg-zinc-50`
+                            : `bg-white border-[#E2E8F0] text-[#475569] hover:bg-slate-50`
                         }`}
                       >
                         {option.label}
@@ -935,20 +1048,43 @@ export default function WorkoutSessionPlayer() {
                 </div>
               </div>
 
+              {/* Botão de Finalização */}
               <button
                 onClick={handleFinishWorkout}
-                disabled={finishLoading || finishSuccess}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
+                disabled={finishLoading || !workoutPhoto}
+                className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-2 shadow-lg shadow-blue-500/20"
               >
                 {finishLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
+                ) : workoutPhoto ? (
+                  "Confirmar Conclusão & Ver Vitória"
                 ) : (
-                  "Confirmar Conclusão"
+                  "Tire uma foto para concluir"
                 )}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Vitória Épica */}
+      {isVictoryModalOpen && victoryData && (
+        <WorkoutVictoryModal
+          isOpen={isVictoryModalOpen}
+          onClose={() => {
+            setIsVictoryModalOpen(false);
+            router.push("/student/dashboard");
+          }}
+          volumeKg={victoryData.volumeKg}
+          tonnageComparison={victoryData.tonnageComparison}
+          photoUrl={victoryData.photoUrl}
+          xpEarned={victoryData.xpEarned}
+          totalXp={victoryData.totalXp}
+          level={victoryData.level}
+          levelTitle={victoryData.levelTitle}
+          prsBeaten={victoryData.prsBeaten}
+          newAchievements={victoryData.newAchievements}
+        />
       )}
 
       {/* Modal de Celebração de Conquista Desbloqueada */}

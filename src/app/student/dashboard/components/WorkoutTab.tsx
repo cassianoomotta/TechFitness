@@ -1,6 +1,7 @@
 import React from 'react';
 import { Dumbbell, Loader2, Award, Trophy, Users, Edit, Eye, Play, Zap, Scale, Flame, Shield, ArrowRight, TrendingUp, RefreshCw, X, ChevronRight, Crown, Swords, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import UserAvatar from '@/components/UserAvatar';
 
 export default function WorkoutTab(props: any) {
   const {
@@ -326,14 +327,13 @@ export default function WorkoutTab(props: any) {
                       {ranking.top5[1] && (
                         <div className="flex flex-col items-center text-center space-y-1.5 order-1">
                           <div className="relative">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 border-2 border-slate-300 flex items-center justify-center font-bold text-slate-500 overflow-hidden shadow-sm">
-                              {ranking.top5[1].image ? (
-                                <img src={ranking.top5[1].image} alt={ranking.top5[1].name} className="w-full h-full object-cover" />
-                              ) : (
-                                ranking.top5[1].name.charAt(0).toUpperCase()
-                              )}
-                            </div>
-                            <span className="absolute -bottom-1.5 -right-1 bg-slate-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-extrabold border border-white">
+                            <UserAvatar
+                              name={ranking.top5[1].name}
+                              image={ranking.top5[1].image}
+                              size="lg"
+                              className="border-2 border-slate-300 shadow-sm"
+                            />
+                            <span className="absolute -bottom-1.5 -right-1 bg-slate-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-extrabold border border-white shadow-sm">
                               2
                             </span>
                           </div>
@@ -355,14 +355,13 @@ export default function WorkoutTab(props: any) {
                       {ranking.top5[0] && (
                         <div className="flex flex-col items-center text-center space-y-1.5 order-2">
                           <div className="relative">
-                            <div className="w-15 h-15 rounded-full bg-amber-50 border-3 border-amber-400 flex items-center justify-center font-bold text-amber-700 overflow-hidden shadow-md">
-                              {ranking.top5[0].image ? (
-                                <img src={ranking.top5[0].image} alt={ranking.top5[0].name} className="w-full h-full object-cover" />
-                              ) : (
-                                ranking.top5[0].name.charAt(0).toUpperCase()
-                              )}
-                            </div>
-                            <span className="absolute -bottom-1.5 -right-1 bg-amber-400 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-extrabold border-2 border-white">
+                            <UserAvatar
+                              name={ranking.top5[0].name}
+                              image={ranking.top5[0].image}
+                              size="xl"
+                              className="border-3 border-amber-400 shadow-md ring-2 ring-amber-400/20"
+                            />
+                            <span className="absolute -bottom-1.5 -right-1 bg-amber-400 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-extrabold border-2 border-white shadow-sm">
                               👑
                             </span>
                           </div>
@@ -384,14 +383,13 @@ export default function WorkoutTab(props: any) {
                       {ranking.top5[2] && (
                         <div className="flex flex-col items-center text-center space-y-1.5 order-3">
                           <div className="relative">
-                            <div className="w-12 h-12 rounded-full bg-amber-50/50 border-2 border-amber-600/50 flex items-center justify-center font-bold text-amber-800 overflow-hidden shadow-sm">
-                              {ranking.top5[2].image ? (
-                                <img src={ranking.top5[2].image} alt={ranking.top5[2].name} className="w-full h-full object-cover" />
-                              ) : (
-                                ranking.top5[2].name.charAt(0).toUpperCase()
-                              )}
-                            </div>
-                            <span className="absolute -bottom-1.5 -right-1 bg-amber-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-extrabold border border-white">
+                            <UserAvatar
+                              name={ranking.top5[2].name}
+                              image={ranking.top5[2].image}
+                              size="lg"
+                              className="border-2 border-amber-600/50 shadow-sm"
+                            />
+                            <span className="absolute -bottom-1.5 -right-1 bg-amber-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-extrabold border border-white shadow-sm">
                               3
                             </span>
                           </div>
@@ -413,7 +411,7 @@ export default function WorkoutTab(props: any) {
                     {/* Lista dos demais (4º e 5º) */}
                     {(ranking.top5[3] || ranking.top5[4]) && (
                       <div className="space-y-2 pt-2">
-                        {ranking.top5.slice(3, 5).map((user: any, idx: any) => (
+                        {ranking.top5.slice(3, 5).map((user: { id: string; name: string; image?: string | null; level: number; levelTitle: string; totalXp: number; totalSessions: number }, idx: number) => (
                           <div
                             key={user.id}
                             className="flex items-center justify-between p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl hover:bg-zinc-100/30 hover:border-[#2563EB]/15 transition-all"
@@ -422,13 +420,12 @@ export default function WorkoutTab(props: any) {
                               <span className="text-xs font-bold text-[#94A3B8] w-4 text-center">
                                 {idx + 4}
                               </span>
-                              <div className="w-8 h-8 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center font-bold text-xs text-[#475569] overflow-hidden">
-                                {user.image ? (
-                                  <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-                                ) : (
-                                  user.name.charAt(0).toUpperCase()
-                                )}
-                              </div>
+                              <UserAvatar
+                                name={user.name}
+                                image={user.image}
+                                size="sm"
+                                className="border border-[#E2E8F0]"
+                              />
                               <div className="min-w-0">
                                 <p className="text-xs font-bold text-[#0F172A] truncate">
                                   {user.name}

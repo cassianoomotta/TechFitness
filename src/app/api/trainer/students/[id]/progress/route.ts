@@ -39,6 +39,7 @@ export async function GET(
           select: {
             name: true,
             email: true,
+            image: true,
           },
         },
       },
@@ -206,12 +207,14 @@ export async function GET(
     return NextResponse.json({
       studentName: student.user.name,
       studentEmail: student.user.email,
+      studentImage: student.user.image,
       totalSessionsCount: sessions.length,
       recentSessions: sessions.map((s) => ({
         id: s.id,
         date: s.date,
         durationMinutes: Math.round(s.durationMs / 60000),
         satisfaction: s.satisfaction,
+        photoUrl: s.photoUrl,
       })),
       exerciseProgress,
       progressionSuggestions,
