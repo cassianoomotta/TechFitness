@@ -42,9 +42,12 @@ export async function POST(request: NextRequest) {
     const openAiKey = rawOpenAiKey ? rawOpenAiKey.replace(/^["']|["']$/g, "").trim() : "";
 
     if (!geminiKey && !openAiKey) {
+      console.error(
+        "[TechFitness AI] Nenhuma chave de IA (GEMINI_API_KEY ou OPENAI_API_KEY) encontrada nas variáveis de ambiente."
+      );
       return NextResponse.json(
-        { error: "Serviço de IA não configurado no servidor. Configure a variável GEMINI_API_KEY na Vercel (Settings > Environment Variables) e faça um Redeploy." },
-        { status: 500 }
+        { error: "O serviço de inteligência artificial está temporariamente indisponível. Tente novamente em instantes." },
+        { status: 503 }
       );
     }
 
