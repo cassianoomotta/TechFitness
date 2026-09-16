@@ -14,6 +14,10 @@ import { signOut, useSession } from "next-auth/react";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import Link from "next/link";
+import StudentWorkoutInstagramCard, {
+  StudentGroupedFeed,
+  WeeklyCheckinFeedItem,
+} from "@/components/StudentWorkoutInstagramCard";
 import {
   Dumbbell,
   LogOut,
@@ -31,7 +35,9 @@ import {
   Edit,
   X,
   Bell,
+  ChevronLeft,
   ChevronRight,
+  Layers,
   Eye,
   Tv,
   Flame,
@@ -327,7 +333,29 @@ export default function StudentDashboard() {
   }
   const [ranking, setRanking] = useState<RankingData | null>(null);
   const [rankingLoading, setRankingLoading] = useState(true);
-  const [selectedDashboardPhoto, setSelectedDashboardPhoto] = useState<WeeklyCheckinFeedItem | null>(null);
+  const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
+
+  // Agrupamento de fotos por aluno no estilo Instagram (1 card por aluno com carrossel se houver múltiplas fotos)
+  const groupedStudentFeeds: StudentGroupedFeed[] = React.useMemo(() => {
+    if (!ranking?.weeklyFeed) return [];
+    const map = new Map<string, StudentGroupedFeed>();
+
+    for (const item of ranking.weeklyFeed) {
+      const key = item.studentId || item.studentName;
+      if (!map.has(key)) {
+        map.set(key, {
+          studentId: item.studentId,
+          studentName: item.studentName,
+          studentImage: item.studentImage,
+          photos: [],
+        });
+      }
+      map.get(key)!.photos.push(item);
+    }
+
+    return Array.from(map.values());
+  }, [ranking?.weeklyFeed]);
 
 
   // Estados para edição de Ficha (Divisão & Dias)
@@ -860,58 +888,25 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              {ranking.weeklyFeed && ranking.weeklyFeed.length > 0 && (
+              {groupedStudentFeeds && groupedStudentFeeds.length > 0 && (
                 <span className="text-[10px] font-bold bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded-full">
-                  {ranking.weeklyFeed.length} {ranking.weeklyFeed.length === 1 ? "foto recente" : "fotos recentes"}
+                  {groupedStudentFeeds.length} {groupedStudentFeeds.length === 1 ? "atleta no mural" : "atletas no mural"}
                 </span>
               )}
             </div>
 
-            {ranking.weeklyFeed && ranking.weeklyFeed.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-thin">
-                {ranking.weeklyFeed.map((chk) => {
-                  const isToday =
-                    new Date(chk.date).toDateString() === new Date().toDateString();
-
-                  return (
-                    <div
-                      key={chk.id}
-                      onClick={() => setSelectedDashboardPhoto(chk)}
-                      className="w-28 sm:w-36 shrink-0 aspect-[3/4] rounded-2xl overflow-hidden relative group cursor-pointer border border-[#E2E8F0] shadow-sm hover:shadow-md hover:scale-[1.02] transition-all bg-slate-950"
-                      title={`Ver foto de ${chk.studentName} (${chk.dayOfWeekFull})`}
-                    >
-                      <img
-                        src={chk.photoUrl}
-                        alt={`Check-in de ${chk.studentName}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-
-                      {/* Tag do Dia da Semana */}
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                        {isToday ? (
-                          <span className="text-emerald-400 font-black">HOJE</span>
-                        ) : (
-                          <span>{chk.dayOfWeek}</span>
-                        )}
-                        <span className="text-white/60">•</span>
-                        <span>{chk.formattedDate}</span>
-                      </div>
-
-                      {/* Barra Inferior com Avatar do Concorrente */}
-                      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-center gap-1.5">
-                        <UserAvatar
-                          name={chk.studentName}
-                          image={chk.studentImage}
-                          size="xs"
-                          className="border border-white/60 shrink-0"
-                        />
-                        <span className="text-[10px] font-bold text-white truncate">
-                          {chk.studentName.split(" ")[0]}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+            {groupedStudentFeeds && groupedStudentFeeds.length > 0 ? (
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+                {groupedStudentFeeds.map((group) => (
+                  <StudentWorkoutInstagramCard
+                    key={group.studentId || group.studentName}
+                    studentGroup={group}
+                    onOpenZoom={(_photo, allPhotos, initialIdx) => {
+                      setSelectedPhotosList(allPhotos);
+                      setSelectedPhotoIndex(initialIdx);
+                    }}
+                  />
+                ))}
               </div>
             ) : (
               <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
@@ -1377,54 +1372,116 @@ export default function StudentDashboard() {
         }}
       />
 
-      {/* Modal Zoom Foto do Concorrente na Tela Inicial */}
-      {selectedDashboardPhoto && (
+      {/* Modal Zoom Foto do Concorrente no estilo Carrossel Instagram */}
+      {selectedPhotosList && selectedPhotosList.length > 0 && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
-          onClick={() => setSelectedDashboardPhoto(null)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
+          onClick={() => setSelectedPhotosList(null)}
         >
           <div
-            className="bg-white rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]"
+            className="bg-white rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-              <div className="flex items-center gap-2.5">
+            {/* Header do Modal */}
+            <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <UserAvatar
-                  name={selectedDashboardPhoto.studentName}
-                  image={selectedDashboardPhoto.studentImage}
+                  name={selectedPhotosList[selectedPhotoIndex]?.studentName || "Atleta"}
+                  image={selectedPhotosList[selectedPhotoIndex]?.studentImage}
                   size="md"
-                  className="border border-slate-200"
+                  className="border border-slate-200 shrink-0"
                 />
-                <div>
-                  <h4 className="text-xs font-bold text-[#0F172A]">
-                    {selectedDashboardPhoto.studentName}
-                  </h4>
+                <div className="truncate">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-[#0F172A] truncate">
+                      {selectedPhotosList[selectedPhotoIndex]?.studentName}
+                    </h4>
+                    {selectedPhotosList.length > 1 && (
+                      <span className="text-[10px] font-bold text-[#2563EB] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md">
+                        {selectedPhotoIndex + 1} de {selectedPhotosList.length}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-[#64748B]">
-                    {selectedDashboardPhoto.dayOfWeekFull} • {selectedDashboardPhoto.formattedDate}
+                    {selectedPhotosList[selectedPhotoIndex]?.dayOfWeekFull} • {selectedPhotosList[selectedPhotoIndex]?.formattedDate}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedDashboardPhoto(null)}
+                onClick={() => setSelectedPhotosList(null)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden">
+            {/* Imagem com Navegação Lateral e Dots estilo Instagram */}
+            <div className="p-3 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden relative">
               <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
                 <img
-                  src={selectedDashboardPhoto.photoUrl}
-                  alt={`Check-in de ${selectedDashboardPhoto.studentName}`}
-                  className="w-full h-full object-contain rounded-xl"
+                  key={selectedPhotosList[selectedPhotoIndex]?.id}
+                  src={selectedPhotosList[selectedPhotoIndex]?.photoUrl}
+                  alt={`Check-in de ${selectedPhotosList[selectedPhotoIndex]?.studentName}`}
+                  className="w-full h-full object-contain rounded-xl select-none"
                 />
               </div>
+
+              {/* Botões de Navegação Lateral no Modal */}
+              {selectedPhotosList.length > 1 && (
+                <>
+                  {selectedPhotoIndex > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPhotoIndex((prev) => prev - 1);
+                      }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 hover:bg-black/90 text-white backdrop-blur-sm transition-all shadow-xl hover:scale-110 z-20 cursor-pointer"
+                      title="Foto anterior"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                  )}
+
+                  {selectedPhotoIndex < selectedPhotosList.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPhotoIndex((prev) => prev + 1);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 hover:bg-black/90 text-white backdrop-blur-sm transition-all shadow-xl hover:scale-110 z-20 cursor-pointer"
+                      title="Próxima foto"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  )}
+
+                  {/* Dots de Paginação no Modal */}
+                  <div className="absolute bottom-5 inset-x-0 flex justify-center items-center gap-1.5 z-20 pointer-events-none">
+                    {selectedPhotosList.map((_, dotIdx) => (
+                      <div
+                        key={dotIdx}
+                        className={`rounded-full transition-all duration-300 ${
+                          dotIdx === selectedPhotoIndex
+                            ? "w-2.5 h-2.5 bg-white shadow-lg scale-110"
+                            : "w-1.5 h-1.5 bg-white/40"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
-            <div className="p-3 bg-slate-50 text-center text-[11px] text-[#64748B] font-medium border-t border-slate-100">
-              Check-in comprovado • Disponível por 7 dias na tela inicial dos atletas
+            <div className="p-3 bg-slate-50 flex items-center justify-between text-[11px] text-[#64748B] font-medium border-t border-slate-100">
+              <span>Check-in comprovado da assessoria</span>
+              {selectedPhotosList.length > 1 && (
+                <span className="font-semibold text-[#2563EB]">
+                  {selectedPhotosList.length} treinos nos últimos 7 dias
+                </span>
+              )}
             </div>
           </div>
         </div>
