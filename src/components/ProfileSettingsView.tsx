@@ -16,6 +16,7 @@ import {
   Shield,
   KeyRound,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 
 interface ProfileSettingsViewProps {
@@ -197,6 +198,21 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
               {name || "Meu Perfil"}
             </h1>
             <p className="text-xs text-[#94A3B8] truncate mt-0.5">{email}</p>
+
+            {image && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (confirm("Deseja remover sua foto de perfil?")) {
+                    await fetch("/api/user/profile-photo", { method: "DELETE" });
+                    setImage(null);
+                  }
+                }}
+                className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-semibold px-2.5 py-1 rounded-lg hover:bg-red-50 transition-colors border border-red-200/60 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Remover foto de perfil
+              </button>
+            )}
           </div>
         </div>
 

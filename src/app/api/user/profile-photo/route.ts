@@ -56,3 +56,40 @@ export async function PATCH(request: Request) {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: "Não autorizado." },
+        { status: 401 }
+      );
+    }
+
+    // Limpar foto de perfil no banco de dados
+    const updatedUser = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { image: null },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        role: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("ERRO AO REMOVER FOTO DE PERFIL:", error);
+    return NextResponse.json(
+      { error: "Ocorreu um erro interno ao remover sua foto de perfil." },
+      { status: 500 }
+    );
+  }
+}

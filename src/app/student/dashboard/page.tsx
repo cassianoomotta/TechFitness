@@ -48,6 +48,7 @@ import {
   Swords,
   Crown,
   Camera,
+  Trash2,
 } from "lucide-react";
 
 interface Achievement {
@@ -356,6 +357,50 @@ export default function StudentDashboard() {
 
     return Array.from(map.values());
   }, [ranking?.weeklyFeed]);
+
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const handleDeleteWorkoutPhoto = async (photoId: string) => {
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
+    }
+
+    setDeletingPhoto(true);
+    try {
+      const res = await fetch(`/api/student/workout-sessions/${photoId}/photo`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        if (selectedPhotosList) {
+          const updatedPhotos = selectedPhotosList.filter((p) => p.id !== photoId);
+          if (updatedPhotos.length === 0) {
+            setSelectedPhotosList(null);
+          } else {
+            setSelectedPhotosList(updatedPhotos);
+            setSelectedPhotoIndex(0);
+          }
+        }
+
+        setRanking((prev) => {
+          if (!prev || !prev.weeklyFeed) return prev;
+          return {
+            ...prev,
+            weeklyFeed: prev.weeklyFeed.filter((p) => p.id !== photoId),
+          };
+        });
+      } else {
+        alert("Não foi possível remover a foto do treino.");
+      }
+    } catch {
+      alert("Erro ao conectar com o servidor.");
+    } finally {
+      setDeletingPhoto(false);
+      setDeleteConfirm(false);
+    }
+  };
 
 
   // Estados para edição de Ficha (Divisão & Dias)
@@ -686,7 +731,7 @@ export default function StudentDashboard() {
                   {session?.user?.name || "Aluno"}
                 </p>
                 <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
-                  Minha Conta & Senha
+                  Minha Conta
                 </p>
               </div>
             </Link>
@@ -1407,13 +1452,49 @@ export default function StudentDashboard() {
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedPhotosList(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {Boolean(
+                  selectedPhotosList[selectedPhotoIndex] &&
+                  (
+                    session?.user?.role === "TRAINER" ||
+                    session?.user?.role === "ADMIN" ||
+                    (
+                      session?.user?.name &&
+                      (
+                        selectedPhotosList[selectedPhotoIndex]?.studentName.toLowerCase().includes(session.user.name.toLowerCase().split(" ")[0]) ||
+                        session.user.name.toLowerCase().includes(selectedPhotosList[selectedPhotoIndex]?.studentName.toLowerCase().split(" ")[0])
+                      )
+                    )
+                  )
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteWorkoutPhoto(selectedPhotosList[selectedPhotoIndex].id)}
+                    disabled={deletingPhoto}
+                    className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      deleteConfirm
+                        ? "bg-red-600 text-white shadow-md animate-pulse"
+                        : "text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-200/60"
+                    }`}
+                    title={deleteConfirm ? "Clique novamente para confirmar a exclusão" : "Remover foto deste treino"}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{deletingPhoto ? "Removendo..." : deleteConfirm ? "Confirmar exclusão?" : "Remover foto"}</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPhotosList(null);
+                    setDeleteConfirm(false);
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                  title="Fechar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Imagem com Navegação Lateral e Dots estilo Instagram */}

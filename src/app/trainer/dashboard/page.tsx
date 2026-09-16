@@ -398,7 +398,7 @@ export default function TrainerDashboard() {
                   {session?.user?.name || "Professor"}
                 </p>
                 <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
-                  Minha Conta & Senha
+                  Minha Conta
                 </p>
               </div>
             </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { X, Camera, Upload, Loader2, Check, User } from "lucide-react";
+import { X, Camera, Upload, Loader2, Check, User, Trash2 } from "lucide-react";
 import UserAvatar from "./UserAvatar";
 
 interface EditProfilePhotoModalProps {
@@ -112,8 +112,40 @@ export default function EditProfilePhotoModal({
         setPreview(null);
         onClose();
       }, 1000);
-    } catch (err: any) {
-      setError(err.message || "Erro de conexão ao salvar a foto.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro de conexão ao salvar a foto.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/user/profile-photo", {
+        method: "DELETE",
+      });
+
+      const data = await res.json() as { error?: string };
+
+      if (!res.ok) {
+        throw new Error(data.error || "Falha ao remover foto de perfil.");
+      }
+
+      setSuccess(true);
+      setPreview(null);
+      onPhotoUpdated("");
+
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 1000);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao remover a foto.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -216,6 +248,27 @@ export default function EditProfilePhotoModal({
               )}
             </button>
           )}
+
+          {preview ? (
+            <button
+              type="button"
+              onClick={() => setPreview(null)}
+              disabled={loading}
+              className="w-full py-2.5 px-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              Cancelar seleção
+            </button>
+          ) : currentImage ? (
+            <button
+              type="button"
+              onClick={handleRemovePhoto}
+              disabled={loading}
+              className="w-full py-2.5 px-3 rounded-xl border border-red-200/80 text-red-600 hover:bg-red-50 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Remover foto de perfil atual
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
