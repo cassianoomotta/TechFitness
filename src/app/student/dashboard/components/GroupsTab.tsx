@@ -398,41 +398,52 @@ export default function GroupsTab({
   return (
     <div className="space-y-6">
       {/* Barra de Navegação Superior da Comunidade */}
-      <div className="bg-white/80 backdrop-blur-md border border-[#E2E8F0] p-3 sm:p-4 rounded-3xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Toggle de Sub-Abas */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl w-full sm:w-auto">
+      <div className="bg-white/80 backdrop-blur-md border border-[#E2E8F0] p-3 sm:p-4 rounded-3xl shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        {/* Toggle de Sub-Abas com Scroll Suave no Mobile e Zero Quebras de Linha */}
+        <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl w-full sm:w-auto overflow-x-auto scrollbar-none">
           <button
             onClick={() => setInternalTab("feed")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
               internalTab === "feed"
                 ? "bg-white text-[#2563EB] shadow-sm"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            <Camera className="w-4 h-4" />
-            Mural de Check-ins
+            <Camera className="w-4 h-4 shrink-0" />
+            <span>Mural<span className="hidden sm:inline"> de Check-ins</span></span>
           </button>
           <button
             onClick={() => setInternalTab("groups")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
               internalTab === "groups"
                 ? "bg-white text-[#2563EB] shadow-sm"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            <Users className="w-4 h-4" />
-            Meus Grupos ({groups.length})
+            <Users className="w-4 h-4 shrink-0" />
+            <span>Meus Grupos</span>
+            {groups.length > 0 && (
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold leading-none ${
+                  internalTab === "groups"
+                    ? "bg-blue-100 text-[#2563EB]"
+                    : "bg-slate-200/80 text-[#64748B]"
+                }`}
+              >
+                {groups.length}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setInternalTab("duel")}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
               internalTab === "duel"
                 ? "bg-white text-[#2563EB] shadow-sm"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            <Swords className="w-4 h-4" />
-            Duelo 1-a-1
+            <Swords className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Duelo 1-a-1</span>
           </button>
         </div>
 
@@ -440,17 +451,17 @@ export default function GroupsTab({
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             onClick={() => setShowJoinModal(true)}
-            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-semibold text-xs transition-all flex items-center justify-center gap-1.5 border border-slate-200"
+            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-semibold text-xs transition-all flex items-center justify-center gap-1.5 border border-slate-200 whitespace-nowrap"
           >
-            <UserPlus className="w-3.5 h-3.5 text-[#2563EB]" />
-            Entrar com Código
+            <UserPlus className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+            <span>Entrar<span className="hidden sm:inline"> com Código</span></span>
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 hover:scale-[1.02]"
+            className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 hover:scale-[1.02] whitespace-nowrap"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Criar Grupo
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>Criar Grupo</span>
           </button>
         </div>
       </div>
@@ -461,45 +472,31 @@ export default function GroupsTab({
       {internalTab === "feed" && (
         <div className="space-y-6">
           {/* Pílulas de Filtro por Grupo */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1">
             <button
               onClick={() => handleGroupFilterChange("all")}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 border ${
                 selectedGroupId === "all"
-                  ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm shadow-blue-500/20"
-                  : "bg-white text-[#64748B] border-[#E2E8F0] hover:bg-slate-50"
+                  ? "bg-gradient-to-r from-[#2563EB] to-blue-600 text-white border-transparent shadow-sm shadow-blue-500/25"
+                  : "bg-white/90 backdrop-blur-sm text-[#64748B] border-slate-200 hover:bg-slate-50 hover:text-[#0F172A]"
               }`}
             >
               <span>🌐</span>
-              <span>Todos os Meus Grupos</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  selectedGroupId === "all" ? "bg-white/20 text-white" : "bg-slate-100 text-[#64748B]"
-                }`}
-              >
-                {timeline.length}
-              </span>
+              <span>Todos os Grupos</span>
             </button>
 
             {groups.map((group) => (
               <button
                 key={group.id}
                 onClick={() => handleGroupFilterChange(group.id)}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 border ${
                   selectedGroupId === group.id
-                    ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm shadow-blue-500/20"
-                    : "bg-white text-[#64748B] border-[#E2E8F0] hover:bg-slate-50"
+                    ? "bg-gradient-to-r from-[#2563EB] to-blue-600 text-white border-transparent shadow-sm shadow-blue-500/25"
+                    : "bg-white/90 backdrop-blur-sm text-[#64748B] border-slate-200 hover:bg-slate-50 hover:text-[#0F172A]"
                 }`}
               >
                 <span>{group.icon || "🏋️"}</span>
                 <span>{group.name}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                    selectedGroupId === group.id ? "bg-white/20 text-white" : "bg-slate-100 text-[#64748B]"
-                  }`}
-                >
-                  {group.membersCount}
-                </span>
               </button>
             ))}
 
