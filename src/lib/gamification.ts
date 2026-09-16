@@ -17,6 +17,35 @@ export interface AchievementDef {
   tier: number;
 }
 
+export interface GamificationAchievement extends AchievementDef {
+  unlocked: boolean;
+  progress: number;
+  target: number;
+}
+
+export interface GamificationData {
+  level: number;
+  levelTitle: string;
+  totalXp: number;
+  currentLevelXp: number;
+  nextLevelXpNeeded: number;
+  streak: number;
+  totalSessions: number;
+  prsCount: number;
+  measurementsCount: number;
+  achievements: GamificationAchievement[];
+}
+
+export interface PersonalRecord {
+  exerciseId: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+  maxWeight: number;
+  reps: number;
+  date?: string | null;
+}
+
 export const ALL_ACHIEVEMENTS: AchievementDef[] = [
   // ── TIER 1: Primeiros Passos ──
   { id: "first_step", title: "Primeiro Passo", description: "Concluiu o primeiro treino na plataforma", icon: "Play", xpReward: 100, tier: 1 },
@@ -53,15 +82,23 @@ function getWeekStart(d: Date): string {
  * Uma semana é considerada "completa" se o aluno treinou em pelo menos MIN_DAYS_PER_WEEK dias distintos.
  */
 export function calculateStreak(
-  sessions: { date: Date; logs: { exerciseId: string }[] }[],
-  studentPlans: { id: string; exercises: { exerciseId: string }[] }[]
+  sessions: ({ date: Date | string; logs?: { exerciseId: string }[] } | Date | string)[],
+  studentPlans: { id?: string; exercises?: { exerciseId: string }[] }[] = []
 ): number {
-  if (sessions.length === 0) return 0;
+  if (!sessions || sessions.length === 0) return 0;
+
+  // Normalizar sessões
+  const normalizedSessions: { date: Date }[] = sessions.map((s) => {
+    if (s instanceof Date) return { date: s };
+    if (typeof s === "string") return { date: new Date(s) };
+    if (typeof s === "object" && s !== null && "date" in s) return { date: new Date(s.date) };
+    return { date: new Date() };
+  });
 
   // Agrupar sessões por semana
-  const sessionsByWeek: Record<string, typeof sessions> = {};
-  for (const s of sessions) {
-    const w = getWeekStart(new Date(s.date));
+  const sessionsByWeek: Record<string, { date: Date }[]> = {};
+  for (const s of normalizedSessions) {
+    const w = getWeekStart(s.date);
     if (!sessionsByWeek[w]) {
       sessionsByWeek[w] = [];
     }
@@ -76,7 +113,7 @@ export function calculateStreak(
 
     // Contar dias distintos de treino na semana
     const distinctDays = new Set(
-      weekSessions.map((s) => new Date(s.date).toLocaleDateString("en-CA"))
+      weekSessions.map((s) => s.date.toLocaleDateString("en-CA"))
     );
 
     return distinctDays.size >= MIN_DAYS_PER_WEEK;
@@ -155,6 +192,34 @@ export function getLevelTitle(level: number): string {
   if (level >= 5) return "Guerreiro de Ferro";
   if (level >= 3) return "Forjador de Cargas";
   return "Recruta do Aço";
+}
+
+export function calculateLevel(totalXp: number) {
+  const level = Math.floor(totalXp / XP_PER_LEVEL) + 1;
+  const currentLevelXp = totalXp % XP_PER_LEVEL;
+  const nextLevelXpNeeded = XP_PER_LEVEL;
+  const title = getLevelTitle(level);
+
+  return {
+    totalXp,
+    level,
+    title,
+    currentLevelXp,
+    nextLevelXpNeeded,
+  };
+}
+
+export function calculateTier(level: number) {
+  if (level >= 7) {
+    return { tier: 4, name: "Elite & Lenda", badge: "👑" };
+  }
+  if (level >= 5) {
+    return { tier: 3, name: "Evolução Real", badge: "🔥" };
+  }
+  if (level >= 3) {
+    return { tier: 2, name: "Criando o Hábito", badge: "⚡" };
+  }
+  return { tier: 1, name: "Primeiros Passos", badge: "🌱" };
 }
 
 // ── Achievement Status Hints (para frontend) ──

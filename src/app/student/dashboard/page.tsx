@@ -6,6 +6,7 @@ import WeightTab from "./components/WeightTab";
 import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
 import ImportWorkoutModal from "./components/ImportWorkoutModal";
+import RankingLeaderboard, { RankingData, RankingItem } from "./components/RankingLeaderboard";
 
 import { getAchievementStatusHint } from "@/lib/gamification";
 
@@ -315,34 +316,6 @@ export default function StudentDashboard() {
   const [gamification, setGamification] = useState<GamificationData | null>(null);
   const [gamificationLoading, setGamificationLoading] = useState(true);
 
-  interface RankingUser {
-    id: string;
-    name: string;
-    email: string;
-    image: string | null;
-    totalXp: number;
-    level: number;
-    levelTitle: string;
-    totalSessions: number;
-  }
-  interface WeeklyCheckinFeedItem {
-    id: string;
-    date: string;
-    dayOfWeek: string;
-    dayOfWeekFull: string;
-    formattedDate: string;
-    photoUrl: string;
-    durationMinutes: number;
-    studentId: string;
-    studentName: string;
-    studentImage?: string | null;
-  }
-  interface RankingData {
-    top5: RankingUser[];
-    userPosition: number;
-    totalParticipants: number;
-    weeklyFeed?: WeeklyCheckinFeedItem[];
-  }
   const [ranking, setRanking] = useState<RankingData | null>(null);
   const [rankingLoading, setRankingLoading] = useState(true);
   const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
@@ -926,6 +899,27 @@ export default function StudentDashboard() {
           </section>
         )}
 
+        {/* Liga dos Titãs — Ranking Geral (posicionado estrategicamente entre o Nível do Usuário e o Check-in da Turma) */}
+        <RankingLeaderboard
+          ranking={ranking}
+          loading={rankingLoading}
+          onOpenCheckinPhoto={(photo) => {
+            setSelectedPhotosList([{
+              id: photo.id,
+              date: new Date().toISOString(),
+              dayOfWeek: photo.dayOfWeekFull ? photo.dayOfWeekFull.substring(0, 3).toUpperCase() : "TREINO",
+              dayOfWeekFull: photo.dayOfWeekFull,
+              formattedDate: photo.formattedDate,
+              photoUrl: photo.photoUrl,
+              durationMinutes: 0,
+              studentId: "",
+              studentName: photo.studentName,
+              studentImage: photo.studentImage,
+            }]);
+            setSelectedPhotoIndex(0);
+          }}
+        />
+
         {/* Seção de Fotos do Dia e da Semana dos Concorrentes na Tela Inicial */}
         {!rankingLoading && ranking && (
           <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-5 sm:p-6 shadow-sm">
@@ -988,7 +982,7 @@ export default function StudentDashboard() {
             }`}
           >
             <Dumbbell className="w-3.5 h-3.5" />
-            <span><span className="hidden sm:inline">Minhas </span>Fichas</span>
+            <span>Meus Treinos</span>
           </button>
           <button
             onClick={() => handleTabChange("dupla")}
@@ -1025,14 +1019,16 @@ export default function StudentDashboard() {
           </button>
         </div>
 
-        {/* Aba 1: Fichas de Treino */}
-        {activeTab === "fichas" && <WorkoutTab {...{
-  loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
-  partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
-  measurements, measurementsLoading, newWeight, setNewWeight, newWeightDate, setNewWeightDate, savingWeight, handleSaveWeight, selectedPhotoForZoom, setSelectedPhotoForZoom,
-  selectedTier, setSelectedTier, achievementFilter, setAchievementFilter,
-  onOpenImportModal: () => setIsImportModalOpen(true)
-}} />}
+        {/* Aba 1: Meus Treinos */}
+        {activeTab === "fichas" && (
+          <WorkoutTab
+            loading={loading}
+            plans={plans}
+            handleOpenEdit={handleOpenEdit}
+            setSelectedPlanForPreview={setSelectedPlanForPreview}
+            onOpenImportModal={() => setIsImportModalOpen(true)}
+          />
+        )}
 
 
         {/* Aba 2: Treino em Dupla (Comparação) */}
@@ -1053,12 +1049,18 @@ export default function StudentDashboard() {
 
 
         {/* Aba de Conquistas */}
-        {activeTab === "conquistas" && <AchievementsTab {...{
-  loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
-  partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
-  measurements, measurementsLoading, newWeight, setNewWeight, newWeightDate, setNewWeightDate, savingWeight, handleSaveWeight, selectedPhotoForZoom, setSelectedPhotoForZoom,
-  selectedTier, setSelectedTier, achievementFilter, setAchievementFilter
-}} />}
+        {activeTab === "conquistas" && (
+          <AchievementsTab
+            gamificationLoading={gamificationLoading}
+            gamification={gamification}
+            prsLoading={prsLoading}
+            prs={prs}
+            selectedTier={selectedTier}
+            setSelectedTier={setSelectedTier}
+            achievementFilter={achievementFilter}
+            setAchievementFilter={setAchievementFilter}
+          />
+        )}
       </main>
 
       {/* Modal de Edição de Ficha */}
@@ -1362,7 +1364,7 @@ export default function StudentDashboard() {
             }`}
           >
             <Dumbbell className={`w-5 h-5 transition-transform duration-300 ${activeTab === "fichas" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
-            <span>Treinos</span>
+            <span>Meus Treinos</span>
           </button>
           <button
             onClick={() => handleTabChange("dupla")}

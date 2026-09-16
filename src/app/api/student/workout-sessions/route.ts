@@ -65,27 +65,55 @@ export async function POST(request: Request) {
 
     const { durationMs, satisfaction, photoUrl, logs } = validation.data;
 
-    // Buscar as fichas de treino propostas
-    const studentPlans = await prisma.workoutPlan.findMany({
-      where: { studentId: studentProfile.id },
-      include: { exercises: true },
-    });
+    const exerciseIds = Array.from(new Set(logs.map((l: { exerciseId: string }) => l.exerciseId)));
 
-    // --- CÁLCULO DE CONQUISTAS E PRS ANTES DE SALVAR ---
-    const sessionsBefore = await prisma.workoutSession.findMany({
-      where: { studentId: studentProfile.id },
-      include: { logs: true },
-      orderBy: { date: "desc" },
-    });
-
-    const prAggregationsBefore = await prisma.exerciseLog.groupBy({
-      by: ["exerciseId"],
-      where: { studentId: studentProfile.id },
-    });
-
-    const measurementsCount = await prisma.bodyMeasurement.count({
-      where: { studentId: studentProfile.id },
-    });
+    // --- CÁLCULO DE CONQUISTAS E PRS (CONSULTAS PARALELIZADAS) ---
+    const [
+      studentPlans,
+      sessionsBefore,
+      prAggregationsBefore,
+      measurementsCount,
+      exercisesInfo,
+      previousLogs,
+    ] = await Promise.all([
+      // 1. Fichas de treino do aluno (campos necessários para streak)
+      prisma.workoutPlan.findMany({
+        where: { studentId: studentProfile.id },
+        include: { exercises: { select: { exerciseId: true } } },
+      }),
+      // 2. Histórico de sessões (seleção leve de campos para o streak)
+      prisma.workoutSession.findMany({
+        where: { studentId: studentProfile.id },
+        select: {
+          id: true,
+          date: true,
+          logs: { select: { exerciseId: true } },
+        },
+        orderBy: { date: "desc" },
+      }),
+      // 3. Agrupamento por exercício para contagem de PRs
+      prisma.exerciseLog.groupBy({
+        by: ["exerciseId"],
+        where: { studentId: studentProfile.id },
+      }),
+      // 4. Quantidade de medições corporais
+      prisma.bodyMeasurement.count({
+        where: { studentId: studentProfile.id },
+      }),
+      // 5. Nomes dos exercícios da sessão atual
+      prisma.exercise.findMany({
+        where: { id: { in: exerciseIds } },
+        select: { id: true, name: true },
+      }),
+      // 6. Cargas anteriores dos exercícios presentes nesta sessão
+      prisma.exerciseLog.findMany({
+        where: {
+          studentId: studentProfile.id,
+          exerciseId: { in: exerciseIds },
+        },
+        select: { exerciseId: true, weightUsed: true },
+      }),
+    ]);
 
     const totalSessionsBefore = sessionsBefore.length;
     const prsCountBefore = prAggregationsBefore.length;
@@ -98,21 +126,7 @@ export async function POST(request: Request) {
       measurementsCount
     );
 
-    // Identificar nomes dos exercícios e PRs anteriores
-    const exerciseIds = Array.from(new Set(logs.map((l) => l.exerciseId)));
-    const exercisesInfo = await prisma.exercise.findMany({
-      where: { id: { in: exerciseIds } },
-      select: { id: true, name: true },
-    });
-    const exerciseNameMap = new Map(exercisesInfo.map((e) => [e.id, e.name]));
-
-    const previousLogs = await prisma.exerciseLog.findMany({
-      where: {
-        studentId: studentProfile.id,
-        exerciseId: { in: exerciseIds },
-      },
-      select: { exerciseId: true, weightUsed: true },
-    });
+    const exerciseNameMap = new Map<string, string>(exercisesInfo.map((e: { id: string; name: string }) => [e.id, e.name]));
 
     const previousMaxMap = new Map<string, number>();
     for (const pl of previousLogs) {
@@ -132,7 +146,7 @@ export async function POST(request: Request) {
     }
 
     const prsBeaten: { exerciseName: string; weight: number; previousWeight: number }[] = [];
-    currentMaxMap.forEach((newMax, exId) => {
+    currentMaxMap.forEach((newMax: number, exId: string) => {
       const oldMax = previousMaxMap.get(exId) || 0;
       if (newMax > oldMax && newMax > 0) {
         prsBeaten.push({
@@ -160,7 +174,7 @@ export async function POST(request: Request) {
       });
 
       // Mapear logs
-      const logsPayload = logs.map((log) => ({
+      const logsPayload = logs.map((log: { exerciseId: string; setNumber: number; weightUsed: number; repsPerformed: number; rpe?: number | null; failed: boolean }) => ({
         studentId: studentProfile.id,
         sessionId: workoutSession.id,
         exerciseId: log.exerciseId,
@@ -178,20 +192,22 @@ export async function POST(request: Request) {
       return workoutSession;
     });
 
-    // --- CÁLCULO DE CONQUISTAS E XP DEPOIS DE SALVAR ---
-    const sessionsAfter = await prisma.workoutSession.findMany({
-      where: { studentId: studentProfile.id },
-      include: { logs: true },
-      orderBy: { date: "desc" },
-    });
+    // --- CÁLCULO DE CONQUISTAS E XP DEPOIS DE SALVAR (OTIMIZADO EM MEMÓRIA - ZERO QUERIES EXTRAS) ---
+    const totalSessionsAfter = totalSessionsBefore + 1;
 
-    const prAggregationsAfter = await prisma.exerciseLog.groupBy({
-      by: ["exerciseId"],
-      where: { studentId: studentProfile.id },
-    });
+    // Identifica se algum exercício do treino é novo para o aluno (expandindo a contagem de PRs)
+    const existingExerciseIds = new Set<string>(prAggregationsBefore.map((p: { exerciseId: string }) => p.exerciseId));
+    const newDistinctExercisesLogged = new Set<string>(
+      logs.map((l: { exerciseId: string }) => l.exerciseId).filter((id: string) => !existingExerciseIds.has(id))
+    );
+    const prsCountAfter = prsCountBefore + newDistinctExercisesLogged.size;
 
-    const totalSessionsAfter = sessionsAfter.length;
-    const prsCountAfter = prAggregationsAfter.length;
+    // Atualiza a lista de sessões em memória com a sessão recém-criada para o cálculo do Streak
+    const sessionLogsSimplified = logs.map((l: { exerciseId: string }) => ({ exerciseId: l.exerciseId }));
+    const sessionsAfter = [
+      { date: result.date, logs: sessionLogsSimplified },
+      ...sessionsBefore,
+    ];
     const streakAfter = calculateStreak(sessionsAfter, studentPlans);
 
     const unlockedAfter = getUnlockedAchievements(
@@ -202,11 +218,11 @@ export async function POST(request: Request) {
     );
 
     // Conquistas recém-desbloqueadas
-    const newlyUnlockedIds = unlockedAfter.filter((id) => !unlockedBefore.includes(id));
+    const newlyUnlockedIds = unlockedAfter.filter((id: string) => !unlockedBefore.includes(id));
     const newlyUnlocked = ALL_ACHIEVEMENTS.filter((ach) => newlyUnlockedIds.includes(ach.id));
 
     // Cálculo do XP ganho
-    const achievementsXp = newlyUnlocked.reduce((acc, ach) => acc + ach.xpReward, 0);
+    const achievementsXp = newlyUnlocked.reduce((acc: number, ach) => acc + ach.xpReward, 0);
     const prsXp = prsBeaten.length * 150;
     const sessionXp = 300;
     const totalXpEarned = sessionXp + prsXp + achievementsXp;

@@ -43,16 +43,18 @@ model TrainerProfile {
 }
 
 model StudentProfile {
-  id           String            @id @default(cuid())
-  userId       String            @unique
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trainerId    String?
-  trainer      TrainerProfile?   @relation(fields: [trainerId], references: [id])
-  weightGoal   String            @default("EMAGRECER") // EMAGRECER ou GANHAR_MASSA
-  workoutPlans WorkoutPlan[]
-  sessions     WorkoutSession[]
-  measurements BodyMeasurement[]
-  logs         ExerciseLog[]
+  id               String            @id @default(cuid())
+  userId           String            @unique
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trainerId        String?
+  trainer          TrainerProfile?   @relation(fields: [trainerId], references: [id])
+  weightGoal       String            @default("EMAGRECER") // EMAGRECER ou GANHAR_MASSA
+  workoutPlans     WorkoutPlan[]
+  sessions         WorkoutSession[]
+  measurements     BodyMeasurement[]
+  logs             ExerciseLog[]
+  createdGroups    WorkoutGroup[]    @relation("CreatedGroups")
+  groupMemberships GroupMember[]
 }
 
 model Exercise {
@@ -163,4 +165,29 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model WorkoutGroup {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  icon        String?        @default("🏋️")
+  code        String         @unique
+  creatorId   String
+  creator     StudentProfile @relation("CreatedGroups", fields: [creatorId], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model GroupMember {
+  id        String         @id @default(cuid())
+  groupId   String
+  group     WorkoutGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  role      String         @default("MEMBER") // ADMIN ou MEMBER
+  joinedAt  DateTime       @default(now())
+
+  @@unique([groupId, studentId])
 }
