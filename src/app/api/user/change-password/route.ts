@@ -38,8 +38,8 @@ export async function POST(request: Request) {
       where: { id: session.user.id },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
+    if (!user || !user.password) {
+      return NextResponse.json({ error: "Usuário não encontrado ou sem senha registrada." }, { status: 404 });
     }
 
     // Validar se a senha atual confere

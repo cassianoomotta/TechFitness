@@ -375,6 +375,7 @@ export default function TrainerDashboard() {
             </nav>
           </div>
 
+          <div className="flex items-center gap-3">
             <Link
               href="/trainer/profile"
               className="flex items-center gap-3 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
@@ -727,15 +728,18 @@ export default function TrainerDashboard() {
             )}
 
             {modalSuccess && (
-              <div className="mb-4 p-3 rounded-lg bg-[#00C2FF]/10 border border-[#2563EB]/30 text-[#1E40AF] text-xs text-center">
-                {activeTab === "create" ? "Aluno cadastrado com sucesso!" : "Aluno vinculado com sucesso!"}
+              <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs text-center font-medium flex items-center justify-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600" />
+                {activeTab === "create"
+                  ? "Aluno cadastrado! Convite com link de confirmação enviado por e-mail."
+                  : "Aluno vinculado com sucesso!"}
               </div>
             )}
 
             {activeTab === "create" ? (
               <>
-                <p className="text-xs text-[#94A3B8] mb-5 leading-relaxed">
-                  O aluno será criado com o papel de Aluno e ficará imediatamente vinculado ao seu perfil para prescrição de treinos.
+                <p className="text-xs text-[#64748B] mb-5 leading-relaxed bg-blue-50/60 border border-blue-100 rounded-xl p-3">
+                  ✉️ <strong>Convite Automático:</strong> O aluno receberá um e-mail com botão para confirmar seus dados e definir a senha definitiva dele.
                 </p>
                 <form onSubmit={handleCreateStudent} className="space-y-4">
                   {/* Nome */}

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { sendStudentInviteEmail } from "@/lib/email";
 
 const studentCreateSchema = z.object({
   name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
@@ -159,7 +160,29 @@ export async function POST(request: Request) {
       };
     });
 
-    return NextResponse.json(newStudent, { status: 201 });
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const inviteUrl = `${baseUrl}/welcome?email=${encodeURIComponent(newStudent.email)}`;
+
+    // Disparar envio de e-mail de convite para o novo aluno
+    try {
+      await sendStudentInviteEmail({
+        toEmail: newStudent.email,
+        studentName: newStudent.name || "Aluno",
+        trainerName: session.user.name || "Seu Treinador",
+        inviteUrl,
+      });
+    } catch (emailErr) {
+      console.error("Falha não-bloqueante ao enviar e-mail de convite:", emailErr);
+    }
+
+    return NextResponse.json(
+      {
+        ...newStudent,
+        inviteSent: true,
+        inviteUrl,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("ERRO AO CADASTRAR ALUNO:", error);
     return NextResponse.json(
