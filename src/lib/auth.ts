@@ -44,7 +44,7 @@ const providers: NextAuthOptions["providers"] = [
         name: user.name,
         email: user.email,
         role: user.role,
-        image: user.image,
+        image: null, // Mantém cookies leves, imagem é obtida via /api/user/profile
       };
     },
   }),
@@ -68,12 +68,16 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
       }
+      // CRÍTICO: Impede que base64 infle os cookies de sessão e cause 494 REQUEST_HEADER_TOO_LARGE
+      delete token.picture;
+      delete (token as { image?: unknown }).image;
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as Role;
+        session.user.image = null;
       }
       return session;
     },

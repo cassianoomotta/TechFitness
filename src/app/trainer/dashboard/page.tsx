@@ -47,10 +47,21 @@ export default function TrainerDashboard() {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.image) {
-      setProfileImage(session.user.image);
-    }
-  }, [session]);
+    const fetchTrainerProfile = async () => {
+      try {
+        const res = await fetch("/api/user/profile", { cache: "no-store" });
+        if (res.ok) {
+          const data = (await res.json()) as { image?: string | null };
+          if (data.image) {
+            setProfileImage(data.image);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao buscar foto de perfil do treinador:", err);
+      }
+    };
+    fetchTrainerProfile();
+  }, []);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);

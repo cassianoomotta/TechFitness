@@ -175,10 +175,21 @@ export default function StudentDashboard() {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   useEffect(() => {
-    if (session?.user?.image) {
-      setProfilePhoto(session.user.image);
-    }
-  }, [session?.user?.image]);
+    const fetchUserProfile = async () => {
+      try {
+        const res = await fetch("/api/user/profile", { cache: "no-store" });
+        if (res.ok) {
+          const data = (await res.json()) as { image?: string | null };
+          if (data.image) {
+            setProfilePhoto(data.image);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao buscar foto de perfil:", err);
+      }
+    };
+    fetchUserProfile();
+  }, []);
   
   const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [trainer, setTrainer] = useState<TrainerInfo | null>(null);
