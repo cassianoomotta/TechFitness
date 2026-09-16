@@ -1,7 +1,7 @@
 "use client";
 import BrandLogo from "@/components/BrandLogo";
 import WorkoutTab from "./components/WorkoutTab";
-import PartnerTab from "./components/PartnerTab";
+import GroupsTab from "./components/GroupsTab";
 import WeightTab from "./components/WeightTab";
 import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
@@ -196,8 +196,8 @@ export default function StudentDashboard() {
   const [trainer, setTrainer] = useState<TrainerInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Estados da Aba e Duelo de Parceiros
-  const [activeTab, setActiveTab] = useState<"fichas" | "conquistas" | "dupla" | "peso">("fichas");
+  // Estados da Aba e Grupos/Duelo
+  const [activeTab, setActiveTab] = useState<"fichas" | "conquistas" | "grupos" | "dupla" | "peso">("fichas");
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [mediaLoading, setMediaLoading] = useState(true);
@@ -242,7 +242,7 @@ export default function StudentDashboard() {
   };
 
 
-  const handleTabChange = (tab: "fichas" | "conquistas" | "dupla" | "peso") => {
+  const handleTabChange = (tab: "fichas" | "conquistas" | "grupos" | "dupla" | "peso") => {
     setActiveTab(tab);
     localStorage.setItem("student_active_tab", tab);
   };
@@ -514,14 +514,14 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const savedTab = localStorage.getItem("student_active_tab");
-    if (savedTab && ["fichas", "conquistas", "dupla", "peso"].includes(savedTab)) {
-      setActiveTab(savedTab as "fichas" | "conquistas" | "dupla" | "peso");
+    if (savedTab && ["fichas", "conquistas", "grupos", "dupla", "peso"].includes(savedTab)) {
+      setActiveTab((savedTab === "dupla" ? "grupos" : savedTab) as "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
     }
   }, []);
 
-  // Buscar lista de parceiros ao carregar a aba de dupla
+  // Buscar lista de parceiros ao carregar a aba de grupos/dupla
   useEffect(() => {
-    if (activeTab === "dupla" && partners.length === 0) {
+    if ((activeTab === "grupos" || activeTab === "dupla") && partners.length === 0) {
       const fetchPartners = async () => {
         try {
           const response = await fetch("/api/student/partner-comparison");
@@ -985,15 +985,15 @@ export default function StudentDashboard() {
             <span>Meus Treinos</span>
           </button>
           <button
-            onClick={() => handleTabChange("dupla")}
+            onClick={() => handleTabChange("grupos")}
             className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              activeTab === "dupla"
+              activeTab === "grupos" || activeTab === "dupla"
                 ? "border-[#2563EB] text-[#2563EB]"
                 : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            <span>Dupla<span className="hidden sm:inline"> 🤝</span></span>
+            <span>Grupos<span className="hidden sm:inline"> 👥</span></span>
           </button>
           <button
             onClick={() => handleTabChange("peso")}
@@ -1031,13 +1031,20 @@ export default function StudentDashboard() {
         )}
 
 
-        {/* Aba 2: Treino em Dupla (Comparação) */}
-        {activeTab === "dupla" && <PartnerTab {...{
-  loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
-  partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
-  measurements, measurementsLoading, newWeight, setNewWeight, newWeightDate, setNewWeightDate, savingWeight, handleSaveWeight, selectedPhotoForZoom, setSelectedPhotoForZoom,
-  selectedTier, setSelectedTier, achievementFilter, setAchievementFilter
-}} />}
+        {/* Aba 2: Grupos de Treino, Feed Social & Duelo 1v1 */}
+        {(activeTab === "grupos" || activeTab === "dupla") && (
+          <GroupsTab
+            partnerSearchQuery={partnerSearchQuery}
+            setPartnerSearchQuery={setPartnerSearchQuery}
+            partners={partners}
+            filteredPartners={filteredPartners}
+            selectedPartnerId={selectedPartnerId}
+            handleSelectPartner={handleSelectPartner}
+            comparisonLoading={comparisonLoading}
+            comparison={comparison}
+            onOpenZoomPhoto={(photoUrl: string) => setSelectedPhotoForZoom(photoUrl)}
+          />
+        )}
 
         {/* Aba 3: Meu Peso */}
         {activeTab === "peso" && <WeightTab {...{
@@ -1367,13 +1374,13 @@ export default function StudentDashboard() {
             <span>Meus Treinos</span>
           </button>
           <button
-            onClick={() => handleTabChange("dupla")}
+            onClick={() => handleTabChange("grupos")}
             className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
-              activeTab === "dupla" ? "text-[#2563EB]" : "text-[#94A3B8]"
+              activeTab === "grupos" || activeTab === "dupla" ? "text-[#2563EB]" : "text-[#94A3B8]"
             }`}
           >
-            <Users className={`w-5 h-5 transition-transform duration-300 ${activeTab === "dupla" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
-            <span>Dupla</span>
+            <Users className={`w-5 h-5 transition-transform duration-300 ${activeTab === "grupos" || activeTab === "dupla" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
+            <span>Grupos</span>
           </button>
           <button
             onClick={() => handleTabChange("peso")}
