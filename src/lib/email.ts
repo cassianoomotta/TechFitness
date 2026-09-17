@@ -174,7 +174,61 @@ export async function sendStudentInviteEmail(
   const { toEmail, studentName, trainerName, inviteUrl } = params;
   const emailHtml = buildInviteEmailHtml(params);
 
-  // Se houver chave da Resend configurada no ambiente
+  // 1. Provedor Principal: Brevo (Sendinblue) API v3 (sem necessidade de domínio próprio)
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  if (brevoApiKey) {
+    try {
+      let senderName = "TechFitness";
+      let senderEmail =
+        process.env.BREVO_SENDER_EMAIL ||
+        process.env.EMAIL_FROM ||
+        "contato@techfitness.com.br";
+
+      if (senderEmail.includes("<")) {
+        const match = senderEmail.match(/(.*?)\s*<(.+)>/);
+        if (match) {
+          senderName = match[1].trim() || "TechFitness";
+          senderEmail = match[2].trim();
+        }
+      }
+
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "api-key": brevoApiKey,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: {
+            name: senderName,
+            email: senderEmail,
+          },
+          to: [
+            {
+              email: toEmail,
+              name: studentName,
+            },
+          ],
+          subject: `🏋️ ${studentName}, seu treinador ${trainerName} te convidou para o TechFitness!`,
+          htmlContent: emailHtml,
+        }),
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as { messageId?: string };
+        console.log(`[EMAIL BREVO] Convite enviado com sucesso para ${toEmail}. MessageId: ${data?.messageId}`);
+        return { success: true, mode: "sent", messageId: data?.messageId };
+      } else {
+        const errText = await response.text();
+        console.warn(`[EMAIL BREVO] Falha no envio para ${toEmail}:`, errText);
+      }
+    } catch (err: unknown) {
+      console.error("[EMAIL BREVO] Erro de conexão:", err);
+    }
+  }
+
+  // 2. Provedor Secundário: Resend (caso RESEND_API_KEY esteja presente)
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
@@ -193,14 +247,14 @@ export async function sendStudentInviteEmail(
       });
 
       if (response.ok) {
-        const data = await response.json() as { id?: string };
+        const data = (await response.json()) as { id?: string };
         console.log(`[EMAIL RESEND] Convite enviado com sucesso para ${toEmail}. ID: ${data?.id}`);
         return { success: true, mode: "sent", messageId: data?.id };
       } else {
         const errText = await response.text();
         console.warn(`[EMAIL RESEND] Erro ao enviar convite para ${toEmail}:`, errText);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("[EMAIL RESEND] Falha de conexão:", err);
     }
   }
