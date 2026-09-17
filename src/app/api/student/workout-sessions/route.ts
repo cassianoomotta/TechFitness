@@ -17,6 +17,7 @@ const workoutSessionSchema = z.object({
   durationMs: z.number().int().min(0, "A duração não pode ser negativa"),
   satisfaction: z.number().int().min(1).max(10, "Esforço geral deve ser entre 1 e 10"),
   photoUrl: z.string().min(1, "A foto comprobatória do treino é obrigatória"),
+  targetGroupIds: z.array(z.string()).optional(),
   logs: z.array(
     z.object({
       exerciseId: z.string().min(1),
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { durationMs, satisfaction, photoUrl, logs } = validation.data;
+    const { durationMs, satisfaction, photoUrl, logs, targetGroupIds } = validation.data;
 
     const exerciseIds = Array.from(new Set(logs.map((l: { exerciseId: string }) => l.exerciseId)));
 
@@ -170,6 +171,7 @@ export async function POST(request: Request) {
           satisfaction,
           completed: true,
           photoUrl,
+          targetGroupIds: targetGroupIds && targetGroupIds.length > 0 ? targetGroupIds : ["ALL"],
         },
       });
 

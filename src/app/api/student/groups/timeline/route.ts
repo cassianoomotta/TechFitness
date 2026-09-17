@@ -162,56 +162,82 @@ export async function GET(req: NextRequest) {
       take: 50,
     });
 
-    // Formatar cada item da timeline
-    const timeline = sessions.map((sess) => {
-      const student = sess.student;
-      const allDates = student.sessions.map((s) => s.date);
-      const streak = calculateStreak(allDates);
+    // Formatar cada item da timeline respeitando os grupos selecionados pelo autor (targetGroupIds)
+    const timeline = sessions
+      .map((sess) => {
+        const student = sess.student;
+        const allDates = student.sessions.map((s: { date: Date }) => s.date);
+        const streak = calculateStreak(allDates);
 
-      const workoutsCount = student.sessions.length;
-      const measurementsCount = student.measurements.length;
-      const uniqueExercisesCount = new Set(student.logs.map((l) => l.exerciseId)).size;
-      const totalXp = workoutsCount * 50 + uniqueExercisesCount * 20 + measurementsCount * 30;
+        const workoutsCount = student.sessions.length;
+        const measurementsCount = student.measurements.length;
+        const uniqueExercisesCount = new Set(student.logs.map((l: { exerciseId: string }) => l.exerciseId)).size;
+        const totalXp = workoutsCount * 50 + uniqueExercisesCount * 20 + measurementsCount * 30;
 
-      const levelInfo = calculateLevel(totalXp);
-      const tierInfo = calculateTier(levelInfo.level);
+        const levelInfo = calculateLevel(totalXp);
+        const tierInfo = calculateTier(levelInfo.level);
 
-      // Agrupar logs de exercícios desta sessão
-      const exerciseSummaryMap = new Map<string, { name: string; sets: number; maxWeight: number }>();
-      sess.logs.forEach((log) => {
-        const exName = log.exercise.name;
-        const current = exerciseSummaryMap.get(exName) || { name: exName, sets: 0, maxWeight: 0 };
-        current.sets += 1;
-        if (log.weightUsed > current.maxWeight) {
-          current.maxWeight = log.weightUsed;
+        // Agrupar logs de exercícios desta sessão
+        const exerciseSummaryMap = new Map<string, { name: string; sets: number; maxWeight: number }>();
+        sess.logs.forEach((log: { exercise: { name: string }; weightUsed: number }) => {
+          const exName = log.exercise.name;
+          const current = exerciseSummaryMap.get(exName) || { name: exName, sets: 0, maxWeight: 0 };
+          current.sets += 1;
+          if (log.weightUsed > current.maxWeight) {
+            current.maxWeight = log.weightUsed;
+          }
+          exerciseSummaryMap.set(exName, current);
+        });
+
+        const exercisesSummary = Array.from(exerciseSummaryMap.values());
+
+        // Grupos em comum entre o autor da postagem e o usuário logado
+        const mutualGroups = mutualGroupsMap.get(sess.studentId) || [];
+
+        // Filtrar de acordo com os grupos selecionados pelo autor na postagem (targetGroupIds)
+        let rawTargetIds: string[] = [];
+        if (Array.isArray(sess.targetGroupIds)) {
+          rawTargetIds = sess.targetGroupIds as string[];
+        } else if (typeof sess.targetGroupIds === "string") {
+          try {
+            const parsed = JSON.parse(sess.targetGroupIds);
+            if (Array.isArray(parsed)) rawTargetIds = parsed;
+          } catch (e) {}
         }
-        exerciseSummaryMap.set(exName, current);
-      });
 
-      const exercisesSummary = Array.from(exerciseSummaryMap.values());
+        const isAllGroups = rawTargetIds.length === 0 || rawTargetIds.includes("ALL");
+        const visibleGroups = isAllGroups
+          ? mutualGroups
+          : mutualGroups.filter((g) => rawTargetIds.includes(g.id));
 
-      return {
-        id: sess.id,
-        date: sess.date.toISOString(),
-        durationMs: sess.durationMs,
-        satisfaction: sess.satisfaction,
-        photoUrl: sess.photoUrl,
-        isMe: sess.studentId === studentProfile.id,
-        student: {
-          id: student.id,
-          name: student.user.name || "Atleta",
-          image: student.user.image,
-          streak,
-          level: levelInfo.level,
-          levelTitle: levelInfo.title,
-          tierName: tierInfo.name,
-          tierBadge: tierInfo.badge,
-        },
-        groups: mutualGroupsMap.get(sess.studentId) || [],
-        exercises: exercisesSummary,
-        exercisesCount: exercisesSummary.length,
-      };
-    });
+        // Se o autor não compartilhou com nenhum dos grupos mútuos visualizados, não exibe
+        if (visibleGroups.length === 0) {
+          return null;
+        }
+
+        return {
+          id: sess.id,
+          date: sess.date.toISOString(),
+          durationMs: sess.durationMs,
+          satisfaction: sess.satisfaction,
+          photoUrl: sess.photoUrl,
+          isMe: sess.studentId === studentProfile.id,
+          student: {
+            id: student.id,
+            name: student.user.name || "Atleta",
+            image: student.user.image,
+            streak,
+            level: levelInfo.level,
+            levelTitle: levelInfo.title,
+            tierName: tierInfo.name,
+            tierBadge: tierInfo.badge,
+          },
+          groups: visibleGroups,
+          exercises: exercisesSummary,
+          exercisesCount: exercisesSummary.length,
+        };
+      })
+      .filter((post): post is NonNullable<typeof post> => post !== null);
 
     return NextResponse.json({
       timeline,

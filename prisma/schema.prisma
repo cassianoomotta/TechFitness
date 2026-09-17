@@ -104,15 +104,16 @@ model WorkoutPlanExercise {
 }
 
 model WorkoutSession {
-  id           String         @id @default(cuid())
-  studentId    String
-  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  date         DateTime       @default(now())
-  durationMs   Int
-  satisfaction Int // RPE geral do treino (1 a 10)
-  completed    Boolean        @default(true)
-  photoUrl     String? // Foto comprobatória do treino (Check-in)
-  logs         ExerciseLog[]
+  id             String         @id @default(cuid())
+  studentId      String
+  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date           DateTime       @default(now())
+  durationMs     Int
+  satisfaction   Int // RPE geral do treino (1 a 10)
+  completed      Boolean        @default(true)
+  photoUrl       String? // Foto comprobatória do treino (Check-in)
+  targetGroupIds Json?          @default("[]") // Lista de IDs de grupos selecionados para postagem (vazio ou ["ALL"] = todos)
+  logs           ExerciseLog[]
 }
 
 model ExerciseLog {

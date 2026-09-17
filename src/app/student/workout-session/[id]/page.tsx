@@ -61,6 +61,13 @@ interface SetState {
   completed: boolean;
 }
 
+interface UserGroupOption {
+  id: string;
+  name: string;
+  icon: string;
+  membersCount: number;
+}
+
 export default function WorkoutSessionPlayer() {
   const params = useParams();
   const router = useRouter();
@@ -235,6 +242,12 @@ export default function WorkoutSessionPlayer() {
   const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
 
+  // Grupos do aluno para compartilhamento do check-in
+  const [userGroups, setUserGroups] = useState<UserGroupOption[]>([]);
+  const [userGroupsLoading, setUserGroupsLoading] = useState(false);
+  const [postToAllGroups, setPostToAllGroups] = useState(true);
+  const [selectedTargetGroupIds, setSelectedTargetGroupIds] = useState<string[]>([]);
+
   // Modal de Vitória Épica
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
   const [victoryData, setVictoryData] = useState<any | null>(null);
@@ -306,6 +319,32 @@ export default function WorkoutSessionPlayer() {
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [planId]);
+
+  // Buscar grupos do aluno logado
+  useEffect(() => {
+    const fetchUserGroups = async () => {
+      setUserGroupsLoading(true);
+      try {
+        const res = await fetch("/api/student/groups");
+        if (res.ok) {
+          const data = await res.json();
+          const groups: UserGroupOption[] = (data.groups || []).map((g: { id: string; name: string; icon?: string; membersCount?: number }) => ({
+            id: g.id,
+            name: g.name,
+            icon: g.icon || "🏋️",
+            membersCount: g.membersCount || 0,
+          }));
+          setUserGroups(groups);
+          setSelectedTargetGroupIds(groups.map((g: UserGroupOption) => g.id));
+        }
+      } catch (err) {
+        console.error("Erro ao carregar grupos do aluno:", err);
+      } finally {
+        setUserGroupsLoading(false);
+      }
+    };
+    fetchUserGroups();
+  }, []);
 
   const handleRenameExercise = async () => {
     if (!renamingExercise) return;
@@ -553,6 +592,16 @@ export default function WorkoutSessionPlayer() {
       return;
     }
 
+    let targetGroupIdsPayload: string[] = ["ALL"];
+    if (!postToAllGroups) {
+      if (selectedTargetGroupIds.length === 0 && userGroups.length > 0) {
+        setFinishError("Selecione pelo menos um grupo para compartilhar ou marque 'Postar para todos'.");
+        setFinishLoading(false);
+        return;
+      }
+      targetGroupIdsPayload = selectedTargetGroupIds;
+    }
+
     try {
       const response = await fetch("/api/student/workout-sessions", {
         method: "POST",
@@ -561,6 +610,7 @@ export default function WorkoutSessionPlayer() {
           durationMs: Math.min(Math.max(0, Math.floor(totalSeconds * 1000)), 86400000),
           satisfaction: Number(satisfaction),
           photoUrl: workoutPhoto,
+          targetGroupIds: targetGroupIdsPayload,
           logs: logsPayload,
         }),
       });
@@ -933,10 +983,10 @@ export default function WorkoutSessionPlayer() {
         </div>
       )}
 
-      {/* Modal Finalizar Treino com Foto Obrigatória */}
+      {/* Modal Finalizar Treino com Foto Obrigatória e Escolha de Grupos */}
       {isFinishModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] text-center max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] text-center max-h-[90vh] overflow-y-auto">
             
             <button
               onClick={() => setIsFinishModalOpen(false)}
@@ -1046,6 +1096,136 @@ export default function WorkoutSessionPlayer() {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Seção 3: Compartilhar Check-in nos Grupos */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block">
+                    3. Compartilhar Check-in nos Grupos:
+                  </label>
+                  {userGroups.length > 0 && (
+                    <span className="text-[10px] text-[#2563EB] font-bold">
+                      {userGroups.length} {userGroups.length === 1 ? "grupo" : "grupos"}
+                    </span>
+                  )}
+                </div>
+
+                {userGroupsLoading ? (
+                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-xs text-[#94A3B8]">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#2563EB]" />
+                    <span>Carregando seus grupos...</span>
+                  </div>
+                ) : userGroups.length === 0 ? (
+                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                    <p className="text-xs text-[#64748B]">
+                      Você ainda não participa de grupos. O check-in ficará salvo no seu perfil!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Opção: Todos os Grupos */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPostToAllGroups(true);
+                        setSelectedTargetGroupIds(userGroups.map((g: UserGroupOption) => g.id));
+                      }}
+                      className={`w-full p-2.5 sm:p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        postToAllGroups
+                          ? "bg-blue-50/70 border-[#2563EB] text-[#0F172A] shadow-2xs"
+                          : "bg-white border-slate-200 text-[#64748B] hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                          postToAllGroups ? "border-[#2563EB] bg-[#2563EB] text-white" : "border-slate-300 bg-white"
+                        }`}>
+                          {postToAllGroups && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block leading-tight text-[#0F172A]">
+                            Postar para todos os meus grupos
+                          </span>
+                          <span className="text-[10px] text-[#64748B] leading-none">
+                            Todos os seus amigos e turmas verão o check-in
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs">🌐</span>
+                    </button>
+
+                    {/* Opção: Escolher Grupos Específicos */}
+                    <button
+                      type="button"
+                      onClick={() => setPostToAllGroups(false)}
+                      className={`w-full p-2.5 sm:p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        !postToAllGroups
+                          ? "bg-blue-50/70 border-[#2563EB] text-[#0F172A] shadow-2xs"
+                          : "bg-white border-slate-200 text-[#64748B] hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                          !postToAllGroups ? "border-[#2563EB] bg-[#2563EB] text-white" : "border-slate-300 bg-white"
+                        }`}>
+                          {!postToAllGroups && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block leading-tight text-[#0F172A]">
+                            Escolher grupos específicos
+                          </span>
+                          <span className="text-[10px] text-[#64748B] leading-none">
+                            Selecione apenas as turmas desejadas
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-[#2563EB]">
+                        {!postToAllGroups ? `${selectedTargetGroupIds.length}/${userGroups.length}` : ""}
+                      </span>
+                    </button>
+
+                    {/* Lista de Checkboxes de Grupos quando customizado */}
+                    {!postToAllGroups && (
+                      <div className="p-2 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-1.5 max-h-36 overflow-y-auto pr-1 animate-in fade-in duration-150">
+                        {userGroups.map((group: UserGroupOption) => {
+                          const isChecked = selectedTargetGroupIds.includes(group.id);
+                          return (
+                            <div
+                              key={group.id}
+                              onClick={() => {
+                                setSelectedTargetGroupIds((prev: string[]) =>
+                                  prev.includes(group.id)
+                                    ? prev.filter((id: string) => id !== group.id)
+                                    : [...prev, group.id]
+                                );
+                              }}
+                              className={`p-2 rounded-xl flex items-center justify-between transition-all cursor-pointer border ${
+                                isChecked
+                                  ? "bg-white border-blue-200 shadow-2xs"
+                                  : "bg-transparent border-transparent hover:bg-slate-100/70"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-base shrink-0">{group.icon || "🏋️"}</span>
+                                <span className="text-xs font-semibold text-[#0F172A] truncate">
+                                  {group.name}
+                                </span>
+                              </div>
+                              <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-all ${
+                                isChecked
+                                  ? "bg-[#2563EB] border-[#2563EB] text-white"
+                                  : "border-slate-300 bg-white"
+                              }`}>
+                                {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Botão de Finalização */}
