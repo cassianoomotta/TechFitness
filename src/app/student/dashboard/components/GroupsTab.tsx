@@ -114,6 +114,32 @@ export interface GroupFullDetail {
   members: GroupMemberDetail[];
 }
 
+export interface LeaderboardMemberItem {
+  memberId?: string;
+  id?: string;
+  studentId?: string;
+  role?: string;
+  joinedAt?: string;
+  name?: string;
+  image?: string | null;
+  streak?: number;
+  totalSessions?: number;
+  workoutsCount?: number;
+  totalXp?: number;
+  level?: number;
+  levelTitle?: string;
+  student?: {
+    id?: string;
+    name?: string;
+    image?: string | null;
+    streak?: number;
+    workoutsCount?: number;
+    totalXp?: number;
+    level?: number;
+    levelTitle?: string;
+  };
+}
+
 export interface PartnerItem {
   id: string;
   name: string;
@@ -341,7 +367,33 @@ export default function GroupsTab({
       const res = await fetch(`/api/student/groups/${groupId}`);
       if (res.ok) {
         const data = await res.json();
-        setSelectedGroupDetail(data.group);
+        const rawLeaderboard: LeaderboardMemberItem[] = data.allTimeLeaderboard || [];
+        const fallbackMembers: GroupMemberDetail[] = rawLeaderboard.map((m: LeaderboardMemberItem) => ({
+          id: m.memberId || m.id || "",
+          role: m.role || "MEMBER",
+          joinedAt: m.joinedAt || new Date().toISOString(),
+          student: {
+            id: m.studentId || m.student?.id || "",
+            name: m.name || m.student?.name || "Atleta",
+            image: m.image || m.student?.image || null,
+            streak: m.streak ?? m.student?.streak ?? 0,
+            workoutsCount: m.totalSessions ?? m.workoutsCount ?? m.student?.workoutsCount ?? 0,
+            totalXp: m.totalXp ?? m.student?.totalXp ?? 0,
+            level: m.level ?? m.student?.level ?? 1,
+            levelTitle: m.levelTitle ?? m.student?.levelTitle ?? "Iniciante",
+          },
+        }));
+
+        const membersList: GroupMemberDetail[] =
+          Array.isArray(data.group?.members) && data.group.members.length > 0
+            ? data.group.members
+            : fallbackMembers;
+
+        setSelectedGroupDetail({
+          ...data.group,
+          membersCount: data.group?.membersCount ?? data.group?.totalMembers ?? membersList.length,
+          members: membersList,
+        });
       }
     } catch (err) {
       console.error("Erro ao buscar detalhes do grupo:", err);
@@ -785,29 +837,11 @@ export default function GroupsTab({
           ========================================================================= */}
       {internalTab === "groups" && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-base font-bold text-[#0F172A]">Seus Grupos de Treino</h3>
-              <p className="text-xs text-[#64748B]">
-                Participe de turmas ilimitadas, convide amigos e acompanhe o ranking interno.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowJoinModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-semibold text-xs transition-all border border-slate-200 flex items-center gap-1.5"
-              >
-                <UserPlus className="w-3.5 h-3.5 text-[#2563EB]" />
-                Entrar com Código
-              </button>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Novo Grupo
-              </button>
-            </div>
+          <div>
+            <h3 className="text-base font-bold text-[#0F172A]">Seus Grupos de Treino</h3>
+            <p className="text-xs text-[#64748B]">
+              Participe de turmas ilimitadas, convide amigos e acompanhe o ranking interno.
+            </p>
           </div>
 
           {groupsLoading ? (
@@ -853,12 +887,12 @@ export default function GroupsTab({
                     <div>
                       {/* Topo do Card do Grupo */}
                       <div className="flex items-start justify-between gap-3 mb-3">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl shadow-2xs shrink-0">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl shadow-2xs shrink-0 mt-0.5">
                             {group.icon || "🏋️"}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-bold text-[#0F172A] leading-tight truncate">
+                            <h4 className="text-sm font-bold text-[#0F172A] leading-snug break-words">
                               {group.name}
                             </h4>
                             <div className="flex items-center gap-2 mt-1">
@@ -944,7 +978,7 @@ export default function GroupsTab({
                         className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-[#2563EB] hover:text-white text-[#0F172A] font-bold text-xs transition-all flex items-center justify-center gap-1.5"
                       >
                         <Users className="w-3.5 h-3.5" />
-                        Ver Membros E Ranking
+                        Membros e Ranking
                       </button>
                       <button
                         onClick={() => handleLeaveGroup(group.id, !!group.isCreator)}
@@ -1362,7 +1396,7 @@ export default function GroupsTab({
                   <h4 className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
                     Ranking de Consistência no Grupo
                   </h4>
-                  {selectedGroupDetail.members.map((member, idx) => (
+                  {(selectedGroupDetail.members || []).map((member: GroupMemberDetail, idx: number) => (
                     <div
                       key={member.id}
                       className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-100 flex items-center justify-between transition-all"
