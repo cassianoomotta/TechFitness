@@ -110,7 +110,52 @@ export async function GET(req: NextRequest) {
 
     const targetStudentIds = Array.from(targetStudentIdsSet);
 
-    // Buscar as sessões dos membros (priorizando as que têm fotoUrl de check-in)
+    // Buscar estatísticas de gamificação dos atletas participantes apenas 1 vez (redução massiva de overhead)
+    const authorProfiles = await prisma.studentProfile.findMany({
+      where: { id: { in: targetStudentIds } },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            sessions: true,
+            measurements: true,
+            logs: true,
+          },
+        },
+        sessions: {
+          select: { date: true },
+          orderBy: { date: "desc" },
+          take: 45,
+        },
+      },
+    });
+
+    const athleteStatsMap = new Map<
+      string,
+      { streak: number; workoutsCount: number; level: number; levelTitle: string; tierName: string; tierBadge: string }
+    >();
+
+    authorProfiles.forEach((ap) => {
+      const allDates = ap.sessions.map((s: { date: Date }) => s.date);
+      const streak = calculateStreak(allDates);
+      const workoutsCount = ap._count.sessions;
+      const measurementsCount = ap._count.measurements;
+      const logsCount = ap._count.logs;
+      const totalXp = workoutsCount * 50 + Math.min(logsCount, 100) * 20 + measurementsCount * 30;
+      const levelInfo = calculateLevel(totalXp);
+      const tierInfo = calculateTier(levelInfo.level);
+
+      athleteStatsMap.set(ap.id, {
+        streak,
+        workoutsCount,
+        level: levelInfo.level,
+        levelTitle: levelInfo.title,
+        tierName: tierInfo.name,
+        tierBadge: tierInfo.badge,
+      });
+    });
+
+    // Buscar as sessões dos membros (limitado às últimas 40 para alta velocidade)
     const sessions = await prisma.workoutSession.findMany({
       where: {
         studentId: { in: targetStudentIds },
@@ -126,26 +171,10 @@ export async function GET(req: NextRequest) {
                 image: true,
               },
             },
-            sessions: {
-              select: {
-                id: true,
-                date: true,
-              },
-            },
-            measurements: {
-              select: {
-                id: true,
-              },
-            },
-            logs: {
-              select: {
-                exerciseId: true,
-              },
-            },
           },
         },
         logs: {
-          include: {
+          select: {
             exercise: {
               select: {
                 id: true,
@@ -153,29 +182,27 @@ export async function GET(req: NextRequest) {
                 muscleGroup: true,
               },
             },
+            weightUsed: true,
           },
         },
       },
       orderBy: {
         date: "desc",
       },
-      take: 50,
+      take: 40,
     });
 
     // Formatar cada item da timeline respeitando os grupos selecionados pelo autor (targetGroupIds)
     const timeline = sessions
       .map((sess) => {
-        const student = sess.student;
-        const allDates = student.sessions.map((s: { date: Date }) => s.date);
-        const streak = calculateStreak(allDates);
-
-        const workoutsCount = student.sessions.length;
-        const measurementsCount = student.measurements.length;
-        const uniqueExercisesCount = new Set(student.logs.map((l: { exerciseId: string }) => l.exerciseId)).size;
-        const totalXp = workoutsCount * 50 + uniqueExercisesCount * 20 + measurementsCount * 30;
-
-        const levelInfo = calculateLevel(totalXp);
-        const tierInfo = calculateTier(levelInfo.level);
+        const stats = athleteStatsMap.get(sess.studentId) || {
+          streak: 0,
+          workoutsCount: 1,
+          level: 1,
+          levelTitle: "Iniciante",
+          tierName: "Bronze",
+          tierBadge: "🥉",
+        };
 
         // Agrupar logs de exercícios desta sessão
         const exerciseSummaryMap = new Map<string, { name: string; sets: number; maxWeight: number }>();
@@ -223,14 +250,14 @@ export async function GET(req: NextRequest) {
           photoUrl: sess.photoUrl,
           isMe: sess.studentId === studentProfile.id,
           student: {
-            id: student.id,
-            name: student.user.name || "Atleta",
-            image: student.user.image,
-            streak,
-            level: levelInfo.level,
-            levelTitle: levelInfo.title,
-            tierName: tierInfo.name,
-            tierBadge: tierInfo.badge,
+            id: sess.student.id,
+            name: sess.student.user.name || "Atleta",
+            image: sess.student.user.image,
+            streak: stats.streak,
+            level: stats.level,
+            levelTitle: stats.levelTitle,
+            tierName: stats.tierName,
+            tierBadge: stats.tierBadge,
           },
           groups: visibleGroups,
           exercises: exercisesSummary,

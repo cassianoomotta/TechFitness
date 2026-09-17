@@ -109,7 +109,7 @@ export interface GroupFullDetail {
   creatorId: string;
   creatorName: string;
   creatorImage?: string | null;
-  createdAt: string;
+  createdAt?: string;
   isCreator: boolean;
   membersCount: number;
   members: GroupMemberDetail[];
@@ -179,6 +179,13 @@ interface GroupsTabProps {
   onOpenZoomPhoto?: (photoUrl: string) => void;
 }
 
+// =========================================================================
+// Cache em memória para alta performance (Navegação instantânea 0ms)
+// =========================================================================
+let cachedGroups: GroupSummary[] | null = null;
+let cachedTimeline: TimelinePost[] | null = null;
+const cachedGroupDetails: Record<string, GroupFullDetail> = {};
+
 export default function GroupsTab({
   partnerSearchQuery,
   setPartnerSearchQuery,
@@ -193,11 +200,11 @@ export default function GroupsTab({
   // Aba interna do componente: Feed Social vs Gerenciar Grupos vs Duelo 1-a-1
   const [internalTab, setInternalTab] = useState<"feed" | "groups" | "duel">("feed");
 
-  // Dados dos grupos e timeline
-  const [groups, setGroups] = useState<GroupSummary[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(true);
-  const [timeline, setTimeline] = useState<TimelinePost[]>([]);
-  const [timelineLoading, setTimelineLoading] = useState(true);
+  // Dados dos grupos e timeline com hidratação de cache imediata (0ms)
+  const [groups, setGroups] = useState<GroupSummary[]>(() => cachedGroups || []);
+  const [groupsLoading, setGroupsLoading] = useState<boolean>(() => !cachedGroups);
+  const [timeline, setTimeline] = useState<TimelinePost[]>(() => cachedTimeline || []);
+  const [timelineLoading, setTimelineLoading] = useState<boolean>(() => !cachedTimeline);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
 
   // Modais de Criação e Entrada
@@ -231,14 +238,26 @@ export default function GroupsTab({
   // Ícones disponíveis para personalização do grupo
   const EMOJI_OPTIONS = ["🏋️", "⚡", "🔥", "🥊", "🚴", "🏃", "🏆", "🥇", "💥", "💪", "⚔️", "🎯"];
 
-  // Carregar grupos do usuário
-  const fetchUserGroups = async () => {
-    setGroupsLoading(true);
+  // Timeline filtrada em memória instantaneamente (0ms de latência e sem recarregar tela)
+  const displayedTimeline = useMemo(() => {
+    if (selectedGroupId === "all") return timeline;
+    return timeline.filter((post: TimelinePost) =>
+      post.groups?.some((g) => g.id === selectedGroupId)
+    );
+  }, [timeline, selectedGroupId]);
+
+  // Carregar grupos do usuário (revalidação suave em segundo plano)
+  const fetchUserGroups = async (forceSpinner = false) => {
+    if (forceSpinner || !cachedGroups) {
+      setGroupsLoading(true);
+    }
     try {
       const res = await fetch("/api/student/groups");
       if (res.ok) {
         const data = await res.json();
-        setGroups(data.groups || []);
+        const items: GroupSummary[] = data.groups || [];
+        setGroups(items);
+        cachedGroups = items;
       }
     } catch (err) {
       console.error("Erro ao carregar grupos:", err);
@@ -247,18 +266,18 @@ export default function GroupsTab({
     }
   };
 
-  // Carregar timeline centralizada com base no filtro selecionado
-  const fetchTimeline = async (groupId: string = "all") => {
-    setTimelineLoading(true);
+  // Carregar timeline centralizada (revalidação suave em segundo plano)
+  const fetchTimeline = async (forceSpinner = false) => {
+    if (forceSpinner || !cachedTimeline) {
+      setTimelineLoading(true);
+    }
     try {
-      const url =
-        groupId && groupId !== "all"
-          ? `/api/student/groups/timeline?groupId=${groupId}`
-          : "/api/student/groups/timeline";
-      const res = await fetch(url);
+      const res = await fetch("/api/student/groups/timeline");
       if (res.ok) {
         const data = await res.json();
-        setTimeline(data.timeline || []);
+        const items: TimelinePost[] = data.timeline || [];
+        setTimeline(items);
+        cachedTimeline = items;
       }
     } catch (err) {
       console.error("Erro ao buscar timeline dos grupos:", err);
@@ -269,13 +288,12 @@ export default function GroupsTab({
 
   useEffect(() => {
     fetchUserGroups();
-    fetchTimeline("all");
+    fetchTimeline();
   }, []);
 
-  // Recarregar timeline ao mudar filtro de grupo
+  // Mudar filtro de grupo (instantâneo via memória)
   const handleGroupFilterChange = (groupId: string) => {
     setSelectedGroupId(groupId);
-    fetchTimeline(groupId);
   };
 
   // Copiar apenas o código de convite
@@ -314,10 +332,11 @@ export default function GroupsTab({
         setNewGroupName("");
         setNewGroupDesc("");
         setNewGroupIcon("🏋️");
-        // Recarregar grupos e timeline
-        await fetchUserGroups();
-        await fetchTimeline(data.group.id);
-        setSelectedGroupId(data.group.id);
+        cachedGroups = null;
+        cachedTimeline = null;
+        // Recarregar grupos e timeline em paralelo
+        await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
+        if (data.group?.id) setSelectedGroupId(data.group.id);
       }
     } catch (err) {
       setCreateError("Erro de conexão ao criar grupo.");
@@ -356,8 +375,10 @@ export default function GroupsTab({
       } else {
         setShowJoinModal(false);
         setJoinCode("");
-        await fetchUserGroups();
-        await fetchTimeline(data.group?.id || "all");
+        cachedGroups = null;
+        cachedTimeline = null;
+        // Recarregar em paralelo
+        await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
         if (data.group?.id) setSelectedGroupId(data.group.id);
       }
     } catch (err) {
@@ -367,10 +388,36 @@ export default function GroupsTab({
     }
   };
 
-  // Abrir detalhes de membros do grupo
+  // Abrir detalhes de membros do grupo com cache instantâneo (0ms)
   const handleOpenGroupDetails = async (groupId: string) => {
+    // 1. Se já está em cache, abre na hora sem qualquer espera
+    if (cachedGroupDetails[groupId]) {
+      setSelectedGroupDetail(cachedGroupDetails[groupId]);
+      setShowMembersModal(true);
+      setDetailLoading(false);
+      return;
+    }
+
+    // 2. Se não está em cache, abre imediatamente com os dados prévios do card
+    const foundGroup = groups.find((g) => g.id === groupId);
+    if (foundGroup) {
+      setSelectedGroupDetail({
+        id: foundGroup.id,
+        name: foundGroup.name,
+        description: foundGroup.description || "",
+        icon: foundGroup.icon || "🏋️",
+        code: foundGroup.code,
+        creatorId: "",
+        creatorName: foundGroup.isCreator ? "Você" : "Atleta",
+        isCreator: !!foundGroup.isCreator,
+        membersCount: foundGroup.membersCount || foundGroup.totalMembers || 1,
+        members: [],
+      });
+    }
+
     setShowMembersModal(true);
     setDetailLoading(true);
+
     try {
       const res = await fetch(`/api/student/groups/${groupId}`);
       if (res.ok) {
@@ -397,11 +444,14 @@ export default function GroupsTab({
             ? data.group.members
             : fallbackMembers;
 
-        setSelectedGroupDetail({
+        const fullDetail: GroupFullDetail = {
           ...data.group,
           membersCount: data.group?.membersCount ?? data.group?.totalMembers ?? membersList.length,
           members: membersList,
-        });
+        };
+
+        cachedGroupDetails[groupId] = fullDetail;
+        setSelectedGroupDetail(fullDetail);
       }
     } catch (err) {
       console.error("Erro ao buscar detalhes do grupo:", err);
@@ -424,8 +474,10 @@ export default function GroupsTab({
       if (res.ok) {
         setShowMembersModal(false);
         setSelectedGroupDetail(null);
-        await fetchUserGroups();
-        await fetchTimeline("all");
+        delete cachedGroupDetails[groupId];
+        cachedGroups = null;
+        cachedTimeline = null;
+        await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
         setSelectedGroupId("all");
       }
     } catch (err) {
@@ -599,39 +651,60 @@ export default function GroupsTab({
               <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
               <p className="text-xs font-medium">Sincronizando mural da comunidade...</p>
             </div>
-          ) : timeline.length === 0 ? (
-            /* Estado Vazio */
-            <div className="bg-white border border-[#E2E8F0] rounded-3xl p-10 text-center max-w-lg mx-auto shadow-sm">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-4 border border-blue-100">
-                <Camera className="w-8 h-8" />
-              </div>
-              <h3 className="text-base font-bold text-[#0F172A] mb-1">
-                Nenhum check-in postado ainda!
-              </h3>
-              <p className="text-xs text-[#64748B] leading-relaxed mb-6">
-                Seja o pioneiro da sua turma: finalize seu treino hoje, tire uma foto de check-in e inspire seus amigos de grupo!
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
+          ) : displayedTimeline.length === 0 ? (
+            timeline.length > 0 ? (
+              /* Estado Vazio de Filtro */
+              <div className="bg-white border border-[#E2E8F0] rounded-3xl p-8 text-center max-w-md mx-auto shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-3 border border-blue-100">
+                  <Camera className="w-7 h-7" />
+                </div>
+                <h3 className="text-sm font-bold text-[#0F172A] mb-1">
+                  Nenhum check-in neste grupo ainda
+                </h3>
+                <p className="text-xs text-[#64748B] mb-5 leading-relaxed">
+                  Os membros desta turma ainda não compartilharam fotos de treino recentes.
+                </p>
                 <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-2"
+                  onClick={() => setSelectedGroupId("all")}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold transition-all"
                 >
-                  <Plus className="w-4 h-4" />
-                  Criar um Grupo
-                </button>
-                <button
-                  onClick={() => setShowJoinModal(true)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold transition-all border border-slate-200 flex items-center gap-2"
-                >
-                  <UserPlus className="w-4 h-4 text-[#2563EB]" />
-                  Entrar com Código
+                  Ver todos os grupos
                 </button>
               </div>
-            </div>
+            ) : (
+              /* Estado Vazio Geral */
+              <div className="bg-white border border-[#E2E8F0] rounded-3xl p-10 text-center max-w-lg mx-auto shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-4 border border-blue-100">
+                  <Camera className="w-8 h-8" />
+                </div>
+                <h3 className="text-base font-bold text-[#0F172A] mb-1">
+                  Nenhum check-in postado ainda!
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed mb-6">
+                  Seja o pioneiro da sua turma: finalize seu treino hoje, tire uma foto de check-in e inspire seus amigos de grupo!
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Criar um Grupo
+                  </button>
+                  <button
+                    onClick={() => setShowJoinModal(true)}
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold transition-all border border-slate-200 flex items-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4 text-[#2563EB]" />
+                    Entrar com Código
+                  </button>
+                </div>
+              </div>
+            )
           ) : (
             /* Lista de Posts da Timeline (Cards Instagram / Glassmorphism) */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {timeline.map((post) => {
+              {displayedTimeline.map((post) => {
                 const reactions = postReactions[post.id] || { fire: 4, muscle: 2, clap: 1, reacted: null };
                 return (
                   <div
@@ -1345,10 +1418,10 @@ export default function GroupsTab({
       {showMembersModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[85vh] flex flex-col">
-            {detailLoading ? (
+            {detailLoading && !selectedGroupDetail ? (
               <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
                 <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-                <p className="text-xs">Carregando ranking do grupo...</p>
+                <p className="text-xs">Carregando grupo...</p>
               </div>
             ) : selectedGroupDetail ? (
               <>
@@ -1416,7 +1489,12 @@ export default function GroupsTab({
                   <h4 className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
                     Ranking de Consistência no Grupo
                   </h4>
-                  {(selectedGroupDetail.members || []).map((member: GroupMemberDetail, idx: number) => (
+                  {detailLoading && (!selectedGroupDetail.members || selectedGroupDetail.members.length === 0) ? (
+                    <div className="py-8 flex flex-col items-center justify-center text-[#94A3B8]">
+                      <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] mb-2" />
+                      <p className="text-xs">Carregando membros e posições...</p>
+                    </div>
+                  ) : (selectedGroupDetail.members || []).map((member: GroupMemberDetail, idx: number) => (
                     <div
                       key={member.id}
                       className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-100 flex items-center justify-between transition-all"

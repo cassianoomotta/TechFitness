@@ -61,9 +61,9 @@ export async function GET() {
                         image: true,
                       },
                     },
-                    sessions: {
+                    _count: {
                       select: {
-                        id: true,
+                        sessions: true,
                       },
                     },
                   },
@@ -88,13 +88,13 @@ export async function GET() {
       // Ordenar membros por total de treinos para prévia
       const topMembers = g.members
         .slice()
-        .sort((a, b) => b.student.sessions.length - a.student.sessions.length)
+        .sort((a, b) => b.student._count.sessions - a.student._count.sessions)
         .slice(0, 4)
         .map((member) => ({
           studentId: member.studentId,
           name: member.student.user.name || "Atleta",
           image: member.student.user.image,
-          sessionsCount: member.student.sessions.length,
+          sessionsCount: member.student._count.sessions,
           isCreator: member.role === "CREATOR",
         }));
 

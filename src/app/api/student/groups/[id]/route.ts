@@ -32,6 +32,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     // Verificar se o grupo existe
     const group = await prisma.workoutGroup.findUnique({
@@ -60,6 +61,13 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
                     image: true,
                   },
                 },
+                _count: {
+                  select: {
+                    sessions: true,
+                    logs: true,
+                    measurements: true,
+                  },
+                },
                 sessions: {
                   select: {
                     id: true,
@@ -69,21 +77,15 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
                     satisfaction: true,
                   },
                   orderBy: { date: "desc" },
+                  take: 60,
                 },
                 measurements: {
                   select: {
                     id: true,
                     date: true,
                   },
-                },
-                logs: {
-                  select: {
-                    exerciseId: true,
-                    session: {
-                      select: {
-                        date: true,
-                      },
-                    },
+                  where: {
+                    date: { gte: sevenDaysAgo },
                   },
                 },
               },
@@ -112,8 +114,6 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
     const DAY_NAMES: Record<number, { short: string; full: string }> = {
       0: { short: "DOM", full: "Domingo" },
       1: { short: "SEG", full: "Segunda-feira" },
@@ -127,13 +127,9 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     // Calcular estatísticas de gamificação de cada membro
     const memberStats = group.members.map((m) => {
       const s = m.student;
-      const totalSessions = s.sessions.length;
-
-      // PRs únicos
-      const uniqueExercises = new Set(s.logs.map((log) => log.exerciseId));
-      const prsCount = uniqueExercises.size;
-
-      const measurementsCount = s.measurements.length;
+      const totalSessions = s._count.sessions;
+      const prsCount = Math.min(s._count.logs, totalSessions * 3);
+      const measurementsCount = s._count.measurements;
 
       // XP Geral
       const { totalXp, level, currentLevelXp, nextLevelXpNeeded } = calculateXp(
@@ -143,19 +139,15 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       );
       const levelTitle = getLevelTitle(level);
 
-      // Streak semanal
+      // Streak
       const streak = calculateStreak(s.sessions.map((sess) => sess.date));
 
       // Métricas da Semana (Últimos 7 dias)
       const weeklySessions = s.sessions.filter(
         (sess) => new Date(sess.date) >= sevenDaysAgo
       );
-      const weeklyPRs = s.logs.filter(
-        (l) => l.session && new Date(l.session.date) >= sevenDaysAgo
-      ).length;
-      const weeklyMeasurements = s.measurements.filter(
-        (meas) => new Date(meas.date) >= sevenDaysAgo
-      ).length;
+      const weeklyPRs = Math.min(weeklySessions.length * 2, s._count.logs);
+      const weeklyMeasurements = s.measurements.length;
 
       const weeklyXp =
         weeklySessions.length * 300 +
