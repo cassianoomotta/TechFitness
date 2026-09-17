@@ -36,19 +36,35 @@ export async function GET() {
       );
     }
 
-    // Se o aluno ainda não possui treinador vinculado, não exibir ranking compartilhado
-    if (!currentUserProfile.trainerId) {
-      return NextResponse.json({
-        top5: [],
-        userPosition: null,
-        totalParticipants: 0,
-        message: "O ranking de XP fica disponível assim que você for vinculado ao seu treinador.",
+    // 1. Buscar todos os grupos que o aluno atual participa
+    const userMemberships = await prisma.groupMember.findMany({
+      where: { studentId: currentUserProfile.id },
+      select: { groupId: true },
+    });
+
+    const userGroupIds = userMemberships.map((m) => m.groupId);
+
+    // 2. Determinar os atletas participantes: todos os membros de todas as turmas do aluno (totalizados e deduplicados)
+    let targetStudentIds: string[] = [];
+
+    if (userGroupIds.length === 0) {
+      // Se ainda não participa de turmas, exibe o próprio aluno
+      targetStudentIds = [currentUserProfile.id];
+    } else {
+      const groupMembers = await prisma.groupMember.findMany({
+        where: { groupId: { in: userGroupIds } },
+        select: { studentId: true },
       });
+
+      // Deduplica IDs para que cada atleta apareça uma única vez com sua pontuação totalizada
+      targetStudentIds = Array.from(
+        new Set([currentUserProfile.id, ...groupMembers.map((m) => m.studentId)])
+      );
     }
 
-    // Buscar perfis de alunos do mesmo treinador apenas
+    // Buscar perfis dos atletas dos grupos do usuário (totalizado)
     const students = await prisma.studentProfile.findMany({
-      where: { trainerId: currentUserProfile.trainerId },
+      where: { id: { in: targetStudentIds } },
       include: {
         user: {
           select: {
