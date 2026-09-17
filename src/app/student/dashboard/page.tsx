@@ -791,7 +791,7 @@ export default function StudentDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
         
         {/* Welcome Block */}
         <section className="mb-8 text-center sm:text-left">
@@ -1055,12 +1055,24 @@ export default function StudentDashboard() {
         )}
 
         {/* Aba 3: Meu Peso */}
-        {activeTab === "peso" && <WeightTab {...{
-  loading, plans, prsLoading, prs, gamificationLoading, gamification, rankingLoading, ranking, handleOpenEdit, setSelectedPlanForPreview, handleTabChange,
-  partnerSearchQuery, setPartnerSearchQuery, partners, filteredPartners, selectedPartnerId, handleSelectPartner, comparisonLoading, comparison,
-  measurements, measurementsLoading, newWeight, setNewWeight, newWeightDate, setNewWeightDate, savingWeight, handleSaveWeight, selectedPhotoForZoom, setSelectedPhotoForZoom,
-  selectedTier, setSelectedTier, achievementFilter, setAchievementFilter, 
-}} />}
+        {activeTab === "peso" && (
+          <WeightTab
+            measurementsLoading={measurementsLoading}
+            measurements={measurements}
+            newWeight={newWeight}
+            setNewWeight={setNewWeight}
+            newWeightDate={newWeightDate}
+            setNewWeightDate={setNewWeightDate}
+            savingWeight={savingWeight}
+            handleSaveWeight={handleSaveWeight}
+            weightGoal={weightGoal}
+            handleUpdateWeightGoal={handleUpdateWeightGoal}
+            weightError={weightError}
+            expandedMeasurementId={expandedMeasurementId}
+            setExpandedMeasurementId={setExpandedMeasurementId}
+            setSelectedPhotoForZoom={setSelectedPhotoForZoom}
+          />
+        )}
 
 
         {/* Aba de Conquistas */}
