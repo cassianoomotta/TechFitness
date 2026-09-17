@@ -1047,6 +1047,7 @@ export default function StudentDashboard() {
             comparisonLoading={comparisonLoading}
             comparison={comparison}
             onOpenZoomPhoto={(photoUrl: string) => setSelectedPhotoForZoom(photoUrl)}
+            onNavigateToWorkouts={() => setActiveTab("fichas")}
           />
         )}
 

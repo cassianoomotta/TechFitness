@@ -177,6 +177,7 @@ interface GroupsTabProps {
   comparisonLoading: boolean;
   comparison: ComparisonResult | null;
   onOpenZoomPhoto?: (photoUrl: string) => void;
+  onNavigateToWorkouts?: () => void;
 }
 
 // =========================================================================
@@ -196,6 +197,7 @@ export default function GroupsTab({
   comparisonLoading,
   comparison,
   onOpenZoomPhoto,
+  onNavigateToWorkouts,
 }: GroupsTabProps) {
   // Aba interna do componente: Feed Social vs Gerenciar Grupos vs Duelo 1-a-1
   const [internalTab, setInternalTab] = useState<"feed" | "groups" | "duel">("feed");
@@ -206,6 +208,24 @@ export default function GroupsTab({
   const [timeline, setTimeline] = useState<TimelinePost[]>(() => cachedTimeline || []);
   const [timelineLoading, setTimelineLoading] = useState<boolean>(() => !cachedTimeline);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
+
+  // Auto-selecionar o grupo se o usuário fizer parte de apenas 1 grupo
+  useEffect(() => {
+    if (groups.length === 1 && selectedGroupId === "all") {
+      setSelectedGroupId(groups[0].id);
+    }
+  }, [groups, selectedGroupId]);
+
+  // Grupo ativo atualmente selecionado (ou o único grupo do usuário)
+  const activeGroup = useMemo(() => {
+    if (selectedGroupId !== "all") {
+      return groups.find((g) => g.id === selectedGroupId) || null;
+    }
+    if (groups.length === 1) {
+      return groups[0];
+    }
+    return null;
+  }, [groups, selectedGroupId]);
 
   // Modais de Criação e Entrada
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -239,11 +259,15 @@ export default function GroupsTab({
   const EMOJI_OPTIONS = ["🏋️", "⚡", "🔥", "🥊", "🚴", "🏃", "🏆", "🥇", "💥", "💪", "⚔️", "🎯"];
 
   // Timeline filtrada em memória instantaneamente (0ms de latência e sem recarregar tela)
+  // Exibe exclusivamente check-ins com foto no Mural, eliminando cards duplicados de texto vazios
   const displayedTimeline = useMemo(() => {
-    if (selectedGroupId === "all") return timeline;
-    return timeline.filter((post: TimelinePost) =>
-      post.groups?.some((g) => g.id === selectedGroupId)
-    );
+    let list = timeline;
+    if (selectedGroupId !== "all") {
+      list = timeline.filter((post: TimelinePost) =>
+        post.groups?.some((g) => g.id === selectedGroupId)
+      );
+    }
+    return list.filter((post: TimelinePost) => !!post.photoUrl && post.photoUrl.trim() !== "");
   }, [timeline, selectedGroupId]);
 
   // Carregar grupos do usuário (revalidação suave em segundo plano)
@@ -608,44 +632,190 @@ export default function GroupsTab({
           ========================================================================= */}
       {internalTab === "feed" && (
         <div className="space-y-6">
-          {/* Pílulas de Filtro por Grupo - Design Limpo e Sem Poluição */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1">
-            <button
-              onClick={() => handleGroupFilterChange("all")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
-                selectedGroupId === "all"
-                  ? "bg-[#2563EB] text-white shadow-xs font-bold"
-                  : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60"
-              }`}
-            >
-              <Users className={`w-3.5 h-3.5 ${selectedGroupId === "all" ? "text-white" : "text-slate-400"}`} />
-              <span>Todos os Grupos</span>
-            </button>
+          {/* Pílulas de Filtro por Grupo - Apenas exibido se houver mais de 1 grupo para evitar poluição visual */}
+          {groups.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1">
+              <button
+                onClick={() => handleGroupFilterChange("all")}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                  selectedGroupId === "all"
+                    ? "bg-[#2563EB] text-white shadow-xs font-bold"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60"
+                }`}
+              >
+                <Users className={`w-3.5 h-3.5 ${selectedGroupId === "all" ? "text-white" : "text-slate-400"}`} />
+                <span>Todos os Grupos</span>
+              </button>
 
-            {groups.map((group) => {
-              const isSelected = selectedGroupId === group.id;
-              return (
-                <button
-                  key={group.id}
-                  onClick={() => handleGroupFilterChange(group.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
-                    isSelected
-                      ? "bg-[#2563EB] text-white shadow-xs font-bold"
-                      : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60"
-                  }`}
-                >
-                  <Users className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-slate-400"}`} />
-                  <span>{group.name}</span>
-                </button>
-              );
-            })}
+              {groups.map((group) => {
+                const isSelected = selectedGroupId === group.id;
+                return (
+                  <button
+                    key={group.id}
+                    onClick={() => handleGroupFilterChange(group.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                      isSelected
+                        ? "bg-[#2563EB] text-white shadow-xs font-bold"
+                        : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60"
+                    }`}
+                  >
+                    <Users className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-slate-400"}`} />
+                    <span>{group.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-            {groups.length === 0 && !groupsLoading && (
-              <div className="text-xs text-slate-400 flex items-center gap-1.5 px-3">
-                <Info className="w-3.5 h-3.5 text-slate-400" />
-                <span>Crie ou participe de um grupo para ver treinos no mural</span>
+          {/* Hub da Turma: Banner com Código de Convite & Pódio de Consistência */}
+          {activeGroup && (
+            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-800/80 relative overflow-hidden">
+              {/* Brilho sutil de fundo */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+              <div className="absolute bottom-0 left-0 w-60 h-60 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none -ml-20 -mb-20" />
+
+              {/* Linha Superior: Nome do Grupo, Metadados e Ações */}
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-white/10">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-2xl shrink-0">
+                    {activeGroup.icon || "🏋️"}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg sm:text-xl font-black text-white tracking-tight truncate">
+                        {activeGroup.name}
+                      </h2>
+                      {activeGroup.isCreator && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold">
+                          Criador
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-300 mt-0.5 flex items-center gap-2">
+                      <span>
+                        {activeGroup.membersCount ?? activeGroup.totalMembers ?? (activeGroup.membersPreview?.length || 1)}{" "}
+                        {(activeGroup.membersCount ?? activeGroup.totalMembers ?? (activeGroup.membersPreview?.length || 1)) === 1
+                          ? "atleta"
+                          : "atletas"}
+                      </span>
+                      {activeGroup.description && (
+                        <>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-slate-400 truncate max-w-xs">{activeGroup.description}</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  {/* Código de Convite com Cópia Rápida */}
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15">
+                    <div className="text-left">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block leading-none">
+                        Convite
+                      </span>
+                      <span className="font-mono text-xs font-bold text-white tracking-wide">
+                        {activeGroup.code}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleCopyInviteCode(activeGroup)}
+                      className="p-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white transition-all cursor-pointer"
+                      title="Copiar código do grupo"
+                    >
+                      {copiedCodeId === activeGroup.id ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-slate-300" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Ver Ranking Completo */}
+                  <button
+                    onClick={() => handleOpenGroupDetails(activeGroup.id)}
+                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0"
+                  >
+                    <Trophy className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Ranking Completo</span>
+                  </button>
+                </div>
               </div>
-            )}
+
+              {/* Pódio de Consistência (Top 3 Membros) */}
+              {activeGroup.membersPreview && activeGroup.membersPreview.length > 0 && (
+                <div className="relative z-10 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      Pódio de Consistência da Turma
+                    </span>
+                    <button
+                      onClick={() => handleOpenGroupDetails(activeGroup.id)}
+                      className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Ver todos ({activeGroup.membersCount ?? activeGroup.totalMembers ?? activeGroup.membersPreview.length})</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {activeGroup.membersPreview.slice(0, 3).map((member, idx) => {
+                      const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+                      const badgeBg =
+                        idx === 0
+                          ? "bg-amber-400/10 border-amber-400/30 text-amber-300"
+                          : idx === 1
+                          ? "bg-slate-300/10 border-slate-300/30 text-slate-200"
+                          : "bg-amber-600/10 border-amber-600/30 text-amber-200";
+
+                      return (
+                        <div
+                          key={member.studentId}
+                          className={`flex items-center gap-3 p-2.5 rounded-2xl border backdrop-blur-sm transition-all ${badgeBg}`}
+                        >
+                          <div className="relative shrink-0">
+                            <UserAvatar
+                              name={member.name}
+                              image={member.image}
+                              size="sm"
+                              className="ring-1 ring-white/20"
+                            />
+                            <span className="absolute -bottom-1 -right-1 text-xs">
+                              {medal}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-white truncate">
+                              {member.name}
+                            </p>
+                            <p className="text-[11px] text-slate-300 font-medium">
+                              {member.sessionsCount} {member.sessionsCount === 1 ? "treino" : "treinos"}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Título de Seção do Mural */}
+          <div className="flex items-center justify-between pt-1">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#0F172A] flex items-center gap-2">
+                <Camera className="w-4 h-4 text-slate-400" />
+                <span>Mural de Fotos de Treino</span>
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                {activeGroup
+                  ? `Registros visuais de check-in da turma ${activeGroup.name}`
+                  : "Registros visuais de check-in das suas turmas"}
+              </p>
+            </div>
           </div>
 
           {/* Estado de Carregamento da Timeline */}
@@ -655,55 +825,37 @@ export default function GroupsTab({
               <p className="text-xs font-medium">Sincronizando mural da comunidade...</p>
             </div>
           ) : displayedTimeline.length === 0 ? (
-            timeline.length > 0 ? (
-              /* Estado Vazio de Filtro */
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-8 text-center max-w-md mx-auto shadow-xs">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 border border-slate-200/60">
-                  <Camera className="w-6 h-6" />
-                </div>
-                <h3 className="text-sm font-bold text-[#0F172A] mb-1">
-                  Nenhum check-in neste grupo ainda
-                </h3>
-                <p className="text-xs text-[#64748B] mb-5 leading-relaxed">
-                  Os membros desta turma ainda não compartilharam fotos de treino recentes.
-                </p>
-                <button
-                  onClick={() => setSelectedGroupId("all")}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold transition-all cursor-pointer"
-                >
-                  Ver todos os grupos
-                </button>
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-10 text-center max-w-lg mx-auto shadow-xs">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-3.5 border border-blue-100">
+                <Camera className="w-7 h-7 text-[#2563EB]" />
               </div>
-            ) : (
-              /* Estado Vazio Geral */
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-8 text-center max-w-lg mx-auto shadow-xs">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 border border-slate-200/60">
-                  <Camera className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-1">
-                  Nenhum check-in postado ainda
-                </h3>
-                <p className="text-xs text-[#64748B] leading-relaxed mb-6">
-                  Seja o pioneiro da sua turma: finalize seu treino hoje, tire uma foto de check-in e inspire seus amigos de grupo!
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-3">
+              <h3 className="text-base sm:text-lg font-bold text-[#0F172A] mb-1.5">
+                Nenhum check-in com foto postado ainda
+              </h3>
+              <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed mb-6">
+                Seja o primeiro da sua turma a postar foto: ao finalizar seu treino, tire uma foto de check-in para marcar presença no mural e inspirar seus amigos!
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {onNavigateToWorkouts && (
                   <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                    onClick={onNavigateToWorkouts}
+                    className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
                   >
-                    <Plus className="w-4 h-4" />
-                    Criar um Grupo
+                    <Dumbbell className="w-4 h-4" />
+                    <span>Ir para Meus Treinos</span>
                   </button>
+                )}
+                {groups.length === 0 && (
                   <button
                     onClick={() => setShowJoinModal(true)}
                     className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] text-xs font-semibold transition-all border border-slate-200/80 flex items-center gap-2 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4 text-slate-400" />
-                    Entrar com Código
+                    <span>Entrar com Código</span>
                   </button>
-                </div>
+                )}
               </div>
-            )
+            </div>
           ) : (
             /* Lista de Posts da Timeline (Design Limpo / Frontend Disruptivo) */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -803,9 +955,9 @@ export default function GroupsTab({
                             ) : null}
 
                             {post.satisfaction ? (
-                              <div className="flex items-center gap-0.5 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] text-amber-400">
+                              <div className="flex items-center gap-1 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] text-amber-400">
                                 <Star className="w-3 h-3 fill-amber-400" />
-                                <span>{post.satisfaction}/5</span>
+                                <span>RPE {post.satisfaction}/10</span>
                               </div>
                             ) : null}
                           </div>
@@ -898,7 +1050,7 @@ export default function GroupsTab({
                       {post.satisfaction ? (
                         <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
                           <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                          <span>Nota {post.satisfaction}/5</span>
+                          <span>RPE {post.satisfaction}/10</span>
                         </div>
                       ) : (
                         <span className="text-[11px] text-slate-400 font-medium">Check-in</span>
