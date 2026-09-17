@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import BrandLogo from "@/components/BrandLogo";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
@@ -17,6 +18,7 @@ import {
   KeyRound,
   AlertCircle,
   Trash2,
+  LogOut,
 } from "lucide-react";
 
 interface ProfileSettingsViewProps {
@@ -253,7 +255,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Seu nome"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 min-h-[44px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                   />
                 </div>
               </div>
@@ -274,7 +276,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
                     type="email"
                     disabled
                     value={email}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-[#64748B] cursor-not-allowed select-none"
+                    className="w-full pl-10 pr-4 py-2.5 min-h-[44px] rounded-xl bg-slate-100 border border-slate-200 text-base md:text-sm text-[#64748B] cursor-not-allowed select-none"
                   />
                 </div>
                 <p className="text-[10px] text-[#94A3B8] leading-tight">
@@ -331,7 +333,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Sua senha atual"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 min-h-[44px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                   />
                 </div>
               </div>
@@ -350,7 +352,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 min-h-[44px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                   />
                 </div>
               </div>
@@ -369,7 +371,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repita a nova senha"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 min-h-[44px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                   />
                 </div>
               </div>
@@ -386,6 +388,27 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
                 )}
               </button>
             </form>
+          </div>
+
+          {/* Card 3: Sessão & Desconexão da Conta */}
+          <div className="bg-white border border-[#E2E8F0] rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-[#E2E8F0]">
+              <LogOut className="w-4 h-4 text-red-500" />
+              <h2 className="text-sm font-bold text-[#0F172A]">Encerrar Sessão</h2>
+            </div>
+
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              Deseja desconectar sua conta deste dispositivo? Você precisará inserir suas credenciais novamente para acessar seus treinos e métricas.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="w-full sm:w-auto px-5 py-3 min-h-[44px] rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-2xs"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sair da Minha Conta</span>
+            </button>
           </div>
         </div>
       </div>

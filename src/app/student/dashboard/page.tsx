@@ -11,7 +11,7 @@ import RankingLeaderboard, { RankingData, RankingItem } from "./components/Ranki
 import { getAchievementStatusHint } from "@/lib/gamification";
 
 import React, { useState, useEffect, useRef } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import Link from "next/link";
@@ -21,7 +21,6 @@ import StudentWorkoutInstagramCard, {
 } from "@/components/StudentWorkoutInstagramCard";
 import {
   Dumbbell,
-  LogOut,
   Loader2,
   Calendar,
   Activity,
@@ -696,11 +695,11 @@ export default function StudentDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo size={36} />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* User Avatar & Profile Click -> Redireciona para /student/profile */}
             <Link
               href="/student/profile"
-              className="flex items-center gap-2.5 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
+              className="flex items-center gap-2 group p-1 pr-1.5 sm:pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
               title="Meu Perfil e Configurações da Conta"
             >
               <div className="relative">
@@ -774,13 +773,6 @@ export default function StudentDashboard() {
                 </div>
               )}
             </div>
-
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-600 transition-all cursor-pointer"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </header>
