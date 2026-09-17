@@ -211,6 +211,7 @@ export default function StudentDashboard() {
 
   // Estados da Aba e Grupos/Duelo
   const [activeTab, setActiveTab] = useState<"fichas" | "conquistas" | "grupos" | "dupla" | "peso">("fichas");
+  const [initialJoinCode, setInitialJoinCode] = useState<string | null>(null);
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [mediaLoading, setMediaLoading] = useState(true);
@@ -218,6 +219,28 @@ export default function StudentDashboard() {
   const [selectedTier, setSelectedTier] = useState<number>(1);
   const [achievementFilter, setAchievementFilter] = useState<"all" | "unlocked" | "locked">("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  // Capturar código de convite ou aba via URL (ex: link de convite recebido via WhatsApp)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const joinParam = params.get("join") || params.get("code");
+      const tabParam = params.get("tab");
+
+      if (joinParam) {
+        setInitialJoinCode(joinParam);
+        setActiveTab("grupos");
+      } else if (
+        tabParam === "grupos" ||
+        tabParam === "dupla" ||
+        tabParam === "peso" ||
+        tabParam === "conquistas" ||
+        tabParam === "fichas"
+      ) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
 
   // Toast feedback system
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -1040,6 +1063,7 @@ export default function StudentDashboard() {
             comparison={comparison}
             onOpenZoomPhoto={(photoUrl: string) => setSelectedPhotoForZoom(photoUrl)}
             onNavigateToWorkouts={() => setActiveTab("fichas")}
+            initialJoinCode={initialJoinCode || undefined}
           />
         )}
 

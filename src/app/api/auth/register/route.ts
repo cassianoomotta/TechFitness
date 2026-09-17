@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("ERRO NO REGISTRO DE USUÁRIO:", error);
     return NextResponse.json(
       { error: "Ocorreu um erro interno ao processar seu cadastro." },
