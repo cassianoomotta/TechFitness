@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 const joinGroupSchema = z.object({
-  code: z.string().trim().min(3, "Código de convite inválido.").max(20, "Código de convite inválido."),
+  code: z.string().trim().min(3, "Código de convite inválido.").max(150, "Código de convite inválido."),
 });
 
 export async function POST(req: NextRequest) {
@@ -32,7 +32,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: issue?.message || "Código inválido." }, { status: 400 });
     }
 
-    const cleanCode = parseResult.data.code.toUpperCase();
+    let cleanCode = parseResult.data.code.trim().toUpperCase();
+    // Extrair padrão TF-XXXX caso o usuário tenha colado texto adicional
+    const tfMatch = cleanCode.match(/TF-[A-Z0-9]{3,8}/i);
+    if (tfMatch) {
+      cleanCode = tfMatch[0].toUpperCase();
+    }
 
     // Localizar grupo pelo código
     const group = await prisma.workoutGroup.findUnique({

@@ -109,7 +109,9 @@ export async function GET() {
         isCreator,
         myRole: m.role,
         joinedAt: m.joinedAt.toISOString(),
+        membersCount: g.members.length,
         totalMembers: g.members.length,
+        membersPreview: topMembers,
         topMembers,
       };
     });

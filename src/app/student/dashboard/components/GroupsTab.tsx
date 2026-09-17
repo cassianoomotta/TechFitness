@@ -39,7 +39,8 @@ export interface GroupSummary {
   description?: string;
   icon: string;
   code: string;
-  membersCount: number;
+  membersCount?: number;
+  totalMembers?: number;
   isCreator?: boolean;
   createdAt?: string;
   membersPreview?: Array<{
@@ -222,6 +223,7 @@ export default function GroupsTab({
 
   // Feedback de cópia do código
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
+  const [copiedModalCode, setCopiedModalCode] = useState(false);
 
   // Reações locais simuladas
   const [postReactions, setPostReactions] = useState<Record<string, { fire: number; muscle: number; clap: number; reacted: string | null }>>({});
@@ -276,10 +278,9 @@ export default function GroupsTab({
     fetchTimeline(groupId);
   };
 
-  // Copiar código de convite
+  // Copiar apenas o código de convite
   const handleCopyInviteCode = (group: GroupSummary) => {
-    const text = `Bora treinar juntos no TechFitness! Entre no meu grupo "${group.name}" com o código: ${group.code}`;
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(group.code.trim());
     setCopiedCodeId(group.id);
     setTimeout(() => setCopiedCodeId(null), 2500);
   };
@@ -329,7 +330,14 @@ export default function GroupsTab({
   const handleJoinGroupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setJoinError("");
-    if (!joinCode.trim()) {
+
+    let codeToSubmit = joinCode.trim().toUpperCase();
+    const match = codeToSubmit.match(/TF-[A-Z0-9]{3,8}/i);
+    if (match) {
+      codeToSubmit = match[0].toUpperCase();
+    }
+
+    if (!codeToSubmit) {
       setJoinError("Informe o código de convite.");
       return;
     }
@@ -339,7 +347,7 @@ export default function GroupsTab({
       const res = await fetch("/api/student/groups/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: joinCode.trim() }),
+        body: JSON.stringify({ code: codeToSubmit }),
       });
 
       const data = await res.json();
@@ -898,7 +906,7 @@ export default function GroupsTab({
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[11px] font-semibold text-[#64748B] flex items-center gap-1">
                                 <Users className="w-3 h-3 text-[#2563EB] shrink-0" />
-                                {group.membersCount} {group.membersCount === 1 ? "membro" : "membros"}
+                                {group.membersCount ?? group.totalMembers ?? 1} {(group.membersCount ?? group.totalMembers ?? 1) === 1 ? "membro" : "membros"}
                               </span>
                             </div>
                           </div>
@@ -1379,15 +1387,27 @@ export default function GroupsTab({
                   </div>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(
-                        `Entre no grupo "${selectedGroupDetail.name}" com o código: ${selectedGroupDetail.code}`
-                      );
-                      alert("Código de convite copiado com sucesso!");
+                      navigator.clipboard.writeText(selectedGroupDetail.code.trim());
+                      setCopiedModalCode(true);
+                      setTimeout(() => setCopiedModalCode(false), 2500);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-blue-600 hover:text-white text-[#2563EB] text-xs font-bold border border-blue-200 transition-all flex items-center gap-1.5 shadow-2xs"
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs ${
+                      copiedModalCode
+                        ? "bg-emerald-600 text-white"
+                        : "bg-white hover:bg-blue-600 hover:text-white text-[#2563EB] border border-blue-200"
+                    }`}
                   >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copiar Convite</span>
+                    {copiedModalCode ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copiar Código</span>
+                      </>
+                    )}
                   </button>
                 </div>
 
