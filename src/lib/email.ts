@@ -1,3 +1,5 @@
+import nodemailer from "nodemailer";
+
 interface SendInviteEmailParams {
   toEmail: string;
   studentName: string;
@@ -174,7 +176,38 @@ export async function sendStudentInviteEmail(
   const { toEmail, studentName, trainerName, inviteUrl } = params;
   const emailHtml = buildInviteEmailHtml(params);
 
-  // 1. Provedor Principal: Brevo (Sendinblue) API v3 (sem necessidade de domínio próprio)
+  // 1. Provedor Direto: Gmail SMTP (Nodemailer) - Sem necessidade de cadastro em terceiros ou domínio
+  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
+  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+
+  if (smtpUser && smtpPass) {
+    try {
+      const cleanPass = smtpPass.replace(/\s+/g, "");
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: smtpUser,
+          pass: cleanPass,
+        },
+      });
+
+      const senderFrom = process.env.SMTP_FROM || `TechFitness <${smtpUser}>`;
+      const mailOptions = {
+        from: senderFrom,
+        to: toEmail,
+        subject: `🏋️ ${studentName}, seu treinador ${trainerName} te convidou para o TechFitness!`,
+        html: emailHtml,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`[EMAIL GMAIL] Convite enviado com sucesso para ${toEmail}. MessageId: ${info.messageId}`);
+      return { success: true, mode: "sent", messageId: info.messageId };
+    } catch (err: unknown) {
+      console.error("[EMAIL GMAIL] Falha ao enviar via Gmail SMTP:", err);
+    }
+  }
+
+  // 2. Provedor Secundário: Brevo (Sendinblue) API v3 (caso BREVO_API_KEY esteja presente)
   const brevoApiKey = process.env.BREVO_API_KEY;
   if (brevoApiKey) {
     try {
