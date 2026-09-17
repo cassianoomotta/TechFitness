@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Users,
   Plus,
@@ -17,6 +17,9 @@ import {
   Dumbbell,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  SlidersHorizontal,
   UserPlus,
   Loader2,
   Crown,
@@ -262,6 +265,69 @@ export default function GroupsTab({
     memberName: string;
   } | null>(null);
   const [removingMember, setRemovingMember] = useState(false);
+
+  // Estados e Refs para indicador de rolagem e seletor rápido de grupos (Mobile & Desktop)
+  const pillsScrollRef = useRef<HTMLDivElement>(null);
+  const groupDropdownRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+
+  const checkPillsScroll = () => {
+    const el = pillsScrollRef.current;
+    if (el) {
+      setCanScrollLeft(el.scrollLeft > 6);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+    }
+  };
+
+  useEffect(() => {
+    checkPillsScroll();
+    const el = pillsScrollRef.current;
+    if (!el) return;
+
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => {
+      checkPillsScroll();
+    }) : null;
+    if (ro) ro.observe(el);
+
+    const t1 = setTimeout(checkPillsScroll, 100);
+    const t2 = setTimeout(checkPillsScroll, 400);
+
+    window.addEventListener("resize", checkPillsScroll);
+    return () => {
+      if (ro) ro.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener("resize", checkPillsScroll);
+    };
+  }, [groups, internalTab]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (groupDropdownRef.current && !groupDropdownRef.current.contains(e.target as Node)) {
+        setShowGroupDropdown(false);
+      }
+    };
+    if (showGroupDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showGroupDropdown]);
+
+  const handleScrollPills = (direction: "left" | "right") => {
+    const el = pillsScrollRef.current;
+    if (el) {
+      const scrollAmount = direction === "left" ? -180 : 180;
+      el.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      setTimeout(checkPillsScroll, 250);
+    }
+  };
+
+  const handleSelectPill = (groupId: string) => {
+    handleGroupFilterChange(groupId);
+    setShowGroupDropdown(false);
+  };
 
   // Estados do formulário de criação
   const [newGroupName, setNewGroupName] = useState("");
@@ -739,38 +805,288 @@ export default function GroupsTab({
           ========================================================================= */}
       {internalTab === "feed" && (
         <div className="space-y-6">
-          {/* Pílulas de Filtro por Grupo - Apenas exibido se houver mais de 1 grupo para evitar poluição visual */}
+          {/* Pílulas de Filtro por Grupo com Indicadores Visuais de Rolagem e Menu Seletor Rápido */}
           {groups.length > 1 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1">
-              <button
-                onClick={() => handleGroupFilterChange("all")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
-                  selectedGroupId === "all"
-                    ? "bg-[#2563EB] text-white shadow-xs font-bold"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60"
-                }`}
-              >
-                <Users className={`w-3.5 h-3.5 ${selectedGroupId === "all" ? "text-white" : "text-slate-400"}`} />
-                <span>Todos os Grupos</span>
-              </button>
+            <div className="space-y-2">
+              {/* Barra de Título & Ação: Deixa 100% explícito que existem múltiplos grupos e dá opção de ver lista */}
+              <div className="flex items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-[#2563EB]" />
+                    Filtrar por Grupo
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-[#2563EB] border border-blue-200/60">
+                    {groups.length} grupos
+                  </span>
+                </div>
 
-              {groups.map((group) => {
-                const isSelected = selectedGroupId === group.id;
-                return (
+                {/* Opção Rápida: Botão com texto claro para abrir a lista completa */}
+                <div className="relative" ref={groupDropdownRef}>
                   <button
-                    key={group.id}
-                    onClick={() => handleGroupFilterChange(group.id)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
-                      isSelected
-                        ? "bg-[#2563EB] text-white shadow-xs font-bold"
-                        : "bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/60"
+                    type="button"
+                    onClick={() => setShowGroupDropdown(!showGroupDropdown)}
+                    className={`px-3 py-1.5 min-h-[34px] rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                      showGroupDropdown
+                        ? "bg-blue-50 border-blue-300 text-[#2563EB] ring-2 ring-blue-500/20"
+                        : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:text-blue-600"
                     }`}
                   >
-                    <Users className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-slate-400"}`} />
-                    <span>{group.name}</span>
+                    <SlidersHorizontal className="w-3 h-3 text-[#2563EB]" />
+                    <span>Ver todos ({groups.length})</span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${showGroupDropdown ? "rotate-180 text-blue-600" : ""}`} />
                   </button>
-                );
-              })}
+
+                  {/* MODAL / BOTTOM SHEET PARA MOBILE (sm:hidden) */}
+                  {showGroupDropdown && (
+                    <div className="fixed inset-0 z-[70] flex flex-col justify-end sm:hidden">
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200"
+                        onClick={() => setShowGroupDropdown(false)}
+                      />
+
+                      {/* Bottom Sheet Card */}
+                      <div className="relative bg-white rounded-t-3xl p-5 shadow-2xl border-t border-slate-200 z-10 max-h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-200 pb-12">
+                        {/* Handle de puxar */}
+                        <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-4 shrink-0" />
+
+                        {/* Cabeçalho */}
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-2 shrink-0">
+                          <div>
+                            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                              <Users className="w-4 h-4 text-[#2563EB]" />
+                              <span>Seus Grupos ({groups.length})</span>
+                            </h3>
+                            <p className="text-[11px] text-slate-500 font-medium">
+                              Selecione para filtrar o mural de fotos
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowGroupDropdown(false)}
+                            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        {/* Lista de Grupos */}
+                        <div className="overflow-y-auto space-y-2 py-1 pr-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectPill("all")}
+                            className={`w-full text-left p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer min-h-[50px] ${
+                              selectedGroupId === "all"
+                                ? "bg-blue-50 text-[#2563EB] ring-2 ring-blue-500/20"
+                                : "hover:bg-slate-50 text-slate-700 bg-slate-50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                <Users className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <div className="font-extrabold text-sm">Todos os Grupos</div>
+                                <div className="text-[11px] text-slate-500 font-normal">Mural geral unificado</div>
+                              </div>
+                            </div>
+                            {selectedGroupId === "all" && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
+                          </button>
+
+                          {groups.map((group) => {
+                            const isSelected = selectedGroupId === group.id;
+                            return (
+                              <button
+                                key={group.id}
+                                type="button"
+                                onClick={() => handleSelectPill(group.id)}
+                                className={`w-full text-left p-3 rounded-2xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer min-h-[50px] ${
+                                  isSelected
+                                    ? "bg-blue-50 text-[#2563EB] ring-2 ring-blue-500/20 font-bold"
+                                    : "hover:bg-slate-50 text-slate-700 bg-slate-50"
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 truncate">
+                                  <div className="w-9 h-9 rounded-xl bg-slate-200/80 flex items-center justify-center text-lg shrink-0">
+                                    {group.icon || "🏋️"}
+                                  </div>
+                                  <div className="truncate">
+                                    <div className="font-extrabold text-sm truncate text-slate-900">{group.name}</div>
+                                    <div className="text-[11px] text-slate-500 font-normal">
+                                      {group.membersCount || 1} {group.membersCount === 1 ? "membro" : "membros"}
+                                    </div>
+                                  </div>
+                                </div>
+                                {isSelected && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DROPDOWN FLUTUANTE PARA DESKTOP (hidden sm:block) */}
+                  {showGroupDropdown && (
+                    <div className="hidden sm:block absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2.5 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-2.5 py-1.5 border-b border-slate-100 flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                          Seus Grupos ({groups.length})
+                        </span>
+                        <span className="text-[10px] text-blue-600 font-semibold">
+                          Toque para filtrar
+                        </span>
+                      </div>
+
+                      <div className="max-h-64 overflow-y-auto space-y-1 pr-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectPill("all")}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer min-h-[44px] ${
+                            selectedGroupId === "all"
+                              ? "bg-blue-50 text-[#2563EB]"
+                              : "hover:bg-slate-50 text-slate-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-slate-400" />
+                            <span>Todos os Grupos (Mural Geral)</span>
+                          </div>
+                          {selectedGroupId === "all" && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                        </button>
+
+                        {groups.map((group) => {
+                          const isSelected = selectedGroupId === group.id;
+                          return (
+                            <button
+                              key={group.id}
+                              type="button"
+                              onClick={() => handleSelectPill(group.id)}
+                              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer min-h-[44px] ${
+                                isSelected
+                                  ? "bg-blue-50 text-[#2563EB] font-bold"
+                                  : "hover:bg-slate-50 text-slate-700"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <span className="text-base shrink-0">{group.icon || "🏋️"}</span>
+                                <span className="truncate">{group.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0 ml-2">
+                                {group.membersCount && (
+                                  <span className="text-[10px] text-slate-400 font-normal">
+                                    {group.membersCount} {group.membersCount === 1 ? "membro" : "membros"}
+                                  </span>
+                                )}
+                                {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Área de Pílulas com Scroll Horizontal e Indicadores */}
+              <div className="relative flex items-center">
+                {/* Seta e Gradiente Esquerdo (visível quando rolado para a direita) */}
+                {canScrollLeft && (
+                  <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pr-4 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent pointer-events-none">
+                    <button
+                      type="button"
+                      onClick={() => handleScrollPills("left")}
+                      className="pointer-events-auto p-1.5 rounded-full bg-white shadow-md border border-slate-200 text-slate-700 hover:text-blue-600 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                      title="Rolar para ver grupos anteriores"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Container de Pílulas com padding direito caso haja overflow */}
+                <div
+                  ref={pillsScrollRef}
+                  onScroll={checkPillsScroll}
+                  className={`flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1 scroll-smooth w-full ${
+                    canScrollRight ? "pr-20" : ""
+                  } ${canScrollLeft ? "pl-10" : ""}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPill("all")}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer min-h-[38px] ${
+                      selectedGroupId === "all"
+                        ? "bg-[#2563EB] text-white shadow-xs font-bold ring-2 ring-blue-500/20"
+                        : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs"
+                    }`}
+                  >
+                    <Users className={`w-3.5 h-3.5 ${selectedGroupId === "all" ? "text-white" : "text-slate-400"}`} />
+                    <span>Todos os Grupos</span>
+                  </button>
+
+                  {groups.map((group) => {
+                    const isSelected = selectedGroupId === group.id;
+                    return (
+                      <button
+                        key={group.id}
+                        type="button"
+                        onClick={() => handleSelectPill(group.id)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer min-h-[38px] ${
+                          isSelected
+                            ? "bg-[#2563EB] text-white shadow-xs font-bold ring-2 ring-blue-500/20"
+                            : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs"
+                        }`}
+                      >
+                        <span className="text-sm shrink-0">{group.icon || "🏋️"}</span>
+                        <span>{group.name}</span>
+                      </button>
+                    );
+                  })}
+
+                  {/* Pílula no final da rolagem para abrir lista completa */}
+                  <button
+                    type="button"
+                    onClick={() => setShowGroupDropdown(true)}
+                    className="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-blue-200/80 cursor-pointer active:scale-95 min-h-[38px]"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Ver todos ({groups.length})</span>
+                  </button>
+                </div>
+
+                {/* Seta e Gradiente Direito: Indica com clareza visual que há mais grupos à direita */}
+                {canScrollRight && (
+                  <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-4 pr-0.5 bg-gradient-to-l from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent pointer-events-none">
+                    <button
+                      type="button"
+                      onClick={() => handleScrollPills("right")}
+                      className="pointer-events-auto px-2.5 py-1.5 rounded-full bg-white shadow-md border border-blue-200 text-[#2563EB] hover:bg-blue-50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                      title="Deslize ou clique para ver mais grupos"
+                    >
+                      <span>Mais</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Dica de arrastar caso haja grupos ocultos à direita */}
+              {canScrollRight && (
+                <div className="flex items-center justify-between text-[11px] text-blue-600 font-semibold px-1 pt-0.5">
+                  <span className="flex items-center gap-1">
+                    <span>👉 Deslize para o lado para ver todos os seus grupos</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleScrollPills("right")}
+                    className="underline text-[10px] text-slate-500 hover:text-blue-600 cursor-pointer"
+                  >
+                    Rolar ➔
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
