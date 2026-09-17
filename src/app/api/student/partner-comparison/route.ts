@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { calculateStreak } from "@/lib/gamification";
 
 const partnerComparisonSchema = z.object({
   partnerId: z.string().min(1, "ID do parceiro de treino é obrigatório"),
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
     // 1. Aluno logado
     const student = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
-      include: { user: { select: { name: true } } },
+      include: { user: { select: { name: true, image: true } } },
     });
 
     if (!student) {
@@ -103,7 +104,7 @@ export async function POST(request: Request) {
     // 2. Parceiro selecionado
     const partner = await prisma.studentProfile.findUnique({
       where: { id: partnerId },
-      include: { user: { select: { name: true } } },
+      include: { user: { select: { name: true, image: true } } },
     });
 
     if (!partner) {
@@ -121,24 +122,36 @@ export async function POST(request: Request) {
     // 3. Coletar estatísticas do aluno logado
     const studentSessions = await prisma.workoutSession.findMany({
       where: { studentId: student.id },
-      include: { logs: true },
+      select: {
+        date: true,
+        _count: {
+          select: { logs: true },
+        },
+      },
+      orderBy: { date: "desc" },
     });
 
     const studentTotalSessions = studentSessions.length;
     const studentTotalSets = studentSessions.reduce(
-      (sum, s) => sum + s.logs.length,
+      (sum, s) => sum + s._count.logs,
       0
     );
 
     // 4. Coletar estatísticas do parceiro
     const partnerSessions = await prisma.workoutSession.findMany({
       where: { studentId: partner.id },
-      include: { logs: true },
+      select: {
+        date: true,
+        _count: {
+          select: { logs: true },
+        },
+      },
+      orderBy: { date: "desc" },
     });
 
     const partnerTotalSessions = partnerSessions.length;
     const partnerTotalSets = partnerSessions.reduce(
-      (sum, s) => sum + s.logs.length,
+      (sum, s) => sum + s._count.logs,
       0
     );
 
@@ -181,43 +194,74 @@ export async function POST(request: Request) {
       ...exerciseMap.get(id)!,
     }));
 
-    // 6. Comparar PRs (carga máxima) nos exercícios em comum
-    const studentLogs = sharedExerciseIds.length > 0
-      ? await prisma.exerciseLog.findMany({
+    // 6. Comparar PRs (carga máxima) nos exercícios em comum usando groupBy agregador no banco
+    const studentMaxWeights = sharedExerciseIds.length > 0
+      ? await prisma.exerciseLog.groupBy({
+          by: ["exerciseId"],
           where: {
             studentId: student.id,
             exerciseId: { in: sharedExerciseIds },
           },
-          include: { exercise: { select: { name: true } } },
+          _max: {
+            weightUsed: true,
+          },
         })
       : [];
 
-    const partnerLogs = sharedExerciseIds.length > 0
-      ? await prisma.exerciseLog.findMany({
+    const partnerMaxWeights = sharedExerciseIds.length > 0
+      ? await prisma.exerciseLog.groupBy({
+          by: ["exerciseId"],
           where: {
             studentId: partner.id,
             exerciseId: { in: sharedExerciseIds },
           },
-          include: { exercise: { select: { name: true } } },
+          _max: {
+            weightUsed: true,
+          },
         })
       : [];
 
-    // Função auxiliar para encontrar a carga máxima
-    const getMaxWeight = (logsList: typeof studentLogs, exId: string) => {
-      const filtered = logsList.filter((l) => l.exerciseId === exId);
-      if (filtered.length === 0) return 0;
-      return Math.max(...filtered.map((l) => l.weightUsed));
-    };
+    const studentMaxMap = new Map(studentMaxWeights.map((s) => [s.exerciseId, s._max.weightUsed || 0]));
+    const partnerMaxMap = new Map(partnerMaxWeights.map((p) => [p.exerciseId, p._max.weightUsed || 0]));
 
     const exerciseComparison = sharedExerciseIds.map((id) => ({
       exerciseId: id,
       exerciseName: exerciseMap.get(id)?.name || "Exercício",
       muscleGroup: exerciseMap.get(id)?.muscleGroup || "",
-      myMax: getMaxWeight(studentLogs, id),
-      partnerMax: getMaxWeight(partnerLogs, id),
+      myMax: studentMaxMap.get(id) || 0,
+      partnerMax: partnerMaxMap.get(id) || 0,
     }));
 
+    // Streaks
+    const studentStreak = calculateStreak(studentSessions.map((s) => ({ date: s.date })));
+    const partnerStreak = calculateStreak(partnerSessions.map((s) => ({ date: s.date })));
+
+    // 30 dias
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const studentWorkouts30d = studentSessions.filter((s) => new Date(s.date) >= thirtyDaysAgo).length;
+    const partnerWorkouts30d = partnerSessions.filter((s) => new Date(s.date) >= thirtyDaysAgo).length;
+
     return NextResponse.json({
+      // Estrutura para duelo em GroupsTab
+      me: {
+        name: student.user.name || "Você",
+        image: student.user.image,
+        workoutsLast30Days: studentWorkouts30d,
+        streak: studentStreak,
+      },
+      partner: {
+        name: partner.user.name || "Parceiro",
+        image: partner.user.image,
+        workoutsLast30Days: partnerWorkouts30d,
+        streak: partnerStreak,
+      },
+      exercises: exerciseComparison.map((e) => ({
+        name: e.exerciseName,
+        myMaxWeight: e.myMax,
+        partnerMaxWeight: e.partnerMax,
+      })),
+      // Estrutura legada para compatibilidade retroativa
       myInfo: {
         name: student.user.name,
         sessionsCount: studentTotalSessions,

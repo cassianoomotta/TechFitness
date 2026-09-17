@@ -1,7 +1,7 @@
 "use client";
 import BrandLogo from "@/components/BrandLogo";
 import WorkoutTab from "./components/WorkoutTab";
-import GroupsTab from "./components/GroupsTab";
+import GroupsTab, { ComparisonResult } from "./components/GroupsTab";
 import WeightTab from "./components/WeightTab";
 import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
@@ -113,24 +113,32 @@ interface Partner {
   email: string;
 }
 
-interface ComparisonData {
-  myInfo: {
+interface ComparisonData extends ComparisonResult {
+  myInfo?: {
+    id?: string;
     name: string;
+    image?: string | null;
     sessionsCount: number;
     setsCount: number;
+    streak?: number;
+    last30Days?: number;
   };
-  partnerInfo: {
+  partnerInfo?: {
+    id?: string;
     name: string;
+    image?: string | null;
     sessionsCount: number;
     setsCount: number;
+    streak?: number;
+    last30Days?: number;
   };
-  sharedExercises: {
+  sharedExercises?: {
     exerciseId: string;
     name: string;
     muscleGroup: string;
     equipment: string;
   }[];
-  exerciseComparison: {
+  exerciseComparison?: {
     exerciseId: string;
     exerciseName: string;
     muscleGroup: string;
@@ -698,7 +706,7 @@ export default function StudentDashboard() {
             <Link
               href="/student/profile"
               className="flex items-center gap-2.5 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
-              title="Meu Perfil & Configurações da Conta"
+              title="Meu Perfil e Configurações da Conta"
             >
               <div className="relative">
                 <UserAvatar
