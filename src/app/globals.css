@@ -41,11 +41,32 @@
   --color-tf-muted: #475569;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: #F8FAFC;
   color: #0F172A;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 100dvh;
+}
+
+/* Safe area utilities for iPhone Notch, Dynamic Island & Android Navigation Bar */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+.bottom-nav-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
 }
 
 /* Custom scrollbar */

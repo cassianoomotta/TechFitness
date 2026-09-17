@@ -91,10 +91,13 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@exemplo.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
@@ -117,10 +120,11 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
           </div>
@@ -129,7 +133,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3.5 px-4 min-h-[48px] rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

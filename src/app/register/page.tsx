@@ -4,6 +4,7 @@ import BrandLogo from "@/components/BrandLogo";
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Dumbbell, User, Lock, Mail, Loader2, ArrowRight, Shield } from "lucide-react";
 
 export default function RegisterPage() {
@@ -44,9 +45,31 @@ export default function RegisterPage() {
       }
 
       setSuccess(true);
+
+      // Auto-login imediato sem fricção (Pilar 4 aprovado pelo Conselho)
+      try {
+        const loginRes = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (loginRes?.ok) {
+          if (role === "TRAINER") {
+            router.push("/trainer/dashboard");
+          } else {
+            router.push("/student/dashboard");
+          }
+          return;
+        }
+      } catch (loginErr) {
+        console.error("Erro no auto-login pós cadastro:", loginErr);
+      }
+
+      // Fallback
       setTimeout(() => {
         router.push("/login");
-      }, 2000);
+      }, 1200);
     } catch (err) {
       setApiError("Erro de conexão. Verifique sua internet.");
     } finally {
@@ -142,7 +165,7 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: João Silva"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
             {errors.name && (
@@ -160,10 +183,13 @@ export default function RegisterPage() {
               <input
                 type="email"
                 required
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@exemplo.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
             {errors.email && (
@@ -184,7 +210,7 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
               />
             </div>
             {errors.password && (

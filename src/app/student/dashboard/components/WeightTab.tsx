@@ -109,7 +109,7 @@ export default function WeightTab({
                 autoFocus
                 value={newWeight}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewWeight(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] text-base md:text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
               />
             </div>
             
@@ -120,14 +120,14 @@ export default function WeightTab({
                 required
                 value={newWeightDate}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewWeightDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] text-base md:text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
               />
             </div>
             
             <button
               type="submit"
               disabled={savingWeight}
-              className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.98] shadow-md shadow-blue-500/10"
+              className="w-full py-3 px-4 min-h-[48px] rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.98] shadow-md shadow-blue-500/10"
             >
               {savingWeight ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

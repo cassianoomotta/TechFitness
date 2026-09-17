@@ -1251,7 +1251,7 @@ export default function GroupsTab({
                   placeholder="Digite o nome ou e-mail..."
                   value={partnerSearchQuery}
                   onChange={(e) => setPartnerSearchQuery(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                  className="w-full p-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                 />
               </div>
 
@@ -1267,7 +1267,7 @@ export default function GroupsTab({
                   <select
                     value={selectedPartnerId}
                     onChange={(e) => handleSelectPartner(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                    className="w-full p-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                   >
                     <option value="">-- Selecionar Atleta --</option>
                     {filteredPartners.map((p: PartnerItem) => (
@@ -1456,7 +1456,7 @@ export default function GroupsTab({
                   placeholder="Ex: Turma das 06h, Desafio 30 Dias, Amigos da Firma"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                  className="w-full p-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all"
                 />
               </div>
 
@@ -1470,7 +1470,7 @@ export default function GroupsTab({
                   placeholder="Qual é o foco do grupo? Motivação diária, consistência..."
                   value={newGroupDesc}
                   onChange={(e) => setNewGroupDesc(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all resize-none"
+                  className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-base md:text-sm text-[#0F172A] transition-all resize-none"
                 />
               </div>
 
@@ -1478,14 +1478,14 @@ export default function GroupsTab({
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-semibold text-xs transition-all"
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-semibold text-xs transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={createSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+                  className="px-5 py-2.5 min-h-[44px] rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {createSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   <span>Criar Grupo</span>
@@ -1537,7 +1537,7 @@ export default function GroupsTab({
                   placeholder="Ex: TF-9K2L"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  className="w-full p-3 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-center font-mono font-black text-sm tracking-widest text-[#0F172A] uppercase transition-all"
+                  className="w-full p-3 min-h-[48px] rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-center font-mono font-black text-base md:text-base tracking-widest text-[#0F172A] uppercase transition-all"
                 />
               </div>
 

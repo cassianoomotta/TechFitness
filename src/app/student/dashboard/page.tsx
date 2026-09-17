@@ -1608,7 +1608,7 @@ export default function StudentDashboard() {
 
       {/* Toast Notifications */}
       {toasts.length > 0 && (
-        <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center pointer-events-none">
+        <div className="fixed bottom-24 sm:bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center pointer-events-none">
           {toasts.map((toast) => (
             <div
               key={toast.id}
@@ -1624,6 +1624,77 @@ export default function StudentDashboard() {
           ))}
         </div>
       )}
+
+      {/* =========================================================================
+          BARRA DE NAVEGAÇÃO INFERIOR FIXA (MOBILE BOTTOM NAVIGATION DOCK)
+          Ergonomia Fitts 48px + Safe Area iPhone/Android + Glassmorphism Premium
+          ========================================================================= */}
+      <nav
+        aria-label="Navegação Principal do Aplicativo"
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 shadow-2xl transition-all duration-300 bottom-nav-safe"
+      >
+        <div className="max-w-md mx-auto px-2 py-1 flex items-center justify-around gap-1">
+          {/* Aba 1: Treinos */}
+          <button
+            onClick={() => handleTabChange("fichas")}
+            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+              activeTab === "fichas"
+                ? "text-[#2563EB] font-bold"
+                : "text-slate-400 hover:text-slate-600 font-medium"
+            }`}
+          >
+            <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "fichas" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
+              <Dumbbell className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] tracking-tight leading-none">Treinos</span>
+          </button>
+
+          {/* Aba 2: Grupos & Mural */}
+          <button
+            onClick={() => handleTabChange("grupos")}
+            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+              activeTab === "grupos" || activeTab === "dupla"
+                ? "text-[#2563EB] font-bold"
+                : "text-slate-400 hover:text-slate-600 font-medium"
+            }`}
+          >
+            <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "grupos" || activeTab === "dupla" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
+              <Users className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] tracking-tight leading-none">Grupos</span>
+          </button>
+
+          {/* Aba 3: Peso */}
+          <button
+            onClick={() => handleTabChange("peso")}
+            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+              activeTab === "peso"
+                ? "text-[#2563EB] font-bold"
+                : "text-slate-400 hover:text-slate-600 font-medium"
+            }`}
+          >
+            <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "peso" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] tracking-tight leading-none">Peso</span>
+          </button>
+
+          {/* Aba 4: Conquistas */}
+          <button
+            onClick={() => handleTabChange("conquistas")}
+            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+              activeTab === "conquistas"
+                ? "text-[#2563EB] font-bold"
+                : "text-slate-400 hover:text-slate-600 font-medium"
+            }`}
+          >
+            <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "conquistas" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
+              <Trophy className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] tracking-tight leading-none">Conquistas</span>
+          </button>
+        </div>
+      </nav>
 
     </div>
   );
