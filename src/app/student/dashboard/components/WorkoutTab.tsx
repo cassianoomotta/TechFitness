@@ -2,11 +2,35 @@ import React from 'react';
 import { Dumbbell, Edit, Eye, Play, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
+interface Exercise {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  method: string;
+  videoUrl?: string | null;
+  gifUrl?: string | null;
+  description?: string | null;
+}
+
+interface WorkoutPlan {
+  id: string;
+  name: string;
+  description: string | null;
+  division: string;
+  weekDays: string | null;
+  exercises: Exercise[];
+  createdAt?: string;
+}
+
 interface WorkoutTabProps {
   loading: boolean;
-  plans: any[];
-  handleOpenEdit: (plan: any) => void;
-  setSelectedPlanForPreview: (plan: any) => void;
+  plans: WorkoutPlan[];
+  handleOpenEdit: (plan: WorkoutPlan) => void;
+  setSelectedPlanForPreview: (plan: WorkoutPlan) => void;
   onOpenImportModal: () => void;
 }
 
@@ -22,8 +46,8 @@ export default function WorkoutTab({
       {loading ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-2">
-            <div className="h-6 w-32 bg-slate-200/60 rounded animate-pulse"></div>
-            <div className="h-6 w-16 bg-slate-200/60 rounded animate-pulse"></div>
+            <div className="h-6 w-32 skeleton-shimmer"></div>
+            <div className="h-6 w-16 skeleton-shimmer"></div>
           </div>
           {/* Skeletons de Fichas */}
           {[1, 2, 3].map((i) => (
@@ -31,16 +55,16 @@ export default function WorkoutTab({
               <div className="flex justify-between items-start mb-4">
                 <div className="space-y-3 w-full">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 bg-slate-200/70 rounded-full animate-pulse"></div>
-                    <div className="h-5 w-40 bg-slate-200/70 rounded-md animate-pulse"></div>
+                    <div className="h-6 w-6 skeleton-shimmer rounded-full"></div>
+                    <div className="h-5 w-40 skeleton-shimmer"></div>
                   </div>
-                  <div className="h-3 w-3/4 bg-slate-100 rounded animate-pulse"></div>
+                  <div className="h-3 w-3/4 skeleton-shimmer"></div>
                 </div>
-                <div className="h-8 w-8 bg-slate-100 rounded-full animate-pulse shrink-0"></div>
+                <div className="h-8 w-8 skeleton-shimmer rounded-full shrink-0"></div>
               </div>
               <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-50">
-                <div className="h-8 w-20 bg-slate-100 rounded-full animate-pulse"></div>
-                <div className="h-8 w-24 bg-slate-100 rounded-full animate-pulse"></div>
+                <div className="h-8 w-20 skeleton-shimmer rounded-full"></div>
+                <div className="h-8 w-24 skeleton-shimmer rounded-full"></div>
               </div>
             </div>
           ))}
@@ -79,10 +103,10 @@ export default function WorkoutTab({
               Importar com IA
             </button>
           </div>
-          {plans.map((plan: any) => (
+          {plans.map((plan: WorkoutPlan) => (
             <div
               key={plan.id}
-              className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80 flex flex-col justify-between group hover:border-[#2563EB]/30 transition-all duration-300 relative overflow-hidden"
+              className="glass-card rounded-2xl p-6 border border-[#E2E8F0]/80 flex flex-col justify-between group hover:border-[#2563EB]/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
             >
               <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-6">
                 <div>
@@ -92,14 +116,14 @@ export default function WorkoutTab({
                     </h4>
                     <button
                       onClick={() => handleOpenEdit(plan)}
-                      className="p-1 rounded-lg text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#2563EB]/5 transition-all cursor-pointer"
+                      className="p-2 rounded-lg text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#2563EB]/5 transition-all cursor-pointer"
                       title="Editar divisão e dias"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   {plan.createdAt && (
-                    <p className="text-[10px] text-[#64748B] mt-1">
+                    <p className="text-[11px] text-[#64748B] mt-1">
                       Criado em {new Date(plan.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   )}
@@ -108,10 +132,10 @@ export default function WorkoutTab({
                   )}
                   {plan.weekDays && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
-                      {plan.weekDays.split(",").map((day: any) => (
+                      {plan.weekDays.split(",").map((day: string) => (
                         <span
                           key={day}
-                          className="text-[9px] font-bold bg-[#2563EB]/5 text-[#2563EB] px-1.5 py-0.5 rounded border border-[#2563EB]/10"
+                          className="text-[10px] font-bold bg-[#2563EB]/5 text-[#2563EB] px-1.5 py-0.5 rounded border border-[#2563EB]/10"
                         >
                           {day}
                         </span>
@@ -119,18 +143,18 @@ export default function WorkoutTab({
                     </div>
                   )}
                   {!plan.weekDays && (
-                    <p className="text-[10px] text-[#94A3B8] mt-1.5 italic">Nenhum dia da semana definido</p>
+                    <p className="text-[11px] text-[#94A3B8] mt-1.5 italic">Nenhum dia da semana definido</p>
                   )}
                 </div>
 
-                <span className="text-[10px] bg-white border border-[#E2E8F0] px-2 py-1 rounded font-bold text-[#94A3B8] w-fit sm:self-start">
+                <span className="text-[11px] bg-white border border-[#E2E8F0] px-2.5 py-1 rounded-lg font-bold text-[#94A3B8] w-fit sm:self-start">
                   {plan.exercises.length} Exercícios
                 </span>
               </div>
 
               {/* Exercícios Preview */}
               <div className="space-y-2 mb-6 border-y border-[#E2E8F0]/60 py-4">
-                {plan.exercises.slice(0, 3).map((ex: any) => (
+                {plan.exercises.slice(0, 3).map((ex: Exercise) => (
                   <div key={ex.id} className="flex justify-between items-center text-xs">
                     <span className="text-[#475569] font-medium">{ex.name}</span>
                     <span className="text-[#94A3B8]">
@@ -139,7 +163,7 @@ export default function WorkoutTab({
                   </div>
                 ))}
                 {plan.exercises.length > 3 && (
-                  <p className="text-[10px] text-[#94A3B8] text-center pt-1 font-semibold">
+                  <p className="text-[11px] text-[#94A3B8] text-center pt-1 font-semibold">
                     + {plan.exercises.length - 3} exercícios na ficha
                   </p>
                 )}
@@ -150,14 +174,14 @@ export default function WorkoutTab({
                 <button
                   type="button"
                   onClick={() => setSelectedPlanForPreview(plan)}
-                  className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] hover:bg-zinc-50 text-[#0F172A] font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] hover:bg-zinc-50 text-[#0F172A] font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
                 >
                   <Eye className="w-4 h-4 text-[#94A3B8]" />
                   Visualizar Exercícios
                 </button>
                 <Link
                   href={`/student/workout-session/${plan.id}`}
-                  className="flex-1 sm:flex-[1.5] py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/10 active:scale-[0.98]"
+                  className="flex-1 sm:flex-[1.5] py-3 px-4 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1E40AF] hover:from-[#1E40AF] hover:to-[#1E3A8A] text-white font-bold text-xs transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 active:scale-[0.98]"
                 >
                   <Play className="w-4 h-4 fill-white stroke-[3px]" />
                   Iniciar Sessão de Treino

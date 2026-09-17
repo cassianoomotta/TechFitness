@@ -111,7 +111,7 @@ export default function AchievementsTab(props: AchievementsTabProps) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
             {prs.map((pr: PersonalRecord) => (
-              <div key={pr.exerciseId} className="p-3.5 bg-zinc-50 border border-[#E2E8F0] rounded-xl flex items-center justify-between gap-3 hover:border-amber-200 hover:bg-amber-50/15 transition-all">
+              <div key={pr.exerciseId} className="p-3.5 bg-zinc-50 border border-[#E2E8F0] rounded-xl flex items-center justify-between gap-3 hover:border-amber-200 hover:bg-amber-50/15 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-[#0F172A] truncate">{pr.name}</p>
                   <p className="text-[10px] text-[#94A3B8] mt-0.5">{pr.muscleGroup} • {pr.equipment}</p>
@@ -126,11 +126,31 @@ export default function AchievementsTab(props: AchievementsTabProps) {
         )}
       </div>
 
-      {/* Loading Indicator da Gamificação */}
+      {/* Loading Skeleton da Gamificação */}
       {gamificationLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-          <p className="text-xs">Buscando sua jornada de conquistas...</p>
+        <div className="space-y-4">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 skeleton-shimmer rounded-xl"></div>
+              <div className="space-y-2 flex-1">
+                <div className="h-5 w-48 skeleton-shimmer"></div>
+                <div className="h-3 w-32 skeleton-shimmer"></div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              {[1, 2, 3, 4].map((i: number) => (
+                <div key={i} className="flex-1 h-16 skeleton-shimmer rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+            <div className="h-4 w-40 skeleton-shimmer mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i: number) => (
+                <div key={i} className="h-28 skeleton-shimmer rounded-2xl"></div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -271,8 +291,8 @@ export default function AchievementsTab(props: AchievementsTabProps) {
                         key={achievement.id} 
                         className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden ${
                           achievement.unlocked
-                            ? "bg-white border-[#E2E8F0] shadow-sm hover:shadow-md hover:border-amber-200/70"
-                            : "bg-zinc-50/70 border-zinc-200/60 opacity-90"
+                            ? "bg-white border-[#E2E8F0] shadow-sm hover:shadow-lg hover:border-amber-200/70 hover:scale-[1.02] hover:-translate-y-0.5"
+                            : "bg-zinc-50/70 border-zinc-200/60 opacity-90 hover:opacity-100 hover:border-zinc-300"
                         }`}
                       >
                         {/* Glow effect for unlocked */}
@@ -318,7 +338,7 @@ export default function AchievementsTab(props: AchievementsTabProps) {
                             <span>PROGRESSO</span>
                             <span className="font-mono">{achievement.progress} / {achievement.target}</span>
                           </div>
-                          <div className="w-full h-1.5 bg-zinc-200/70 rounded-full overflow-hidden">
+                          <div className="w-full h-2 bg-zinc-200/70 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ${
                                 achievement.unlocked

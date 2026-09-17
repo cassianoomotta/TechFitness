@@ -77,6 +77,12 @@ interface GamificationData {
   achievements: Achievement[];
 }
 
+interface ToastMessage {
+  id: number;
+  text: string;
+  type: "success" | "error";
+}
+
 
 
 interface Exercise {
@@ -214,6 +220,16 @@ export default function StudentDashboard() {
   const [achievementFilter, setAchievementFilter] = useState<"all" | "unlocked" | "locked">("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
+  // Toast feedback system
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const showToast = (text: string, type: "success" | "error" = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, text, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  };
+
   const handleOpenMedia = (url: string | null) => {
     setMediaLoading(true);
     setMediaError(false);
@@ -298,29 +314,6 @@ export default function StudentDashboard() {
   const [prsLoading, setPrsLoading] = useState(true);
 
   // Estados de Gamificação (RPG)
-  interface Achievement {
-    id: string;
-    title: string;
-    description: string;
-    icon: string;
-    xpReward: number;
-    unlocked: boolean;
-    progress: number;
-    target: number;
-    tier: number;
-  }
-  interface GamificationData {
-    level: number;
-    levelTitle: string;
-    totalXp: number;
-    currentLevelXp: number;
-    nextLevelXpNeeded: number;
-    streak: number;
-    totalSessions: number;
-    prsCount: number;
-    measurementsCount: number;
-    achievements: Achievement[];
-  }
   const [gamification, setGamification] = useState<GamificationData | null>(null);
   const [gamificationLoading, setGamificationLoading] = useState(true);
 
@@ -384,10 +377,10 @@ export default function StudentDashboard() {
           };
         });
       } else {
-        alert("Não foi possível remover a foto do treino.");
+        showToast("Não foi possível remover a foto do treino.", "error");
       }
     } catch {
-      alert("Erro ao conectar com o servidor.");
+      showToast("Erro ao conectar com o servidor. Tente novamente.", "error");
     } finally {
       setDeletingPhoto(false);
       setDeleteConfirm(false);
@@ -440,6 +433,7 @@ export default function StudentDashboard() {
         const updated = await response.json();
         const updatedPlans = plans.map((p) => p.id === editingPlan.id ? { ...p, division: updated.division, weekDays: updated.weekDays } : p);
         setPlans(sortPlansByWeekDays(updatedPlans));
+        showToast("Divisão e dias atualizados com sucesso!");
         setEditingPlan(null);
       } else {
         const data = await response.json();
@@ -625,12 +619,13 @@ export default function StudentDashboard() {
       if (response.ok) {
         setNewWeight("");
         fetchMeasurements();
+        showToast("Peso registrado com sucesso! ⚖️");
       } else {
         const data = await response.json();
         setWeightError(data.error || "Erro ao salvar.");
       }
-    } catch (err) {
-      setWeightError("Erro de conexão.");
+    } catch {
+      setWeightError("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
       setSavingWeight(false);
     }
@@ -1126,7 +1121,8 @@ export default function StudentDashboard() {
                   value={editDivision}
                   onChange={(e) => setEditDivision(e.target.value)}
                   placeholder="Ex: A, B, Superior, Push"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] transition-all"
+                  autoFocus
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none text-xs text-[#0F172A] transition-all"
                 />
               </div>
 
@@ -1386,7 +1382,7 @@ export default function StudentDashboard() {
         <div className="flex items-center justify-around h-16">
           <button
             onClick={() => handleTabChange("fichas")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
               activeTab === "fichas" ? "text-[#2563EB]" : "text-[#94A3B8]"
             }`}
           >
@@ -1395,7 +1391,7 @@ export default function StudentDashboard() {
           </button>
           <button
             onClick={() => handleTabChange("grupos")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
               activeTab === "grupos" || activeTab === "dupla" ? "text-[#2563EB]" : "text-[#94A3B8]"
             }`}
           >
@@ -1404,7 +1400,7 @@ export default function StudentDashboard() {
           </button>
           <button
             onClick={() => handleTabChange("peso")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
               activeTab === "peso" ? "text-[#2563EB]" : "text-[#94A3B8]"
             }`}
           >
@@ -1413,7 +1409,7 @@ export default function StudentDashboard() {
           </button>
           <button
             onClick={() => handleTabChange("conquistas")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all ${
+            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
               activeTab === "conquistas" ? "text-[#2563EB]" : "text-[#94A3B8]"
             }`}
           >
@@ -1605,6 +1601,25 @@ export default function StudentDashboard() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
+      {toasts.length > 0 && (
+        <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center pointer-events-none">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`animate-toast-in pointer-events-auto px-5 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2 backdrop-blur-md ${
+                toast.type === "success"
+                  ? "bg-emerald-50/95 border-emerald-200 text-emerald-700 shadow-emerald-500/10"
+                  : "bg-red-50/95 border-red-200 text-red-700 shadow-red-500/10"
+              }`}
+            >
+              <span>{toast.type === "success" ? "✅" : "⚠️"}</span>
+              {toast.text}
+            </div>
+          ))}
         </div>
       )}
 
