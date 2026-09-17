@@ -989,29 +989,12 @@ export default function GroupsTab({
                 </div>
               </div>
 
-              {/* Área de Pílulas com Scroll Horizontal e Indicadores */}
-              <div className="relative flex items-center">
-                {/* Seta e Gradiente Esquerdo (visível quando rolado para a direita) */}
-                {canScrollLeft && (
-                  <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pr-4 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent pointer-events-none">
-                    <button
-                      type="button"
-                      onClick={() => handleScrollPills("left")}
-                      className="pointer-events-auto p-1.5 rounded-full bg-white shadow-md border border-slate-200 text-slate-700 hover:text-blue-600 hover:scale-110 active:scale-95 transition-all cursor-pointer"
-                      title="Rolar para ver grupos anteriores"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Container de Pílulas com padding direito caso haja overflow */}
+              {/* Área de Pílulas com Scroll Horizontal Suave e Fade Sutil (Sem sobreposição de botões ou textos redundantes) */}
+              <div className="relative">
                 <div
                   ref={pillsScrollRef}
                   onScroll={checkPillsScroll}
-                  className={`flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1 scroll-smooth w-full ${
-                    canScrollRight ? "pr-20" : ""
-                  } ${canScrollLeft ? "pl-10" : ""}`}
+                  className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none py-1 scroll-smooth w-full px-0.5"
                 >
                   <button
                     type="button"
@@ -1044,49 +1027,16 @@ export default function GroupsTab({
                       </button>
                     );
                   })}
-
-                  {/* Pílula no final da rolagem para abrir lista completa */}
-                  <button
-                    type="button"
-                    onClick={() => setShowGroupDropdown(true)}
-                    className="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-blue-200/80 cursor-pointer active:scale-95 min-h-[38px]"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Ver todos ({groups.length})</span>
-                  </button>
                 </div>
 
-                {/* Seta e Gradiente Direito: Indica com clareza visual que há mais grupos à direita */}
+                {/* Fade gradiente estético nas bordas (pointer-events-none, não bloqueia cliques nem sobrepõe botões) */}
                 {canScrollRight && (
-                  <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-4 pr-0.5 bg-gradient-to-l from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent pointer-events-none">
-                    <button
-                      type="button"
-                      onClick={() => handleScrollPills("right")}
-                      className="pointer-events-auto px-2.5 py-1.5 rounded-full bg-white shadow-md border border-blue-200 text-[#2563EB] hover:bg-blue-50 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
-                      title="Deslize ou clique para ver mais grupos"
-                    >
-                      <span>Mais</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <div className="absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-slate-50 via-slate-50/80 to-transparent pointer-events-none" />
+                )}
+                {canScrollLeft && (
+                  <div className="absolute left-0 top-0 bottom-1 w-10 bg-gradient-to-r from-slate-50 via-slate-50/80 to-transparent pointer-events-none" />
                 )}
               </div>
-
-              {/* Dica de arrastar caso haja grupos ocultos à direita */}
-              {canScrollRight && (
-                <div className="flex items-center justify-between text-[11px] text-blue-600 font-semibold px-1 pt-0.5">
-                  <span className="flex items-center gap-1">
-                    <span>👉 Deslize para o lado para ver todos os seus grupos</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleScrollPills("right")}
-                    className="underline text-[10px] text-slate-500 hover:text-blue-600 cursor-pointer"
-                  >
-                    Rolar ➔
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
