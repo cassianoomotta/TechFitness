@@ -106,7 +106,6 @@ export default function WeightTab({
                 required
                 placeholder="Ex: 75.5"
                 inputMode="decimal"
-                autoFocus
                 value={newWeight}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewWeight(e.target.value)}
                 className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] text-base md:text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"

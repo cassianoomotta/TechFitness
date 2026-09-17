@@ -91,12 +91,14 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Mapear grupos em comum para cada atleta
+    // Mapear grupos em comum para cada atleta e suas respectivas datas de ingresso
     const mutualGroupsMap = new Map<string, Array<{ id: string; name: string; icon: string }>>();
+    const memberJoinDateMap = new Map<string, Date>(); // Chave: `${studentId}_${groupId}`
     const targetStudentIdsSet = new Set<string>();
 
     groupMembers.forEach((member) => {
       targetStudentIdsSet.add(member.studentId);
+      memberJoinDateMap.set(`${member.studentId}_${member.group.id}`, new Date(member.joinedAt));
       const existing = mutualGroupsMap.get(member.studentId) || [];
       if (!existing.some((g) => g.id === member.group.id)) {
         existing.push({
@@ -233,11 +235,22 @@ export async function GET(req: NextRequest) {
         }
 
         const isAllGroups = rawTargetIds.length === 0 || rawTargetIds.includes("ALL");
-        const visibleGroups = isAllGroups
-          ? mutualGroups
-          : mutualGroups.filter((g) => rawTargetIds.includes(g.id));
+        const sessDate = new Date(sess.date);
 
-        // Se o autor não compartilhou com nenhum dos grupos mútuos visualizados, não exibe
+        // Regra de Isolamento: Apenas exibe o post para grupos onde o atleta já era membro no momento do treino.
+        // Ao entrar em um novo grupo, o atleta começa do zero e não carrega postagens anteriores realizadas em outros grupos.
+        const visibleGroups = mutualGroups.filter((g) => {
+          const joinDate = memberJoinDateMap.get(`${sess.studentId}_${g.id}`);
+          if (!joinDate || sessDate < joinDate) {
+            return false;
+          }
+          if (!isAllGroups && !rawTargetIds.includes(g.id)) {
+            return false;
+          }
+          return true;
+        });
+
+        // Se o treino foi realizado antes de ingressar no grupo ou não foi direcionado a ele, não exibe
         if (visibleGroups.length === 0) {
           return null;
         }

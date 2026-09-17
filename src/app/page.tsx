@@ -8,8 +8,11 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#F8FAFC] text-[#0F172A] selection:bg-[#2563EB]/20 selection:text-[#1D4ED8]">
-      {/* Header */}
-      <header className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      {/* Header com suporte a Safe Area */}
+      <header 
+        className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-50 pt-safe"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <BrandLogo size={36} />
 

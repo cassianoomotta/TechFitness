@@ -142,9 +142,12 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       // Streak
       const streak = calculateStreak(s.sessions.map((sess) => sess.date));
 
-      // Métricas da Semana (Últimos 7 dias)
+      // Métricas da Semana (Últimos 7 dias a partir do momento em que ingressou no grupo, começando do zero)
+      const memberJoinedAt = new Date(m.joinedAt);
+      const effectiveStartDate = memberJoinedAt > sevenDaysAgo ? memberJoinedAt : sevenDaysAgo;
+
       const weeklySessions = s.sessions.filter(
-        (sess) => new Date(sess.date) >= sevenDaysAgo
+        (sess) => new Date(sess.date) >= effectiveStartDate
       );
       const weeklyPRs = Math.min(weeklySessions.length * 2, s._count.logs);
       const weeklyMeasurements = s.measurements.length;

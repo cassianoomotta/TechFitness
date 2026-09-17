@@ -248,6 +248,21 @@ export default function GroupsTab({
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
 
+  // Modais de Confirmação com Diálogo
+  const [leaveConfirmGroup, setLeaveConfirmGroup] = useState<{
+    id: string;
+    name: string;
+    isCreator: boolean;
+  } | null>(null);
+  const [leavingGroup, setLeavingGroup] = useState(false);
+
+  const [removeMemberConfirm, setRemoveMemberConfirm] = useState<{
+    groupId: string;
+    studentId: string;
+    memberName: string;
+  } | null>(null);
+  const [removingMember, setRemovingMember] = useState(false);
+
   // Estados do formulário de criação
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDesc, setNewGroupDesc] = useState("");
@@ -533,28 +548,71 @@ export default function GroupsTab({
     }
   };
 
-  // Sair do grupo
-  const handleLeaveGroup = async (groupId: string, isCreator: boolean) => {
-    const confirmMessage = isCreator
-      ? "Tem certeza que deseja excluir este grupo? Todos os membros serão desvinculados."
-      : "Tem certeza que deseja sair deste grupo?";
-    if (!confirm(confirmMessage)) return;
-
+  // Confirmar e executar saída do grupo
+  const confirmExecuteLeaveGroup = async () => {
+    if (!leaveConfirmGroup) return;
+    setLeavingGroup(true);
     try {
-      const res = await fetch(`/api/student/groups/${groupId}`, {
-        method: "DELETE",
+      const res = await fetch(`/api/student/groups/${leaveConfirmGroup.id}/leave`, {
+        method: "POST",
       });
+      const data = await res.json();
       if (res.ok) {
         setShowMembersModal(false);
         setSelectedGroupDetail(null);
-        delete cachedGroupDetails[groupId];
+        setLeaveConfirmGroup(null);
+        delete cachedGroupDetails[leaveConfirmGroup.id];
         cachedGroups = null;
         cachedTimeline = null;
         await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
         setSelectedGroupId("all");
+      } else {
+        alert(data.error || "Não foi possível sair do grupo.");
       }
     } catch (err) {
-      console.error("Erro ao sair/excluir grupo:", err);
+      console.error("Erro ao sair do grupo:", err);
+      alert("Erro de conexão ao sair do grupo.");
+    } finally {
+      setLeavingGroup(false);
+    }
+  };
+
+  // Confirmar e executar remoção de membro pelo criador
+  const confirmExecuteRemoveMember = async () => {
+    if (!removeMemberConfirm) return;
+    setRemovingMember(true);
+    try {
+      const res = await fetch(`/api/student/groups/${removeMemberConfirm.groupId}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: removeMemberConfirm.studentId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Atualizar lista de membros no modal aberto imediatamente
+        if (selectedGroupDetail && selectedGroupDetail.id === removeMemberConfirm.groupId) {
+          const updatedMembers = selectedGroupDetail.members.filter(
+            (m) => m.student.id !== removeMemberConfirm.studentId
+          );
+          const updatedDetail: GroupFullDetail = {
+            ...selectedGroupDetail,
+            membersCount: Math.max(1, selectedGroupDetail.membersCount - 1),
+            members: updatedMembers,
+          };
+          setSelectedGroupDetail(updatedDetail);
+          cachedGroupDetails[removeMemberConfirm.groupId] = updatedDetail;
+        }
+        setRemoveMemberConfirm(null);
+        cachedGroups = null;
+        await fetchUserGroups(false);
+      } else {
+        alert(data.error || "Não foi possível remover o membro do grupo.");
+      }
+    } catch (err) {
+      console.error("Erro ao remover membro do grupo:", err);
+      alert("Erro de conexão ao remover membro do grupo.");
+    } finally {
+      setRemovingMember(false);
     }
   };
 
@@ -797,6 +855,23 @@ export default function GroupsTab({
                   >
                     <Trophy className="w-3.5 h-3.5 text-amber-300" />
                     <span>Ranking Completo</span>
+                  </button>
+
+                  {/* Sair do Grupo */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLeaveConfirmGroup({
+                        id: activeGroup.id,
+                        name: activeGroup.name,
+                        isCreator: !!activeGroup.isCreator,
+                      })
+                    }
+                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-red-500/20 text-slate-300 hover:text-red-300 border border-white/15 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 shrink-0"
+                    title={activeGroup.isCreator ? "Excluir Grupo" : "Sair do Grupo"}
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>{activeGroup.isCreator ? "Excluir" : "Sair"}</span>
                   </button>
                 </div>
               </div>
@@ -1283,8 +1358,15 @@ export default function GroupsTab({
                         Membros e Ranking
                       </button>
                       <button
-                        onClick={() => handleLeaveGroup(group.id, !!group.isCreator)}
-                        className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all cursor-pointer"
+                        type="button"
+                        onClick={() =>
+                          setLeaveConfirmGroup({
+                            id: group.id,
+                            name: group.name,
+                            isCreator: !!group.isCreator,
+                          })
+                        }
+                        className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all cursor-pointer active:scale-95"
                         title={group.isCreator ? "Excluir Grupo" : "Sair do Grupo"}
                       >
                         {group.isCreator ? <Trash2 className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
@@ -1771,7 +1853,7 @@ export default function GroupsTab({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 text-right">
+                      <div className="flex items-center gap-2.5 text-right">
                         <div>
                           <span className="text-xs font-bold text-[#0F172A] block">
                             {member.student.workoutsCount} treinos
@@ -1781,6 +1863,24 @@ export default function GroupsTab({
                             {member.student.streak}d streak
                           </span>
                         </div>
+
+                        {/* Botão de Remover Membro: visível apenas para o criador do grupo quando o membro não for o criador */}
+                        {selectedGroupDetail.isCreator && member.role !== "CREATOR" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRemoveMemberConfirm({
+                                groupId: selectedGroupDetail.id,
+                                studentId: member.student.id,
+                                memberName: member.student.name,
+                              })
+                            }
+                            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/60 transition-all cursor-pointer active:scale-95 shrink-0"
+                            title={`Remover ${member.student.name} do grupo`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1789,8 +1889,15 @@ export default function GroupsTab({
                 {/* Ações de Saída ou Exclusão */}
                 <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
                   <button
-                    onClick={() => handleLeaveGroup(selectedGroupDetail.id, selectedGroupDetail.isCreator)}
-                    className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1.5 transition-colors"
+                    type="button"
+                    onClick={() =>
+                      setLeaveConfirmGroup({
+                        id: selectedGroupDetail.id,
+                        name: selectedGroupDetail.name,
+                        isCreator: selectedGroupDetail.isCreator,
+                      })
+                    }
+                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/60 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                   >
                     {selectedGroupDetail.isCreator ? (
                       <>
@@ -1806,14 +1913,110 @@ export default function GroupsTab({
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => setShowMembersModal(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold text-xs transition-all"
+                    className="min-h-[44px] px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold text-xs transition-all cursor-pointer active:scale-95"
                   >
                     Fechar
                   </button>
                 </div>
               </>
             ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL DE CONFIRMAÇÃO: SAIR DO GRUPO
+          ========================================================================= */}
+      {leaveConfirmGroup && (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 mx-auto flex items-center justify-center">
+              <LogOut className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#0F172A]">
+                {leaveConfirmGroup.isCreator ? "Excluir ou Sair do Grupo" : "Sair do Grupo"}
+              </h3>
+              <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                Tem certeza que deseja sair do grupo{" "}
+                <strong className="text-[#0F172A] font-semibold">{leaveConfirmGroup.name}</strong>?
+              </p>
+              {leaveConfirmGroup.isCreator && (
+                <p className="text-[11px] text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200/60 mt-2.5 font-medium text-left">
+                  ⚠️ Você é o criador deste grupo. Ao sair, a liderança será transferida para outro membro ou o grupo será encerrado caso não haja outros participantes.
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setLeaveConfirmGroup(null)}
+                disabled={leavingGroup}
+                className="flex-1 py-3 px-4 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold text-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmExecuteLeaveGroup}
+                disabled={leavingGroup}
+                className="flex-1 py-3 px-4 min-h-[44px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+              >
+                {leavingGroup ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <LogOut className="w-4 h-4" />
+                )}
+                <span>Confirmar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL DE CONFIRMAÇÃO: REMOVER MEMBRO (CRIADOR)
+          ========================================================================= */}
+      {removeMemberConfirm && (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 mx-auto flex items-center justify-center">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#0F172A]">
+                Remover Membro
+              </h3>
+              <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                Tem certeza que deseja remover o usuário{" "}
+                <strong className="text-[#0F172A] font-bold">{removeMemberConfirm.memberName}</strong> do grupo?
+              </p>
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRemoveMemberConfirm(null)}
+                disabled={removingMember}
+                className="flex-1 py-3 px-4 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold text-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmExecuteRemoveMember}
+                disabled={removingMember}
+                className="flex-1 py-3 px-4 min-h-[44px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+              >
+                {removingMember ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                <span>Confirmar</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
