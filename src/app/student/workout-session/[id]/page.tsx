@@ -669,8 +669,11 @@ export default function WorkoutSessionPlayer() {
   return (
     <div className="h-[100dvh] bg-[#F8FAFC] flex flex-col max-w-md mx-auto relative border-x border-[#E2E8F0] shadow-2xl text-[#0F172A]">
       
-      {/* Header Fixo */}
-      <header className="border-b border-[#E2E8F0] bg-white/95 z-30 px-4 py-4 flex items-center justify-between flex-none">
+      {/* Header Fixo com suporte a Safe Area */}
+      <header 
+        className="border-b border-[#E2E8F0] bg-white/95 z-30 px-4 pb-4 flex items-center justify-between flex-none pt-safe"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+      >
         <div className="flex items-center gap-3">
           <Link
             href="/student/dashboard"

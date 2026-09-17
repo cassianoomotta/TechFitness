@@ -58,14 +58,22 @@ body {
 
 /* Safe area utilities for iPhone Notch, Dynamic Island & Android Navigation Bar */
 .pb-safe {
+  padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 .pt-safe {
-  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.header-safe {
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .bottom-nav-safe {
+  padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
 }
 

@@ -166,8 +166,11 @@ export default function AchievementsPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
-      {/* Header */}
-      <header className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+      {/* Header com suporte a Safe Area */}
+      <header 
+        className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 pt-safe"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link
             href="/student/dashboard"

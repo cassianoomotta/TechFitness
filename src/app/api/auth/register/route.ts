@@ -85,19 +85,24 @@ export async function POST(request: Request) {
           },
         });
 
-        // Notificar todos os treinadores sobre o novo aluno disponível
-        const trainers = await tx.user.findMany({
-          where: { role: "TRAINER" },
-          select: { id: true }
+        // Notificar treinadores e o perfil autorizado (cassianoomotta@gmail.com)
+        const notifyTargets = await tx.user.findMany({
+          where: {
+            OR: [
+              { role: "TRAINER" },
+              { email: "cassianoomotta@gmail.com" },
+            ],
+          },
+          select: { id: true },
         });
 
-        if (trainers.length > 0) {
+        if (notifyTargets.length > 0) {
           await tx.notification.createMany({
-            data: trainers.map((t) => ({
+            data: notifyTargets.map((t) => ({
               userId: t.id,
               title: "Novo Aluno Registrado 🆕",
               message: `${name} acabou de se cadastrar no sistema e está disponível para ser vinculado!`,
-            }))
+            })),
           });
         }
       }

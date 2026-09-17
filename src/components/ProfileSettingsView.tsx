@@ -156,7 +156,10 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+    <div 
+      className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-6 sm:py-10 px-4 sm:px-6 lg:px-8 pt-safe"
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.5rem)" }}
+    >
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Cabeçalho de Navegação */}
         <div className="flex items-center justify-between">

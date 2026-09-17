@@ -7,6 +7,7 @@ import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
 import ImportWorkoutModal from "./components/ImportWorkoutModal";
 import RankingLeaderboard, { RankingData, RankingItem } from "./components/RankingLeaderboard";
+import RegisteredUsersModal from "./components/RegisteredUsersModal";
 
 import { getAchievementStatusHint } from "@/lib/gamification";
 
@@ -219,6 +220,7 @@ export default function StudentDashboard() {
   const [selectedTier, setSelectedTier] = useState<number>(1);
   const [achievementFilter, setAchievementFilter] = useState<"all" | "unlocked" | "locked">("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isRegisteredUsersModalOpen, setIsRegisteredUsersModalOpen] = useState(false);
 
   // Capturar código de convite ou aba via URL (ex: link de convite recebido via WhatsApp)
   useEffect(() => {
@@ -713,12 +715,28 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
-      {/* Header */}
-      <header className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+      {/* Header com suporte total a Safe Area (iPhone Notch, Dynamic Island e Android) */}
+      <header 
+        className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 pt-safe"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo size={36} />
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Botão Especial de Administrador: Ver quem ingressou no app (exclusivo para cassianoomotta@gmail.com) */}
+            {session?.user?.email === "cassianoomotta@gmail.com" && (
+              <button
+                type="button"
+                onClick={() => setIsRegisteredUsersModalOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer border border-slate-700/60"
+                title="Ver atletas cadastrados na plataforma (Permissão Especial)"
+              >
+                <Users className="w-3.5 h-3.5 text-blue-400" />
+                <span>Atletas Ingressados</span>
+              </button>
+            )}
+
             {/* User Avatar & Profile Click -> Redireciona para /student/profile */}
             <Link
               href="/student/profile"
@@ -766,7 +784,7 @@ export default function StudentDashboard() {
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl z-50 p-4 space-y-3">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl z-50 p-4 space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
                     <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Notificações</h4>
                     <button
@@ -776,6 +794,26 @@ export default function StudentDashboard() {
                       Fechar
                     </button>
                   </div>
+
+                  {/* Acesso Rápido Admin: Atletas Ingressados */}
+                  {session?.user?.email === "cassianoomotta@gmail.com" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNotifications(false);
+                        setIsRegisteredUsersModalOpen(true);
+                      }}
+                      className="w-full mb-1 p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-xs font-bold transition-all flex items-center justify-between border border-blue-200/60 cursor-pointer active:scale-95"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span>Ver Quem Ingressou no App</span>
+                      </div>
+                      <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-black">
+                        Admin
+                      </span>
+                    </button>
+                  )}
                   <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
                     {notifications.length === 0 ? (
                       <p className="text-[11px] text-[#94A3B8] text-center py-4">Nenhuma notificação por enquanto.</p>
@@ -1711,6 +1749,12 @@ export default function StudentDashboard() {
           </button>
         </div>
       </nav>
+
+      {/* Modal Exclusivo de Atletas Ingressados para cassianoomotta@gmail.com */}
+      <RegisteredUsersModal
+        isOpen={isRegisteredUsersModalOpen}
+        onClose={() => setIsRegisteredUsersModalOpen(false)}
+      />
 
     </div>
   );

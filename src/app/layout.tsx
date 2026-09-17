@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#2563EB",
+  themeColor: "#FFFFFF",
 };
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   description: "Plataforma premium para personal trainers prescreverem treinos focados em progressão de carga e alunos evoluírem de forma acompanhada e gamificada.",
   appleWebApp: {
     title: "TechFitness",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     capable: true,
   },
   applicationName: "TechFitness",
