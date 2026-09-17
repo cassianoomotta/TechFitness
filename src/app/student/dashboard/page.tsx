@@ -967,7 +967,7 @@ export default function StudentDashboard() {
                   Nenhum colega postou foto de treino hoje ainda.
                 </p>
                 <p className="text-[11px] text-[#94A3B8] mt-0.5">
-                  Conclua seu treino com foto para liderar o mural da assessoria! 🚀
+                  Conclua seu treino com foto para liderar o mural da assessoria!
                 </p>
               </div>
             )}
@@ -975,50 +975,51 @@ export default function StudentDashboard() {
         )}
 
         {/* Abas */}
-        <div className="hidden sm:flex border-b border-[#E2E8F0] mb-6">
+        {/* Abas Principais */}
+        <div className="hidden sm:flex border-b border-slate-200 mb-6">
           <button
             onClick={() => handleTabChange("fichas")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "fichas"
                 ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
+                : "border-transparent text-slate-400 hover:text-slate-600"
             }`}
           >
-            <Dumbbell className="w-3.5 h-3.5" />
+            <Dumbbell className={`w-4 h-4 transition-colors ${activeTab === "fichas" ? "text-[#2563EB]" : "text-slate-400"}`} />
             <span>Meus Treinos</span>
           </button>
           <button
             onClick={() => handleTabChange("grupos")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "grupos" || activeTab === "dupla"
                 ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
+                : "border-transparent text-slate-400 hover:text-slate-600"
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            <span>Grupos<span className="hidden sm:inline"> 👥</span></span>
+            <Users className={`w-4 h-4 transition-colors ${activeTab === "grupos" || activeTab === "dupla" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <span>Grupos</span>
           </button>
           <button
             onClick={() => handleTabChange("peso")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "peso"
                 ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
+                : "border-transparent text-slate-400 hover:text-slate-600"
             }`}
           >
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>Peso<span className="hidden sm:inline"> ⚖️</span></span>
+            <TrendingUp className={`w-4 h-4 transition-colors ${activeTab === "peso" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <span>Peso</span>
           </button>
           <button
             onClick={() => handleTabChange("conquistas")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "conquistas"
                 ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-[#94A3B8] hover:text-[#94A3B8]"
+                : "border-transparent text-slate-400 hover:text-slate-600"
             }`}
           >
-            <Trophy className="w-3.5 h-3.5" />
-            <span>Conquistas<span className="hidden sm:inline"> 🏆</span></span>
+            <Trophy className={`w-4 h-4 transition-colors ${activeTab === "conquistas" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <span>Conquistas</span>
           </button>
         </div>
 
