@@ -865,89 +865,96 @@ export default function StudentDashboard() {
 
         {/* Painel RPG de Nível, XP e Streak */}
         {gamificationLoading ? (
-          <section className="mb-8 p-6 rounded-2xl bg-slate-900 shadow-xl relative overflow-hidden animate-pulse">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-slate-800"></div>
-                <div className="space-y-2">
-                  <div className="h-5 w-32 bg-slate-800 rounded"></div>
-                  <div className="h-3 w-24 bg-slate-800 rounded"></div>
+          <section className="mb-4 sm:mb-8 p-3 sm:p-5 rounded-2xl bg-slate-900 shadow-xl relative overflow-hidden animate-pulse">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-slate-800 shrink-0"></div>
+                <div className="space-y-1.5">
+                  <div className="h-4 w-28 sm:w-36 bg-slate-800 rounded"></div>
+                  <div className="h-3 w-20 sm:w-24 bg-slate-800 rounded"></div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 w-full md:w-auto">
-                <div className="flex items-center gap-3 bg-slate-800/50 px-4 py-2.5 rounded-xl w-full sm:w-40">
-                  <div className="h-8 w-8 bg-slate-700 rounded-lg shrink-0"></div>
-                  <div className="space-y-1 w-full">
-                    <div className="h-3 w-16 bg-slate-700 rounded"></div>
-                    <div className="h-4 w-12 bg-slate-700 rounded"></div>
-                  </div>
-                </div>
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-16 sm:w-28 bg-slate-800 rounded-xl"></div>
+                <div className="h-9 w-16 sm:w-28 bg-slate-800 rounded-xl"></div>
               </div>
+            </div>
+            <div className="mt-3 sm:mt-4 space-y-1.5">
+              <div className="h-2 w-full bg-slate-800 rounded-full"></div>
             </div>
           </section>
         ) : gamification && (
-          <section className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/5 animate-fade-in">
+          <section className="mb-4 sm:mb-8 p-3 sm:p-5 md:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/10 animate-fade-in">
             {/* Elemento decorativo de luz de fundo */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/15 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+            {/* Linha Superior: Nível + Chips de Gamificação */}
+            <div className="flex items-center justify-between gap-2 sm:gap-4 relative z-10">
               
               {/* Informações do Nível */}
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#2563EB] to-[#00C2FF] flex flex-col items-center justify-center shadow-lg shadow-blue-500/20 border border-white/20">
-                  <span className="text-[10px] uppercase font-bold text-blue-100 leading-none">Nível</span>
-                  <span className="text-2xl font-black font-mono leading-none mt-1">{gamification.level}</span>
+              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-tr from-[#2563EB] to-[#00C2FF] flex flex-col items-center justify-center shadow-lg shadow-blue-500/25 border border-white/20 shrink-0">
+                  <span className="text-[8px] sm:text-[9px] uppercase font-extrabold text-blue-100 leading-none">Nível</span>
+                  <span className="text-base sm:text-xl font-black font-mono leading-none mt-0.5">{gamification.level}</span>
                 </div>
-                <div>
-                  <h3 className="font-display text-base font-extrabold tracking-tight bg-gradient-to-r from-blue-100 to-cyan-100 bg-clip-text text-transparent">
+                <div className="min-w-0">
+                  <h3 className="font-display text-xs sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent">
                     {gamification.levelTitle}
                   </h3>
-                  <p className="text-[10px] text-zinc-400 mt-1 flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-amber-500" />
-                    <span>{gamification.totalXp} XP Acumulados</span>
+                  <p className="text-[10px] sm:text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
+                    <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
+                    <span className="font-medium truncate">{gamification.totalXp.toLocaleString("pt-BR")} XP</span>
                   </p>
                 </div>
               </div>
 
-              {/* Estatísticas de Gamificação */}
-              <div className="flex items-center gap-4 w-full md:w-auto">
-                {/* Constância */}
-                <div className="flex-1 md:flex-none p-3.5 bg-white/5 border border-white/5 rounded-xl flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${gamification.streak > 0 ? "bg-amber-500/10 text-amber-400 animate-pulse" : "bg-zinc-800 text-zinc-500"}`}>
-                    <Flame className="w-5 h-5 fill-current" />
+              {/* Estatísticas Compactas (Badges Glassmorphism) */}
+              <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                {/* Constância / Streak */}
+                <div className="px-2 py-1 sm:px-3 sm:py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm">
+                  <div className={`p-1 rounded-lg ${gamification.streak > 0 ? "bg-amber-500/20 text-amber-400" : "bg-zinc-800 text-zinc-500"}`}>
+                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
                   </div>
                   <div>
-                    <span className="text-[9px] uppercase font-semibold text-zinc-400 block tracking-wider">Semanas Seguidas</span>
-                    <span className="text-sm font-bold font-mono text-white">
-                      {gamification.streak} {gamification.streak === 1 ? "semana" : "semanas"}
-                    </span>
+                    <span className="text-[8px] uppercase font-bold text-zinc-400 hidden sm:block tracking-wider">Semanas</span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
+                        {gamification.streak}
+                      </span>
+                      <span className="text-[9px] text-zinc-400 font-semibold leading-none sm:hidden">sem</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Total Treinos */}
-                <div className="flex-1 md:flex-none p-3.5 bg-white/5 border border-white/5 rounded-xl flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                    <Dumbbell className="w-5 h-5" />
+                <div className="px-2 py-1 sm:px-3 sm:py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm">
+                  <div className="p-1 rounded-lg bg-blue-500/20 text-blue-400">
+                    <Dumbbell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                   <div>
-                    <span className="text-[9px] uppercase font-semibold text-zinc-400 block tracking-wider">Treinos</span>
-                    <span className="text-sm font-bold font-mono text-white">
-                      {gamification.totalSessions} conclusões
-                    </span>
+                    <span className="text-[8px] uppercase font-bold text-zinc-400 hidden sm:block tracking-wider">Treinos</span>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
+                        {gamification.totalSessions}
+                      </span>
+                      <span className="text-[9px] text-zinc-400 font-semibold leading-none sm:hidden">treinos</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Barra de Progresso de Nível (XP) */}
-            <div className="mt-6 space-y-2">
-              <div className="flex justify-between items-center text-[10px] text-zinc-400">
-                <span>Progresso para o Nível {gamification.level + 1}</span>
-                <span className="font-mono">{gamification.currentLevelXp} / {gamification.nextLevelXpNeeded} XP</span>
+            {/* Barra de Progresso de Nível (XP) Integrada */}
+            <div className="mt-3 sm:mt-4 space-y-1.5 relative z-10">
+              <div className="flex justify-between items-center text-[9px] sm:text-[11px] text-zinc-400">
+                <span className="font-medium">Progresso para Nível {gamification.level + 1}</span>
+                <span className="font-mono font-semibold text-zinc-300">
+                  {gamification.currentLevelXp} / {gamification.nextLevelXpNeeded} XP
+                </span>
               </div>
-              <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
+              <div className="w-full h-2 sm:h-2.5 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
                 <div 
-                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#00C2FF] transition-all duration-1000 shadow-[0_0_8px_rgba(37,99,235,0.5)]"
+                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#00C2FF] transition-all duration-1000 shadow-[0_0_8px_rgba(37,99,235,0.6)]"
                   style={{ width: `${Math.min(100, (gamification.currentLevelXp / gamification.nextLevelXpNeeded) * 100)}%` }}
                 />
               </div>
