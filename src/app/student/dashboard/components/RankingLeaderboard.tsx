@@ -1,5 +1,5 @@
-import React from 'react';
-import { Camera, Loader2, Trophy } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, Loader2, Trophy, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import UserAvatar from '@/components/UserAvatar';
 
 import { WeeklyCheckinFeedItem } from '@/components/StudentWorkoutInstagramCard';
@@ -51,6 +51,8 @@ export default function RankingLeaderboard({
   loading,
   onOpenCheckinPhoto,
 }: RankingLeaderboardProps) {
+  const [showFullRanking, setShowFullRanking] = useState(false);
+
   if (loading) {
     return (
       <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center py-12 text-[#94A3B8]">
@@ -64,6 +66,10 @@ export default function RankingLeaderboard({
     return null;
   }
 
+  const fullList = ranking.allRanked && ranking.allRanked.length > 0 ? ranking.allRanked : ranking.top5;
+  const hasMoreThan5 = fullList.length > 5;
+  const displayedList = showFullRanking ? fullList.slice(3) : fullList.slice(3, 5);
+
   return (
     <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm space-y-6">
       {/* Header */}
@@ -72,9 +78,21 @@ export default function RankingLeaderboard({
           <Trophy className="w-5 h-5 text-amber-500" />
           Liga dos Titãs — Ranking Geral
         </h3>
-        <span className="text-[10px] bg-[#2563EB]/5 border border-[#2563EB]/15 px-2.5 py-1 rounded-full font-bold text-[#2563EB]">
-          {ranking.totalParticipants} atletas ativos
-        </span>
+        {hasMoreThan5 ? (
+          <button
+            type="button"
+            onClick={() => setShowFullRanking((prev) => !prev)}
+            className="text-[10px] bg-[#2563EB]/5 hover:bg-[#2563EB]/10 border border-[#2563EB]/20 hover:border-[#2563EB]/40 px-2.5 py-1 rounded-full font-bold text-[#2563EB] transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+            title={showFullRanking ? "Recolher para TOP 5" : "Ver ranking completo"}
+          >
+            <span>{ranking.totalParticipants} atletas ativos</span>
+            {showFullRanking ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        ) : (
+          <span className="text-[10px] bg-[#2563EB]/5 border border-[#2563EB]/15 px-2.5 py-1 rounded-full font-bold text-[#2563EB]">
+            {ranking.totalParticipants} atletas ativos
+          </span>
+        )}
       </div>
 
       {/* Pódio visual (Top 3) */}
@@ -239,68 +257,106 @@ export default function RankingLeaderboard({
         )}
       </div>
 
-      {/* Lista dos demais (4º e 5º) */}
-      {(ranking.top5[3] || ranking.top5[4]) && (
+      {/* Lista dos demais (4º em diante) */}
+      {displayedList.length > 0 && (
         <div className="space-y-2 pt-1">
-          {ranking.top5.slice(3, 5).map((user, idx) => (
-            <div
-              key={user.id}
-              className="flex items-center justify-between p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl hover:bg-zinc-100/30 hover:border-[#2563EB]/15 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-[#94A3B8] w-4 text-center">
-                  {idx + 4}
-                </span>
-                <UserAvatar
-                  name={user.name}
-                  image={user.image}
-                  size="sm"
-                  className="border border-[#E2E8F0]"
-                />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-[#0F172A] truncate">
-                    {user.name}
-                  </p>
-                  <p className="text-[9px] text-[#94A3B8]">
-                    Lvl {user.level} • {user.levelTitle}
-                  </p>
-                  {user.weeklyCheckins && user.weeklyCheckins.length > 0 && (
-                    <div className="flex items-center gap-1 mt-1 flex-wrap">
-                      {user.weeklyCheckins.map((chk) => (
-                        <button
-                          key={chk.id}
-                          type="button"
-                          onClick={() =>
-                            onOpenCheckinPhoto({
-                              id: chk.id,
-                              photoUrl: chk.photoUrl,
-                              studentName: user.name,
-                              studentImage: user.image,
-                              dayOfWeekFull: chk.dayOfWeekFull,
-                              formattedDate: chk.formattedDate,
-                            })
-                          }
-                          className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 text-[#2563EB] border border-blue-200/80 hover:bg-blue-100 flex items-center gap-0.5 cursor-pointer transition-colors"
-                          title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
-                        >
-                          <Camera className="w-2.5 h-2.5" />
-                          {chk.dayOfWeek}
-                        </button>
-                      ))}
+          {displayedList.map((user, idx) => {
+            const position = idx + 4;
+            const isCurrentUser = position === ranking.userPosition;
+
+            return (
+              <div
+                key={user.id}
+                className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
+                  isCurrentUser
+                    ? "bg-blue-50/70 border-2 border-[#2563EB]/40 shadow-xs"
+                    : "bg-zinc-50 border border-[#E2E8F0] hover:bg-zinc-100/30 hover:border-[#2563EB]/15"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`text-xs font-bold w-4 text-center ${isCurrentUser ? "text-[#2563EB] font-extrabold" : "text-[#94A3B8]"}`}>
+                    {position}
+                  </span>
+                  <UserAvatar
+                    name={user.name}
+                    image={user.image}
+                    size="sm"
+                    className="border border-[#E2E8F0] shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-[#0F172A] truncate">
+                        {user.name}
+                      </p>
+                      {isCurrentUser && (
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#2563EB] text-[9px] font-black uppercase shrink-0">
+                          Você
+                        </span>
+                      )}
                     </div>
-                  )}
+                    <p className="text-[9px] text-[#94A3B8]">
+                      Lvl {user.level} • {user.levelTitle}
+                    </p>
+                    {user.weeklyCheckins && user.weeklyCheckins.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1 flex-wrap">
+                        {user.weeklyCheckins.map((chk) => (
+                          <button
+                            key={chk.id}
+                            type="button"
+                            onClick={() =>
+                              onOpenCheckinPhoto({
+                                id: chk.id,
+                                photoUrl: chk.photoUrl,
+                                studentName: user.name,
+                                studentImage: user.image,
+                                dayOfWeekFull: chk.dayOfWeekFull,
+                                formattedDate: chk.formattedDate,
+                              })
+                            }
+                            className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 text-[#2563EB] border border-blue-200/80 hover:bg-blue-100 flex items-center gap-0.5 cursor-pointer transition-colors"
+                            title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
+                          >
+                            <Camera className="w-2.5 h-2.5" />
+                            {chk.dayOfWeek}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-extrabold text-[#2563EB] font-mono">
+                    {user.totalXp} XP
+                  </p>
+                  <p className="text-[8px] text-[#94A3B8] font-medium">
+                    {user.totalSessions} {user.totalSessions === 1 ? "treino" : "treinos"}
+                  </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-xs font-extrabold text-[#2563EB] font-mono">
-                  {user.totalXp} XP
-                </p>
-                <p className="text-[8px] text-[#94A3B8] font-medium">
-                  {user.totalSessions} treinos
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
+
+          {/* Botão de Expansão para Ver Ranking Completo */}
+          {hasMoreThan5 && (
+            <button
+              type="button"
+              onClick={() => setShowFullRanking((prev) => !prev)}
+              className="w-full mt-2 py-3 px-4 rounded-xl bg-slate-50 hover:bg-blue-50/80 border border-slate-200/90 hover:border-blue-300 text-xs font-bold text-slate-700 hover:text-[#2563EB] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.99] min-h-[44px]"
+            >
+              {showFullRanking ? (
+                <>
+                  <span>Mostrar apenas o TOP 5</span>
+                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                </>
+              ) : (
+                <>
+                  <Users className="w-4 h-4 text-[#2563EB]" />
+                  <span>Ver Ranking Completo ({fullList.length} atletas)</span>
+                  <ChevronDown className="w-4 h-4 text-[#2563EB]" />
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 
