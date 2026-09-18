@@ -38,6 +38,11 @@ id_rsa*
 id_ed25519*
 client_secret*.json
 credentials.json
+test-credentials*
+.test-credentials*
+test-accounts*
+.test-accounts*
+TEST_ACCOUNTS.md
 
 # ==========================================
 # 📦 DEPENDÊNCIAS

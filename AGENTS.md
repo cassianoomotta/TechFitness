@@ -85,4 +85,11 @@ Quando uma demanda exigir rigor específico, consulte as skills especializadas d
 
 ---
 
+## 9. Contas Oficiais de Teste para IA & Automação (Sem Tentativas e Erros)
+Para testes de interface, validações E2E, logins no navegador ou chamadas autenticadas, utilize **EXCLUSIVAMENTE** as duas contas oficiais de teste documentadas no arquivo local `test-credentials.json` (ignorado no Git). Nunca tente adivinhar credenciais de usuários reais:
+- **Professor (Trainer):** `professor@gmail.com` | Senha: `123456`
+- **Aluno (Student):** `aluno.teste@techfitness.com` | Senha: `123456`
+
+---
+
 *Seguindo rigorosamente este arquivo, garantimos que o TechFitness permaneça escalável, elegante, seguro e com código 100% tipado.*

@@ -14,6 +14,7 @@ import {
   Dumbbell,
   Check,
   MessageSquare,
+  ArrowLeft,
 } from "lucide-react";
 
 export interface ParsedExercise {
@@ -300,9 +301,9 @@ export default function ImportWorkoutModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[92vh] animate-scale-up">
+      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[90vh] animate-scale-up relative">
         {/* Top Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40">
+        <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
               <Sparkles className="w-5 h-5" />
@@ -327,7 +328,7 @@ export default function ImportWorkoutModal({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 min-h-0">
           {error && (
             <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-slide-down">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
@@ -577,7 +578,7 @@ export default function ImportWorkoutModal({
               </div>
 
               {/* Lista de Exercícios Extraídos */}
-              <div className="space-y-2.5 max-h-[42vh] overflow-y-auto pr-1">
+              <div className="space-y-2.5 pb-2">
                 {parsedPlan.exercises.map((ex, idx) => (
                   <div
                     key={idx}
@@ -654,46 +655,59 @@ export default function ImportWorkoutModal({
                   </div>
                 ))}
               </div>
-
-              {/* Botões do Rodapé de Confirmação */}
-              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setParsedPlans([])}
-                  disabled={saving}
-                  className="py-3.5 px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
-                >
-                  Voltar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSavePlan}
-                  disabled={saving || parsedPlan.exercises.length === 0}
-                  className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>{parsedPlans.length > 1 ? `Salvando ${parsedPlans.length} fichas...` : "Salvando ficha de treino..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-5 h-5" />
-                      <span>
-                        {onPlanSelectedForTrainer
-                          ? "Preencher no Treino"
-                          : parsedPlans.length > 1
-                          ? `Confirmar e Salvar ${parsedPlans.length} Fichas`
-                          : "Confirmar e Salvar Ficha"}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           )}
         </div>
+
+        {/* Rodapé Fixo com Efeito Vidro (Sticky Glassmorphic Footer) - Etapa 2 */}
+        {parsedPlan && !success && (
+          <div className="p-3.5 sm:p-4 bg-white/95 backdrop-blur-xl border-t border-slate-100/90 shadow-[0_-8px_25px_rgba(0,0,0,0.06)] flex items-center justify-between gap-2.5 sm:gap-3 shrink-0 z-10">
+            <button
+              type="button"
+              onClick={() => setParsedPlans([])}
+              disabled={saving}
+              className="py-3 px-3.5 sm:px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 min-h-[44px]"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar</span>
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>
+                {parsedPlan.exercises.length} {parsedPlan.exercises.length === 1 ? "exercício pronto" : "exercícios prontos"}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSavePlan}
+              disabled={saving || parsedPlan.exercises.length === 0}
+              className="flex-1 sm:flex-initial sm:min-w-[240px] py-3 px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                  <span>{parsedPlans.length > 1 ? `Salvando ${parsedPlans.length} fichas...` : "Salvando ficha..."}</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+                  <span>
+                    {onPlanSelectedForTrainer
+                      ? "Preencher no Treino"
+                      : parsedPlans.length > 1
+                      ? `Confirmar e Salvar ${parsedPlans.length} Fichas`
+                      : "Confirmar e Salvar Ficha"}
+                  </span>
+                  <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black shrink-0">
+                    {parsedPlan.exercises.length}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
