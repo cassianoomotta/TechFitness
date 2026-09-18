@@ -1685,7 +1685,9 @@ export default function StudentDashboard() {
           ========================================================================= */}
       <nav
         aria-label="Navegação Principal do Aplicativo"
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 shadow-2xl transition-all duration-300 bottom-nav-safe"
+        className={`sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 shadow-2xl transition-all duration-300 bottom-nav-safe ${
+          isImportModalOpen ? "hidden" : ""
+        }`}
       >
         <div className="max-w-md mx-auto px-2 py-1 flex items-center justify-around gap-1">
           {/* Aba 1: Treinos */}
