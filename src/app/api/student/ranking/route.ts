@@ -5,6 +5,9 @@ import prisma from "@/lib/prisma";
 
 import { calculateXp, getLevelTitle } from "@/lib/gamification";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function maskEmail(email: string): string {
   const parts = email.split("@");
   if (parts.length !== 2) return email;
