@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Activity, Dumbbell, Loader2, Users, Swords, TrendingUp } from 'lucide-react';
+import { Calendar, Activity, Dumbbell, Users, Swords, TrendingUp } from 'lucide-react';
 
 interface Partner {
   id: string;

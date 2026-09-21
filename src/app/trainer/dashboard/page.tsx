@@ -5,7 +5,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  Dumbbell,
   LogOut,
   Search,
   Plus,
@@ -195,7 +194,7 @@ export default function TrainerDashboard() {
         const data = await response.json();
         setModalError(data.error || "Erro ao buscar alunos.");
       }
-    } catch (err) {
+    } catch {
       setModalError("Erro de conexão ao buscar alunos.");
     } finally {
       setSearchLoading(false);
@@ -225,7 +224,7 @@ export default function TrainerDashboard() {
       } else {
         setModalError(data.error || "Erro ao vincular o aluno.");
       }
-    } catch (err) {
+    } catch {
       setModalError("Erro de conexão com o servidor.");
     } finally {
       setLinkingId(null);
@@ -268,7 +267,7 @@ export default function TrainerDashboard() {
         setIsModalOpen(false);
         setModalSuccess(false);
       }, 1500);
-    } catch (err) {
+    } catch {
       setModalError("Erro de conexão com o servidor.");
     } finally {
       setModalLoading(false);
@@ -599,16 +598,8 @@ export default function TrainerDashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStudents.map((student) => {
-              const initials = student.name
-                .split(" ")
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase();
-
-              return (
-                <div key={student.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between group transition-all duration-300 bg-white border border-[#E2E8F0]/80 hover:border-[#2563EB]/30">
+            {filteredStudents.map((student) => (
+              <div key={student.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between group transition-all duration-300 bg-white border border-[#E2E8F0]/80 hover:border-[#2563EB]/30">
                   <div>
                     {/* Aluno Header */}
                     <div className="flex items-center gap-4 mb-5">
@@ -674,8 +665,7 @@ export default function TrainerDashboard() {
                     </Link>
                   </div>
                 </div>
-              );
-            })}
+              ))}
           </div>
         )}
       </main>

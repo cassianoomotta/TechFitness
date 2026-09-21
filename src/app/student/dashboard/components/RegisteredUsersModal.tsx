@@ -6,11 +6,8 @@ import {
   Search,
   X,
   Loader2,
-  Calendar,
-  Dumbbell,
   ShieldCheck,
   CheckCircle2,
-  Sparkles,
   RefreshCw,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";

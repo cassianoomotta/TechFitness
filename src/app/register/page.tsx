@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Dumbbell, User, Lock, Mail, Loader2, ArrowRight, Shield } from "lucide-react";
+import { User, Lock, Mail, Loader2, ArrowRight, Shield } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -70,7 +70,7 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 1200);
-    } catch (err) {
+    } catch {
       setApiError("Erro de conexão. Verifique sua internet.");
     } finally {
       setLoading(false);

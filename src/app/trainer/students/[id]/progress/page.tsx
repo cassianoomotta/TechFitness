@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  Dumbbell,
   LogOut,
   Loader2,
   ChevronLeft,

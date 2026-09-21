@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { X, Camera, Upload, Loader2, Check, User, Trash2 } from "lucide-react";
+import { X, Camera, Upload, Loader2, Check, Trash2 } from "lucide-react";
 import UserAvatar from "./UserAvatar";
 
 interface EditProfilePhotoModalProps {

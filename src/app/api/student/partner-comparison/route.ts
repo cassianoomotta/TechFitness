@@ -10,7 +10,7 @@ const partnerComparisonSchema = z.object({
 });
 
 // GET: Retornar outros alunos vinculados ao mesmo treinador para seleção
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 

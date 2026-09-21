@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dumbbell, Edit, Eye, Play, Sparkles } from 'lucide-react';
+import { Edit, Eye, Play, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 interface Exercise {

@@ -14,11 +14,9 @@ import {
   Trophy,
   Shield,
   Scale,
-  Lock,
   Crown,
   Swords,
   Sparkles,
-  ChevronDown,
 } from "lucide-react";
 import { getAchievementStatusHint } from "@/lib/gamification";
 

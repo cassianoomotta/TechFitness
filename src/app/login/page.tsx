@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
-import { Dumbbell, Lock, Mail, LogIn, Loader2 } from "lucide-react";
+import { Lock, Mail, LogIn, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function LoginPage() {
       } else {
         router.push("/");
       }
-    } catch (err) {
+    } catch {
       setError("Erro interno de conexão. Tente novamente.");
       setLoading(false);
     }

@@ -6,11 +6,6 @@ import {
   X,
   Search,
   Camera,
-  Crown,
-  Medal,
-  Award,
-  Sparkles,
-  Flame,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import { RankingItem } from "./RankingLeaderboard";
@@ -142,7 +137,7 @@ export default function FullRankingModal({
               </p>
             </div>
           ) : (
-            filteredList.map((student, idx) => {
+            filteredList.map((student) => {
               // Posição real na lista geral
               const rankPos = rankingList.findIndex((s) => s.id === student.id) + 1;
               const isCurrentUser = rankPos === userPosition;

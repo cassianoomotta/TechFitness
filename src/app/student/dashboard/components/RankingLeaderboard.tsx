@@ -7,7 +7,6 @@ import {
   ChevronUp,
   Users,
   Search,
-  Maximize2,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import FullRankingModal from "./FullRankingModal";

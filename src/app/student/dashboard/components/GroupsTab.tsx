@@ -11,27 +11,18 @@ import {
   LogOut,
   Trash2,
   Camera,
-  Calendar,
   Clock,
   Star,
   Dumbbell,
-  Sparkles,
   ChevronRight,
-  ChevronLeft,
   ChevronDown,
   SlidersHorizontal,
   UserPlus,
   Loader2,
   Crown,
   Swords,
-  Layers,
-  ArrowRight,
-  Shield,
-  Zap,
-  Info,
   Maximize2,
   X,
-  Share2,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 
@@ -315,15 +306,6 @@ export default function GroupsTab({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showGroupDropdown]);
 
-  const handleScrollPills = (direction: "left" | "right") => {
-    const el = pillsScrollRef.current;
-    if (el) {
-      const scrollAmount = direction === "left" ? -180 : 180;
-      el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-      setTimeout(checkPillsScroll, 250);
-    }
-  };
-
   const handleSelectPill = (groupId: string) => {
     handleGroupFilterChange(groupId);
     setShowGroupDropdown(false);
@@ -492,7 +474,7 @@ export default function GroupsTab({
         await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
         if (data.group?.id) setSelectedGroupId(data.group.id);
       }
-    } catch (err) {
+    } catch {
       setCreateError("Erro de conexão ao criar grupo.");
     } finally {
       setCreateSubmitting(false);
@@ -535,7 +517,7 @@ export default function GroupsTab({
         await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
         if (data.group?.id) setSelectedGroupId(data.group.id);
       }
-    } catch (err) {
+    } catch {
       setJoinError("Erro de conexão ao entrar no grupo.");
     } finally {
       setJoinSubmitting(false);

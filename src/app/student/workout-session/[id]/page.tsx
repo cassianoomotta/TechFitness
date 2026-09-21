@@ -23,7 +23,6 @@ import {
   Sparkles,
   Crown,
   Camera,
-  Upload,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 
@@ -99,13 +98,13 @@ export default function WorkoutSessionPlayer() {
       const resolved = typeof newData === "function" ? newData(prev) : newData;
       setsDataRef.current = resolved;
       try {
-        localStorage.setItem(`workout_sets_${planId}`, JSON.stringify(resolved));
-      } catch (e) {
+        localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(resolved));
+      } catch {
         // localStorage pode falhar em modo privado/sem espaço
       }
       return resolved;
     });
-  }, [planId]);
+  }, [STORAGE_KEY_SETS]);
 
   // Restaurar estado do rest timer do localStorage ao montar
   useEffect(() => {
@@ -123,7 +122,7 @@ export default function WorkoutSessionPlayer() {
           localStorage.removeItem(STORAGE_KEY_REST);
         }
       }
-    } catch (e) {
+    } catch {
       // Ignorar erros de localStorage
     }
   }, [STORAGE_KEY_REST]);
@@ -149,7 +148,7 @@ export default function WorkoutSessionPlayer() {
               localStorage.removeItem(STORAGE_KEY_REST);
             }
           }
-        } catch (e) {}
+        } catch {}
       }
     };
 
@@ -237,7 +236,6 @@ export default function WorkoutSessionPlayer() {
   const [workoutPhoto, setWorkoutPhoto] = useState<string | null>(null);
   const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
   const [finishLoading, setFinishLoading] = useState(false);
-  const [finishSuccess, setFinishSuccess] = useState(false);
   const [finishError, setFinishError] = useState("");
   const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -388,7 +386,7 @@ export default function WorkoutSessionPlayer() {
         // Tentar restaurar dados salvos do localStorage (sobrevive bloqueio de tela)
         let restored = false;
         try {
-          const savedSets = localStorage.getItem(`workout_sets_${planId}`);
+          const savedSets = localStorage.getItem(STORAGE_KEY_SETS);
           if (savedSets) {
             const parsed = JSON.parse(savedSets) as Record<number, SetState[]>;
             // Validar se a estrutura salva corresponde ao plano atual
@@ -400,7 +398,7 @@ export default function WorkoutSessionPlayer() {
               restored = true;
             }
           }
-        } catch (e) {
+        } catch {
           // Se falhar, inicializar normalmente
         }
 
@@ -471,7 +469,7 @@ export default function WorkoutSessionPlayer() {
           setIsResting(false);
           setRestTime(0);
           setRestEndTime(null);
-          try { localStorage.removeItem(STORAGE_KEY_REST); } catch (e) {}
+          try { localStorage.removeItem(STORAGE_KEY_REST); } catch {}
           playRestAlertSound();
         } else {
           setRestTime(remaining);
@@ -482,7 +480,7 @@ export default function WorkoutSessionPlayer() {
       const timer = setInterval(updateRest, 1000);
       return () => clearInterval(timer);
     }
-  }, [isResting, restEndTime]);
+  }, [isResting, restEndTime, STORAGE_KEY_REST]);
 
   const startRestTimer = (seconds: number) => {
     if (seconds <= 0) return;
@@ -493,7 +491,7 @@ export default function WorkoutSessionPlayer() {
     setIsResting(true);
     try {
       localStorage.setItem(STORAGE_KEY_REST, String(endTime));
-    } catch (e) {
+    } catch {
       // Ignorar
     }
   };
@@ -557,7 +555,6 @@ export default function WorkoutSessionPlayer() {
     if (!plan) return;
     setFinishLoading(true);
     setFinishError("");
-    setFinishSuccess(false);
 
     const logsPayload: any[] = [];
 
@@ -627,10 +624,9 @@ export default function WorkoutSessionPlayer() {
         return;
       }
 
-      setFinishSuccess(true);
       // Limpar dados de sessão local
       localStorage.removeItem(`workout_start_time_${planId}`);
-      localStorage.removeItem(`workout_sets_${planId}`);
+      localStorage.removeItem(STORAGE_KEY_SETS);
       localStorage.removeItem(STORAGE_KEY_REST);
 
       // Dados para o modal de vitória
@@ -646,9 +642,13 @@ export default function WorkoutSessionPlayer() {
         newAchievements: data.newAchievements || [],
       });
 
+      if (data.newAchievements && data.newAchievements.length > 0) {
+        setUnlockedAchievements(data.newAchievements);
+      }
+
       setIsFinishModalOpen(false);
       setIsVictoryModalOpen(true);
-    } catch (err) {
+    } catch {
       setFinishError("Erro de conexão ao salvar.");
     } finally {
       setFinishLoading(false);

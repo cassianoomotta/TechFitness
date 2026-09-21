@@ -2,7 +2,7 @@
 
 import BrandLogo from "@/components/BrandLogo";
 import Link from "next/link";
-import { Dumbbell, Shield, Trophy, Activity, ArrowRight, Zap } from "lucide-react";
+import { Shield, Trophy, Activity, ArrowRight, Zap } from "lucide-react";
 
 export default function Home() {
 

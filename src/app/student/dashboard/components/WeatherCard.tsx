@@ -48,7 +48,7 @@ export default function WeatherCard() {
           const permission = await navigator.permissions.query({ name: "geolocation" });
           hasPermission = permission.state === "granted";
         }
-      } catch (e) {
+      } catch {
         // Ignore fallback
       }
 

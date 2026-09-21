@@ -231,7 +231,7 @@ export async function GET(req: NextRequest) {
           try {
             const parsed = JSON.parse(sess.targetGroupIds);
             if (Array.isArray(parsed)) rawTargetIds = parsed;
-          } catch (e) {}
+          } catch {}
         }
 
         const isAllGroups = rawTargetIds.length === 0 || rawTargetIds.includes("ALL");

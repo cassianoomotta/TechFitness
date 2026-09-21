@@ -6,14 +6,12 @@ import { useParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  Dumbbell,
   LogOut,
   Loader2,
   ChevronLeft,
   Calendar,
   Plus,
   Camera,
-  Eye,
   CheckCircle,
   Activity,
   X,
@@ -196,7 +194,7 @@ export default function StudentMeasurementsPage() {
 
       fetchData();
       setTimeout(() => setSuccess(false), 2000);
-    } catch (err) {
+    } catch {
       setError("Erro de conexão ao salvar.");
     } finally {
       setActionLoading(false);

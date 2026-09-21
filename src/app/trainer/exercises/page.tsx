@@ -201,7 +201,7 @@ export default function ExercisesPage() {
 
       setIsModalOpen(false);
       fetchExercises();
-    } catch (err) {
+    } catch {
       setModalError("Erro de conexão.");
     } finally {
       setModalLoading(false);
@@ -223,7 +223,7 @@ export default function ExercisesPage() {
       }
 
       fetchExercises();
-    } catch (error) {
+    } catch {
       alert("Erro de conexão.");
     }
   };

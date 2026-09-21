@@ -4,23 +4,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { stringSimilarity } from "string-similarity-js";
 
-interface ExtractedExercise {
-  name: string;
-  sets?: number;
-  reps?: string;
-  restSeconds?: number;
-  method?: string;
-  notes?: string;
-}
-
-interface GeminiExtractionResponse {
-  name: string;
-  division: string;
-  description?: string;
-  weekDays?: string[];
-  exercises: ExtractedExercise[];
-}
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -245,7 +228,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
     let rawObj: Record<string, unknown> = {};
     try {
       rawObj = JSON.parse(cleanJson);
-    } catch (e) {
+    } catch {
       console.error("Falha ao fazer parse do JSON da IA:", rawContent);
       return NextResponse.json(
         { error: "A IA não conseguiu estruturar os dados. Tente novamente com outra foto ou formato de texto." },

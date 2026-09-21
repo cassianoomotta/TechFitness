@@ -5,8 +5,6 @@ import {
   Trophy,
   Check,
   ArrowRight,
-  Sparkles,
-  Dumbbell,
   Award,
 } from "lucide-react";
 
@@ -37,7 +35,7 @@ interface WorkoutVictoryModalProps {
   };
   photoUrl?: string | null;
   xpEarned: number;
-  totalXp: number;
+  totalXp?: number;
   level: number;
   levelTitle: string;
   prsBeaten: PRBeaten[];
@@ -51,7 +49,6 @@ export default function WorkoutVictoryModal({
   tonnageComparison,
   photoUrl,
   xpEarned,
-  totalXp,
   level,
   levelTitle,
   prsBeaten,

@@ -6,13 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  Dumbbell,
   LogOut,
   Search,
   Plus,
   Loader2,
   Trash2,
-  ChevronRight,
   ChevronLeft,
   Info,
   CheckCircle,
@@ -287,7 +285,7 @@ export default function NewPlanPage() {
         const data = await response.json();
         setError(data.error || "Erro ao excluir o treino.");
       }
-    } catch (err) {
+    } catch {
       setError("Erro ao se conectar com o servidor.");
     }
   };
@@ -350,7 +348,7 @@ export default function NewPlanPage() {
           handleResetForm();
         }
       }, 1500);
-    } catch (err) {
+    } catch {
       setError("Erro de rede. Verifique sua conexão.");
     } finally {
       setLoading(false);

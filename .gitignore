@@ -12,8 +12,8 @@ docs/security-audit/
 Relatorio_Executivo_TechFitness_B2B.html
 
 # Ambientes virtuais e caches de scripts Python locais
-.venv/
-venv/
+**/.venv/
+**/venv/
 ENV/
 __pycache__/
 *.pyc

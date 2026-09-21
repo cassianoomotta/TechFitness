@@ -6,10 +6,8 @@ import WeightTab from "./components/WeightTab";
 import AchievementsTab from "./components/AchievementsTab";
 import WeatherCard from "./components/WeatherCard";
 import ImportWorkoutModal from "./components/ImportWorkoutModal";
-import RankingLeaderboard, { RankingData, RankingItem } from "./components/RankingLeaderboard";
+import RankingLeaderboard, { RankingData } from "./components/RankingLeaderboard";
 import RegisteredUsersModal from "./components/RegisteredUsersModal";
-
-import { getAchievementStatusHint } from "@/lib/gamification";
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -23,31 +21,19 @@ import StudentWorkoutInstagramCard, {
 import {
   Dumbbell,
   Loader2,
-  Calendar,
-  Activity,
   Play,
   Award,
   Sparkles,
   Users,
   TrendingUp,
-  User,
   ArrowRight,
-  RefreshCw,
-  Edit,
   X,
   Bell,
   ChevronLeft,
   ChevronRight,
-  Layers,
-  Eye,
   Tv,
   Flame,
   Trophy,
-  Shield,
-  Scale,
-  Zap,
-  Swords,
-  Crown,
   Camera,
   Trash2,
 } from "lucide-react";
@@ -463,7 +449,7 @@ export default function StudentDashboard() {
         const data = await response.json();
         setEditError(data.error || "Erro ao salvar alterações.");
       }
-    } catch (err) {
+    } catch {
       setEditError("Erro ao salvar alterações.");
     } finally {
       setSavingEdit(false);
