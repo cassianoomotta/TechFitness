@@ -12,7 +12,8 @@ import {
   Trash2,
   Camera,
   Clock,
-  Star,
+  Zap,
+  CheckCircle2,
   Dumbbell,
   ChevronRight,
   ChevronDown,
@@ -189,6 +190,49 @@ function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+// Configuração e mapeamento de intensidade do treino (RPE 1-10 humanizado)
+interface IntensityConfig {
+  label: string;
+  fullLabel: string;
+  badgeClass: string;
+  iconClass: string;
+}
+
+function getIntensityBadge(satisfaction?: number | null): IntensityConfig | null {
+  if (!satisfaction || satisfaction <= 0) return null;
+  if (satisfaction <= 4) {
+    return {
+      label: "Leve",
+      fullLabel: "Treino Leve",
+      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
+      iconClass: "text-emerald-500",
+    };
+  }
+  if (satisfaction <= 6) {
+    return {
+      label: "Moderado",
+      fullLabel: "Treino Moderado",
+      badgeClass: "bg-blue-50 text-[#2563EB] border-blue-200/80",
+      iconClass: "text-[#2563EB]",
+    };
+  }
+  if (satisfaction <= 8) {
+    return {
+      label: "Intenso",
+      fullLabel: "Treino Intenso",
+      badgeClass: "bg-amber-50 text-amber-700 border-amber-200/80",
+      iconClass: "text-amber-500",
+    };
+  }
+  return {
+    label: "Extremo",
+    fullLabel: "Treino Extremo",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200/80",
+    iconClass: "text-rose-500",
+  };
+}
+
+
 // =========================================================================
 // Cache em memória para alta performance (Navegação instantânea 0ms)
 // =========================================================================
@@ -330,9 +374,6 @@ export default function GroupsTab({
   // Feedback de cópia do código
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
   const [copiedModalCode, setCopiedModalCode] = useState(false);
-
-  // Reações locais simuladas
-  const [postReactions, setPostReactions] = useState<Record<string, { fire: number; muscle: number; clap: number; reacted: string | null }>>({});
 
   // Ícones disponíveis para personalização do grupo
   const EMOJI_OPTIONS = ["🏋️", "⚡", "🔥", "🥊", "🚴", "🏃", "🏆", "🥇", "💥", "💪", "⚔️", "🎯"];
@@ -662,32 +703,6 @@ export default function GroupsTab({
     } finally {
       setRemovingMember(false);
     }
-  };
-
-  // Reagir a um post
-  const handleReact = (postId: string, type: "fire" | "muscle" | "clap") => {
-    setPostReactions((prev) => {
-      const current = prev[postId] || { fire: 3, muscle: 2, clap: 1, reacted: null };
-      if (current.reacted === type) {
-        // Desfazer reação
-        return {
-          ...prev,
-          [postId]: {
-            ...current,
-            [type]: Math.max(0, current[type] - 1),
-            reacted: null,
-          },
-        };
-      }
-      return {
-        ...prev,
-        [postId]: {
-          ...current,
-          [type]: current[type] + 1,
-          reacted: type,
-        },
-      };
-    });
   };
 
   // Formatação de data amigável
@@ -1241,7 +1256,9 @@ export default function GroupsTab({
             /* Lista de Posts da Timeline (Design Limpo / Frontend Disruptivo) */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {displayedTimeline.map((post) => {
-                const reactions = postReactions[post.id] || { fire: 4, muscle: 2, clap: 1, reacted: null };
+                const durationMin = post.durationMs ? Math.round(post.durationMs / 60000) : null;
+                const totalSets = post.exercises?.reduce((acc: number, ex) => acc + (ex.sets || 0), 0) || 0;
+                const intensity = getIntensityBadge(post.satisfaction);
                 return (
                   <div
                     key={post.id}
@@ -1335,10 +1352,10 @@ export default function GroupsTab({
                               </div>
                             ) : null}
 
-                            {post.satisfaction ? (
-                              <div className="flex items-center gap-1 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] text-amber-400">
-                                <Star className="w-3 h-3 fill-amber-400" />
-                                <span>RPE {post.satisfaction}/10</span>
+                            {intensity ? (
+                              <div className="flex items-center gap-1 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] text-amber-300 font-semibold">
+                                <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
+                                <span>{intensity.fullLabel}</span>
                               </div>
                             ) : null}
                           </div>
@@ -1388,53 +1405,54 @@ export default function GroupsTab({
                       </div>
                     )}
 
-                    {/* Rodapé do Post: Reações Interativas Elegantes */}
-                    <div className="p-3 sm:px-4 sm:py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleReact(post.id, "fire")}
-                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                            reactions.reacted === "fire"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-slate-100 hover:bg-slate-200/70 text-slate-600 border border-transparent"
-                          }`}
-                        >
-                          <span>🔥</span>
-                          <span>{reactions.fire}</span>
-                        </button>
+                    {/* Rodapé do Post: Telemetria Real do Treino (Métricas Reais de Desempenho) */}
+                    <div className="p-3 sm:px-4 sm:py-3 bg-white flex items-center justify-between gap-2 border-t border-slate-100">
+                      {/* Lado Esquerdo: Duração e Séries Concluídas */}
+                      <div className="flex items-center gap-2 text-xs text-slate-600 font-medium min-w-0">
+                        {durationMin ? (
+                          <div className="flex items-center gap-1 shrink-0 font-semibold text-slate-700">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{durationMin} min</span>
+                          </div>
+                        ) : null}
 
-                        <button
-                          onClick={() => handleReact(post.id, "muscle")}
-                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                            reactions.reacted === "muscle"
-                              ? "bg-blue-50 text-[#2563EB] border border-blue-200"
-                              : "bg-slate-100 hover:bg-slate-200/70 text-slate-600 border border-transparent"
-                          }`}
-                        >
-                          <span>💪</span>
-                          <span>{reactions.muscle}</span>
-                        </button>
+                        {durationMin && (totalSets > 0 || (post.exercisesCount || post.exercises?.length > 0)) && (
+                          <span className="text-slate-300 shrink-0">•</span>
+                        )}
 
-                        <button
-                          onClick={() => handleReact(post.id, "clap")}
-                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                            reactions.reacted === "clap"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-slate-100 hover:bg-slate-200/70 text-slate-600 border border-transparent"
-                          }`}
-                        >
-                          <span>👏</span>
-                          <span>{reactions.clap}</span>
-                        </button>
+                        {totalSets > 0 ? (
+                          <div className="flex items-center gap-1.5 truncate text-slate-600">
+                            <Dumbbell className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{totalSets} séries concluídas</span>
+                          </div>
+                        ) : (post.exercisesCount || post.exercises?.length > 0) ? (
+                          <div className="flex items-center gap-1.5 truncate text-slate-600">
+                            <Dumbbell className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{post.exercisesCount || post.exercises.length} exercícios</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-slate-500">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span>Treino concluído</span>
+                          </div>
+                        )}
                       </div>
 
-                      {post.satisfaction ? (
-                        <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
-                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                          <span>RPE {post.satisfaction}/10</span>
+                      {/* Lado Direito: Intensidade Humanizada ou Check-in */}
+                      {intensity ? (
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold shrink-0 shadow-2xs ${intensity.badgeClass}`}
+                          title={`Percepção subjetiva de esforço: ${post.satisfaction}/10`}
+                        >
+                          <Zap className={`w-3.5 h-3.5 ${intensity.iconClass} fill-current`} />
+                          <span>{intensity.fullLabel}</span>
+                          <span className="opacity-70 font-mono text-[10px]">({post.satisfaction}/10)</span>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-slate-400 font-medium">Check-in</span>
+                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70 text-xs text-slate-500 font-medium shrink-0">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Check-in</span>
+                        </div>
                       )}
                     </div>
                   </div>
