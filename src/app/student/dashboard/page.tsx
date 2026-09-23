@@ -895,9 +895,9 @@ export default function StudentDashboard() {
                   <div className="h-3 w-20 sm:w-24 bg-slate-800 rounded"></div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-16 sm:w-28 bg-slate-800 rounded-xl"></div>
-                <div className="h-9 w-16 sm:w-28 bg-slate-800 rounded-xl"></div>
+              <div className="flex flex-col gap-1.5 items-end">
+                <div className="h-7 w-20 sm:w-24 bg-slate-800 rounded-xl"></div>
+                <div className="h-7 w-20 sm:w-24 bg-slate-800 rounded-xl"></div>
               </div>
             </div>
             <div className="mt-3 sm:mt-4 space-y-1.5">
@@ -918,9 +918,12 @@ export default function StudentDashboard() {
                   <span className="text-[8px] sm:text-[9px] uppercase font-extrabold text-blue-100 leading-none">Nível</span>
                   <span className="text-base sm:text-xl font-black font-mono leading-none mt-0.5">{gamification.level}</span>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-display text-xs sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent">
+                    <h3 
+                      className="font-display text-sm sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent"
+                      title={gamification.levelTitle}
+                    >
                       {gamification.levelTitle}
                     </h3>
                     <button
@@ -940,37 +943,42 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              {/* Estatísticas Compactas (Badges Glassmorphism) */}
-              <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                {/* Constância / Streak */}
-                <div className="px-2 py-1 sm:px-3 sm:py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm">
-                  <div className={`p-1 rounded-lg ${gamification.streak > 0 ? "bg-amber-500/20 text-amber-400" : "bg-zinc-800 text-zinc-500"}`}>
-                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
+              {/* Estatísticas Compactas (Badges Glassmorphism empilhados no topo direito) */}
+              <div className="flex flex-col gap-1.5 shrink-0 items-end">
+                {/* Constância / Frequência Semanal (Acima) */}
+                <div 
+                  className="w-full min-w-[76px] sm:min-w-[94px] px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-1.5 backdrop-blur-sm transition-colors"
+                  title={`Frequência Semanal: ${gamification.streak} ${gamification.streak === 1 ? "semana seguida" : "semanas seguidas"}`}
+                >
+                  <div className={`p-1 rounded-lg shrink-0 ${gamification.streak > 0 ? "bg-amber-500/20 text-amber-400" : "bg-zinc-800 text-zinc-500"}`}>
+                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                   </div>
-                  <div>
-                    <span className="text-[8px] uppercase font-bold text-zinc-400 hidden sm:block tracking-wider">Semanas</span>
-                    <div className="flex items-baseline gap-0.5">
-                      <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
-                        {gamification.streak}
-                      </span>
-                      <span className="text-[9px] text-zinc-400 font-semibold leading-none sm:hidden">sem</span>
-                    </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
+                      {gamification.streak}
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] text-zinc-400 font-semibold leading-none">
+                      <span className="sm:hidden">sem</span>
+                      <span className="hidden sm:inline">{gamification.streak === 1 ? "semana" : "semanas"}</span>
+                    </span>
                   </div>
                 </div>
 
-                {/* Total Treinos */}
-                <div className="px-2 py-1 sm:px-3 sm:py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm">
-                  <div className="p-1 rounded-lg bg-blue-500/20 text-blue-400">
-                    <Dumbbell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                {/* Total Treinos (Abaixo) */}
+                <div 
+                  className="w-full min-w-[76px] sm:min-w-[94px] px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-1.5 backdrop-blur-sm transition-colors"
+                  title={`Total de Treinos Concluídos: ${gamification.totalSessions}`}
+                >
+                  <div className="p-1 rounded-lg shrink-0 bg-blue-500/20 text-blue-400">
+                    <Dumbbell className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
-                  <div>
-                    <span className="text-[8px] uppercase font-bold text-zinc-400 hidden sm:block tracking-wider">Treinos</span>
-                    <div className="flex items-baseline gap-0.5">
-                      <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
-                        {gamification.totalSessions}
-                      </span>
-                      <span className="text-[9px] text-zinc-400 font-semibold leading-none sm:hidden">treinos</span>
-                    </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
+                      {gamification.totalSessions}
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] text-zinc-400 font-semibold leading-none">
+                      {gamification.totalSessions === 1 ? "treino" : "treinos"}
+                    </span>
                   </div>
                 </div>
               </div>
