@@ -1,4 +1,4 @@
-# 📊 Planejamento Estratégico: Analytics, Telemetria & Rastreabilidade Inteligente
+# 📊 Planejamento Estratégico: Analytics, Modelo de Negócio & Telemetria
 > Documento originado pelo **Conselho de IAs** e **Especialista em UX** para o **TechFitness**.  
 > **Status:** Em Planejamento (Aguardando Aprovação para Execução).
 
@@ -15,9 +15,79 @@ O instinto inicial de novos produtos costuma ser adicionar telemetria manual em 
 
 ---
 
-## 2. A Solução: Arquitetura de Métricas em 2 Camadas
+## 2. Benchmark Comparativo: PostHog vs. Outras Ferramentas
 
-Em vez de código espalhado por todos os botões, adotaremos uma **arquitetura moderna desacoplada em duas camadas**:
+| Ferramenta | Pontos Fortes | Pontos Fracos | Modelo de Custo | Veredito para o TechFitness |
+| :--- | :--- | :--- | :--- | :--- |
+| **PostHog** ⭐ *(Recomendado para Produto)* | Suíte completa: Autocapture sem código, Gravações de Sessão, Heatmaps, Funis de Conversão, Feature Flags e Testes A/B em uma só plataforma. | Requer configuração de privacidade para mascarar dados sensíveis. | **Gratuito até 1M de eventos/mês** e 5.000 gravações. Depois, pague pelo que usar. | **Excelente escolha para entender o comportamento de produto** e funis de retenção do atleta. |
+| **Microsoft Clarity** ⭐ *(Recomendado para UX inicial)* | 100% gratuito e ilimitado para sempre. Mapas de calor (cliques e scroll), gravações de tela e detecção de *rage clicks* com zero impacto de performance. | Não cria funis de conversão complexos nem métricas de negócio personalizadas. | **100% Gratuito sem limite.** | **Melhor custo-benefício imediato** para auditar a usabilidade e atrito visual sem gastar nada. |
+| **Mixpanel / Amplitude** | Métricas de retenção de produto extremamente profundas e relatórios de cohort avançados. | Não possuem mapas de calor visuais nem gravações de sessão nativas. Curva de aprendizado íngreme. | Free tier limitado (100k eventos/mês); planos pagos ficam caros rapidamente. | Desnecessariamente complexo para a fase atual do projeto. |
+| **Google Analytics 4 (GA4)** | Bom para tráfego orgânico, SEO e campanhas de marketing (Google Ads). | Interface confusa, péssimo para SaaS autenticado e não focado em jornadas de treino ou retenção B2B. | Gratuito. | Útil apenas na Landing Page institucional (`/`), dispensável dentro do app logado. |
+
+> 💡 **Recomendação de Stack:**  
+> - **Fase 1 (Validação & UX):** **Microsoft Clarity** injetado no layout para mapas de calor e gravações de sessão (Custo R$ 0,00).  
+> - **Fase 2 (Escala & Funis de Retenção):** Migrar para **PostHog** para monitorar o funil de treino e feature flags dos planos pagos.
+
+---
+
+## 3. Quem é o Cliente do TechFitness? (ICP & Personas)
+
+Para estruturar a telemetria e o modelo de negócio, é fundamental diferenciar **quem paga** de **quem usa**:
+
+```mermaid
+flowchart LR
+    Academia[🏢 Academia / Studio / Box] -->|Contrata SaaS| TechFitness((🏋️ TechFitness))
+    Personal[🧑‍🏫 Personal Trainer Autônomo] -->|Assina Plano Pro| TechFitness
+    TechFitness -->|Engaja com Gamificação| Aluno[🏃 Atleta / Aluno Final]
+```
+
+### Perfil 1: Personal Trainers e Assessorias Esportivas (B2B Individual)
+- **Quem é:** Treinador autônomo com carteira de 15 a 80 alunos (presenciais e consultorias online).
+- **Dor Central:** Perde horas montando treinos no WhatsApp/Excel, tem dificuldade em cobrar e não consegue provar visualmente a evolução do aluno para justificar seu preço.
+- **Valor no TechFitness:** Copilot de IA para montar treinos em 2 minutos, gráficos biométricos para impressionar o aluno e controle de assiduidade.
+
+### Perfil 2: Academias, Studios e Boxes de Cross/Funcional (B2B Institucional)
+- **Quem é:** Dono ou gestor de academia com 100 a 800 alunos e equipe de 3 a 10 professores.
+- **Dor Central:** Evasão massiva de alunos (churn de academia gira em torno de 10% a 15% ao mês) por falta de acompanhamento individualizado e rotinas monótonas.
+- **Valor no TechFitness:** Gamificação (Liga dos Titãs e Mural) que cria espírito de comunidade, alertas precoces de alunos em risco de desistência e padronização da equipe de professores.
+
+---
+
+## 4. Modelagem de Negócio & Monetização SaaS
+
+Análise dos 3 modelos de precificação para o TechFitness:
+
+### Opção A: Fixo por Mês (Flat Fee)
+- *Exemplo:* R$ 99,00/mês fixo para o personal, com alunos ilimitados.
+- **Problema:** Desalinhamento de valor. O personal com 5 alunos paga o mesmo que o personal com 150 alunos (que consome muito mais banco de dados, storage de fotos e chamadas de IA).
+
+### Opção B: Cobrança Pura por Aluno (Per-Seat)
+- *Exemplo:* R$ 5,00 por aluno ativo por mês.
+- **Problema:** Cria barreira psicológica ("fricção de cadastro"). O treinador evita cadastrar alunos novos com medo de a fatura subir no final do mês.
+
+### 🏆 Opção C: Modelo Híbrido com Franquia Base + Excedente (RECOMENDADO)
+O modelo híbrido oferece **previsibilidade de receita (MRR)** para o TechFitness, custo de entrada acessível para o treinador e expansão automática de receita conforme ele cresce (*expansion revenue*):
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                      ESTRUTURA SUGERIDA DE PLANOS                      │
+├────────────────────────────────┬───────────────────┬───────────────────┤
+│ Plano Starter (Personal Solo)  │ Plano Pro (Assessoria)│ Plano Academia/Studio │
+│ R$ 69,90 / mês                 │ R$ 149,90 / mês   │ R$ 349,90 / mês   │
+│ • Até 15 alunos inclusos       │ • Até 45 alunos   │ • Até 120 alunos  │
+│ • + R$ 3,50 / aluno extra      │ • + R$ 2,50/extra │ • Multi-professor │
+│ • Copilot de IA incluso        │ • Gráficos avanç. │ • + R$ 1,80/extra │
+└────────────────────────────────┴───────────────────┴───────────────────┘
+```
+
+**Por que este modelo híbrido é superior?**
+1. **Piso de Faturamento Garantido:** O TechFitness assegura uma receita previsível todo mês, cobrindo os custos de infraestrutura (Supabase, Vercel, APIs de IA).
+2. **Sem Barreira de Entrada:** Um personal iniciando consegue pagar R$ 69,90 sem hesitar.
+3. **Upsell Orgânico:** Conforme os alunos do personal têm resultados e indicam amigos, o faturamento do TechFitness cresce automaticamente sem necessidade de uma nova venda.
+
+---
+
+## 5. A Solução Técnica: Arquitetura de Métricas em 2 Camadas
 
 ```mermaid
 flowchart TD
@@ -33,22 +103,12 @@ flowchart TD
     AnalyticsDB --> Funnels[Funil de Conversão & Prevenção de Churn]
 ```
 
----
-
-### Camada 1: Usabilidade & Mapas de Calor (Zero Código nos Componentes)
-Para saber **onde o usuário clica**, onde ele hesita ou onde ocorrem cliques de raiva (*rage clicks*):
-- **Ferramenta Recomendada:** **Microsoft Clarity** (100% gratuito, sem limite de tráfego, em conformidade com GDPR/LGPD) ou **PostHog Autocapture**.
-- **Como Funciona:** Um único script leve (~15KB) injetado no `src/app/layout.tsx`.
-- **Benefícios:**
-  - Gera **Mapas de Calor (Heatmaps)** automáticos de todas as telas (mobile e desktop).
-  - Grava sessões anônimas para identificar gargalos de UX em tempo real.
-  - Zero poluição no código fonte dos botões.
-  - Máscara automática de privacidade para campos de senha e dados sensíveis.
-
----
+### Camada 1: Usabilidade & Mapas de Calor (Zero Código nos Botões)
+- **Ferramenta:** Microsoft Clarity ou PostHog.
+- **Funcionamento:** Um único script leve (~15KB) no `layout.tsx`.
+- **Benefícios:** Heatmaps automáticos, gravações de sessões reais e zero acoplamento no código.
 
 ### Camada 2: Os 5 Eventos de Ouro do Core Loop (Valor de Negócio)
-Para acompanhar a **retenção**, **ativação** e **consistência** dos atletas e treinadores, rastrearemos estritamente os eventos que impactam o modelo de negócio:
 
 | Evento | Disparo | Propriedades Chave | Decisão de Produto / Ação |
 | :--- | :--- | :--- | :--- |
@@ -60,10 +120,10 @@ Para acompanhar a **retenção**, **ativação** e **consistência** dos atletas
 
 ---
 
-## 3. Modelo de Implementação Técnica Futura
+## 6. Modelo de Implementação Técnica Futura
 
 ### Utilitário Centralizador (`src/lib/analytics.ts`)
-Quando for aprovada a implementação, um único módulo gerenciará os envios de forma assíncrona, tolerante a falhas e sem bloquear a thread principal:
+Quando for aprovada a implementação, um único módulo gerenciará os envios de forma assíncrona e sem bloquear a UI:
 
 ```typescript
 // Exemplo de arquitetura futura para src/lib/analytics.ts
@@ -78,7 +138,6 @@ export function trackEvent<E extends TechFitnessEvent>(
   eventName: E["name"],
   properties: E["properties"]
 ) {
-  // Evitar chamadas em ambientes de teste ou SSR
   if (typeof window === "undefined" || process.env.NODE_ENV === "development") {
     return;
   }
@@ -89,7 +148,6 @@ export function trackEvent<E extends TechFitnessEvent>(
     timestamp: new Date().toISOString(),
   });
 
-  // Usar sendBeacon para envio ultra-leve que não bloqueia navegação nem UI
   if (navigator.sendBeacon) {
     navigator.sendBeacon("/api/telemetry", payload);
   } else {
@@ -105,7 +163,7 @@ export function trackEvent<E extends TechFitnessEvent>(
 
 ---
 
-## 4. Diretrizes de Segurança & Privacidade (LGPD)
+## 7. Diretrizes de Segurança & Privacidade (LGPD)
 
 1. **Anonimização de PII:** Nunca enviar nomes completos, e-mails, senhas ou URLs de fotos corporais nos payloads de telemetria.
 2. **Identificadores Pseudonimizados:** Utilizar apenas IDs randômicos opacos (ex: `user_cly...`).
@@ -113,10 +171,9 @@ export function trackEvent<E extends TechFitnessEvent>(
 
 ---
 
-## 5. Roadmap dos Próximos Passos (Quando for Implementar)
+## 8. Roadmap dos Próximos Passos (Quando For Executar)
 
-- [ ] **Etapa 1:** Criar conta no Microsoft Clarity e obter o ID do projeto.
-- [ ] **Etapa 2:** Inserir o script leve no `src/app/layout.tsx` ativado apenas em produção.
-- [ ] **Etapa 3:** Criar o arquivo `src/lib/analytics.ts` com tipagem estrita para os 5 eventos chave.
-- [ ] **Etapa 4:** Acoplar o disparo nos 5 pontos críticos (finalização de treino, pesagem e criação de fichas).
-- [ ] **Etapa 5:** Exibir card de "Alunos em Risco de Churn" no dashboard do professor (alunos sem treino há +7 dias).
+- [ ] **Fase 1:** Ativar Microsoft Clarity no `src/app/layout.tsx` para validação de calor e atrito sem custo.
+- [ ] **Fase 2:** Definir precificação oficial dos planos no Stripe/Asaas (Modelo Híbrido com faixa base + excedente).
+- [ ] **Fase 3:** Implementar `src/lib/analytics.ts` conectando os 5 Eventos de Ouro.
+- [ ] **Fase 4:** Criar painel de Alunos em Risco de Churn para os professores (alunos inativos há +7 dias).
