@@ -4,7 +4,6 @@
 # 🔒 SEGURANÇA E AUDITORIAS (ESTRITAMENTE LOCAL)
 # ==========================================
 # Relatórios de segurança, pentests, gráficos e scripts de auditoria
-docs/
 docs/security-audit/
 *.pdf
 *relatorio*
