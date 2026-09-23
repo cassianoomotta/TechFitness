@@ -3,6 +3,7 @@ import BrandLogo from "@/components/BrandLogo";
 
 import React, { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { useNotificationSync } from "@/hooks/useNotificationSync";
 import Link from "next/link";
 import {
   LogOut,
@@ -94,10 +95,14 @@ export default function TrainerDashboard() {
   const [duplicateSuccess, setDuplicateSuccess] = useState("");
   const [duplicateStep, setDuplicateStep] = useState<1 | 2>(1);
 
-  // Estados de Notificações
-  const [notifications, setNotifications] = useState<any[]>([]);
+  // Estados de Notificações em Tempo Real (Supabase Realtime + Smart Sync)
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const {
+    notifications,
+    unreadCount,
+    markAllAsRead: handleMarkNotificationsRead,
+    refresh: fetchNotifications,
+  } = useNotificationSync({ userId: session?.user?.id });
 
   // Ref para fechar notificações ao clicar fora
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -121,29 +126,6 @@ export default function TrainerDashboard() {
     }
   };
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch("/api/notifications");
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
-        setUnreadCount(data.filter((n: any) => !n.read).length);
-      }
-    } catch (err) {
-      console.error("Erro ao buscar notificações:", err);
-    }
-  };
-
-  const handleMarkNotificationsRead = async () => {
-    try {
-      await fetch("/api/notifications", { method: "PUT" });
-      setUnreadCount(0);
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (err) {
-      console.error("Erro ao ler notificações:", err);
-    }
-  };
-
   const fetchStats = async () => {
     try {
       const response = await fetch("/api/trainer/stats");
@@ -159,10 +141,7 @@ export default function TrainerDashboard() {
 
   useEffect(() => {
     fetchStudents();
-    fetchNotifications();
     fetchStats();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fechar notificações ao clicar fora

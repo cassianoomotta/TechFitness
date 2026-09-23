@@ -84,6 +84,8 @@ model WorkoutPlan {
   parentPlanId String?
   parentPlan   WorkoutPlan?  @relation("LinkedPlans", fields: [parentPlanId], references: [id], onDelete: SetNull)
   linkedPlans  WorkoutPlan[] @relation("LinkedPlans")
+
+  @@index([studentId])
 }
 
 model WorkoutPlanExercise {
@@ -101,6 +103,9 @@ model WorkoutPlanExercise {
   notes             String?
   customName        String? // Custom name for the student's plan
   order             Int         @default(0)
+
+  @@index([workoutPlanId])
+  @@index([exerciseId])
 }
 
 model WorkoutSession {
@@ -114,6 +119,8 @@ model WorkoutSession {
   photoUrl       String? // Foto comprobatória do treino (Check-in)
   targetGroupIds Json?          @default("[]") // Lista de IDs de grupos selecionados para postagem (vazio ou ["ALL"] = todos)
   logs           ExerciseLog[]
+
+  @@index([studentId, date])
 }
 
 model ExerciseLog {
@@ -129,6 +136,10 @@ model ExerciseLog {
   repsPerformed Int
   rpe           Int?
   failed        Boolean        @default(false)
+
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([exerciseId])
 }
 
 model BodyMeasurement {
@@ -147,6 +158,8 @@ model BodyMeasurement {
   calfLeft   Float?
   calfRight  Float?
   photos     Json           @default("[]")
+
+  @@index([studentId, date])
 }
 
 model WorkoutTemplate {
@@ -156,6 +169,8 @@ model WorkoutTemplate {
   name        String
   description String?
   division    String
+
+  @@index([trainerId])
 }
 
 model Notification {
@@ -166,6 +181,9 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, read])
 }
 
 model WorkoutGroup {
@@ -179,6 +197,8 @@ model WorkoutGroup {
   members     GroupMember[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  @@index([creatorId])
 }
 
 model GroupMember {
@@ -191,4 +211,6 @@ model GroupMember {
   joinedAt  DateTime       @default(now())
 
   @@unique([groupId, studentId])
+  @@index([studentId])
+  @@index([groupId])
 }
