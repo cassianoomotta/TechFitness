@@ -63,6 +63,7 @@ import StudentWorkoutInstagramCard, {
   WeeklyCheckinFeedItem,
 } from "@/components/StudentWorkoutInstagramCard";
 import {
+  Home,
   Dumbbell,
   Loader2,
   Play,
@@ -274,7 +275,7 @@ export default function StudentDashboard() {
   );
 
   // Estados da Aba e Grupos/Duelo
-  const [activeTab, setActiveTab] = useState<"fichas" | "conquistas" | "grupos" | "dupla" | "peso">("fichas");
+  const [activeTab, setActiveTab] = useState<"home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso">("home");
   const [initialJoinCode, setInitialJoinCode] = useState<string | null>(null);
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
@@ -297,13 +298,14 @@ export default function StudentDashboard() {
         setInitialJoinCode(joinParam);
         setActiveTab("grupos");
       } else if (
+        tabParam === "home" ||
         tabParam === "grupos" ||
         tabParam === "dupla" ||
         tabParam === "peso" ||
         tabParam === "conquistas" ||
         tabParam === "fichas"
       ) {
-        setActiveTab(tabParam);
+        setActiveTab(tabParam as "home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
       }
     }
   }, []);
@@ -354,9 +356,13 @@ export default function StudentDashboard() {
   };
 
 
-  const handleTabChange = (tab: "fichas" | "conquistas" | "grupos" | "dupla" | "peso") => {
-    setActiveTab(tab);
-    localStorage.setItem("student_active_tab", tab);
+  const handleTabChange = (tab: "home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso") => {
+    const targetTab = tab === "dupla" ? "grupos" : tab;
+    setActiveTab(targetTab);
+    localStorage.setItem("student_active_tab", targetTab);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedPartnerId, setSelectedPartnerId] = useState("");
@@ -649,8 +655,8 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const savedTab = localStorage.getItem("student_active_tab");
-    if (savedTab && ["fichas", "conquistas", "grupos", "dupla", "peso"].includes(savedTab)) {
-      setActiveTab((savedTab === "dupla" ? "grupos" : savedTab) as "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
+    if (savedTab && ["home", "fichas", "conquistas", "grupos", "dupla", "peso"].includes(savedTab)) {
+      setActiveTab((savedTab === "dupla" ? "grupos" : savedTab) as "home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
     }
   }, []);
 
@@ -920,313 +926,386 @@ export default function StudentDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 sm:pb-8">
-        
-        {/* Welcome Block */}
-        <section className="mb-8 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0]/80 text-[#2563EB] text-xs font-semibold mb-4 tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5 fill-[#2563EB]/10" /> Hora do show
-          </div>
-          <h1 className="font-display text-3xl font-extrabold text-[#0F172A] tracking-tight">
-            Pronto para treinar hoje, <span className="text-[#2563EB]">{session?.user?.name?.split(" ")[0]}</span>?
-          </h1>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-            {trainer && (
-              <p className="text-xs text-[#94A3B8]">
-                Assessoria Esportiva: <span className="text-[#0F172A] font-semibold">{trainer.name}</span>
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* Clima Atual */}
-        <section className="mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <WeatherCard />
-        </section>
-
-        {/* Painel RPG de Nível, XP e Streak */}
-        {gamificationLoading ? (
-          <section className="mb-4 sm:mb-8 p-3 sm:p-5 rounded-2xl bg-slate-900 shadow-xl relative overflow-hidden animate-pulse">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-slate-800 shrink-0"></div>
-                <div className="space-y-1.5">
-                  <div className="h-4 w-28 sm:w-36 bg-slate-800 rounded"></div>
-                  <div className="h-3 w-20 sm:w-24 bg-slate-800 rounded"></div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5 items-end">
-                <div className="h-7 w-20 sm:w-24 bg-slate-800 rounded-xl"></div>
-                <div className="h-7 w-20 sm:w-24 bg-slate-800 rounded-xl"></div>
-              </div>
-            </div>
-            <div className="mt-3 sm:mt-4 space-y-1.5">
-              <div className="h-2 w-full bg-slate-800 rounded-full"></div>
-            </div>
-          </section>
-        ) : gamification && (
-          <section className="mb-4 sm:mb-8 p-3 sm:p-5 md:p-6 rounded-2xl bg-slate-900 bg-linear-to-br from-slate-900 via-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/10 animate-fade-in">
-            {/* Elemento decorativo de luz de fundo */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/15 rounded-full blur-3xl pointer-events-none" />
-            
-            {/* Linha Superior: Nível + Chips de Gamificação */}
-            <div className="flex items-center justify-between gap-2 sm:gap-4 relative z-10">
-              
-              {/* Informações do Nível */}
-              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-                <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-tr from-[#2563EB] to-[#00C2FF] flex flex-col items-center justify-center shadow-lg shadow-blue-500/25 border border-white/20 shrink-0">
-                  <span className="text-[8px] sm:text-[9px] uppercase font-extrabold text-blue-100 leading-none">Nível</span>
-                  <span className="text-base sm:text-xl font-black font-mono leading-none mt-0.5">{gamification.level}</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h3 
-                      className="font-display text-sm sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent"
-                      title={gamification.levelTitle}
-                    >
-                      {gamification.levelTitle}
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setIsGamificationGuideOpen(true)}
-                      className="p-1 rounded-lg text-cyan-300/80 hover:text-cyan-200 hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0"
-                      title="Como funciona a gamificação?"
-                      aria-label="Ver regras e pontuação de XP"
-                    >
-                      <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
-                  </div>
-                  <p className="text-[10px] sm:text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
-                    <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
-                    <span className="font-medium truncate">{gamification.totalXp.toLocaleString("pt-BR")} XP</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Estatísticas Compactas (Badges Glassmorphism empilhados no topo direito) */}
-              <div className="flex flex-col gap-1.5 shrink-0 items-end">
-                {/* Constância / Frequência Semanal (Acima) */}
-                <div 
-                  className="w-full min-w-[76px] sm:min-w-[94px] px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-1.5 backdrop-blur-sm transition-colors"
-                  title={`Frequência Semanal: ${gamification.streak} ${gamification.streak === 1 ? "semana seguida" : "semanas seguidas"}`}
-                >
-                  <div className={`p-1 rounded-lg shrink-0 ${gamification.streak > 0 ? "bg-amber-500/20 text-amber-400" : "bg-zinc-800 text-zinc-500"}`}>
-                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
-                      {gamification.streak}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-zinc-400 font-semibold leading-none">
-                      <span className="sm:hidden">sem</span>
-                      <span className="hidden sm:inline">{gamification.streak === 1 ? "semana" : "semanas"}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Total Treinos (Abaixo) */}
-                <div 
-                  className="w-full min-w-[76px] sm:min-w-[94px] px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-1.5 backdrop-blur-sm transition-colors"
-                  title={`Total de Treinos Concluídos: ${gamification.totalSessions}`}
-                >
-                  <div className="p-1 rounded-lg shrink-0 bg-blue-500/20 text-blue-400">
-                    <Dumbbell className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
-                      {gamification.totalSessions}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-zinc-400 font-semibold leading-none">
-                      {gamification.totalSessions === 1 ? "treino" : "treinos"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Barra de Progresso de Nível (XP) Integrada */}
-            <div className="mt-3 sm:mt-4 space-y-1.5 relative z-10">
-              <div className="flex justify-between items-center text-[9px] sm:text-[11px] text-zinc-400">
-                <span className="font-medium">Progresso para Nível {gamification.level + 1}</span>
-                <span className="font-mono font-semibold text-zinc-300">
-                  {gamification.currentLevelXp} / {gamification.nextLevelXpNeeded} XP
-                </span>
-              </div>
-              <div className="w-full h-2 sm:h-2.5 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
-                <div 
-                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#00C2FF] transition-all duration-1000 shadow-[0_0_8px_rgba(37,99,235,0.6)]"
-                  style={{ width: `${Math.min(100, (gamification.currentLevelXp / gamification.nextLevelXpNeeded) * 100)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Teaser da Próxima Conquista (Atalho de Dopamina na Home) */}
-            {nextAchievement && (
-              <button
-                type="button"
-                onClick={() => handleTabChange("conquistas")}
-                className="mt-3.5 pt-2.5 border-t border-white/10 w-full flex items-center justify-between text-left group cursor-pointer hover:bg-white/5 p-1 rounded-xl transition-all relative z-10 active:scale-[0.99]"
-                title={`Ir para Jornada de Conquistas: ${nextAchievement.title}`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/10">
-                    <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-extrabold tracking-wider text-amber-400 leading-none">
-                        Próxima Conquista
-                      </span>
-                      <span className="text-[9px] text-zinc-400 font-medium hidden sm:inline">• Toque para ver</span>
-                    </div>
-                    <p className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-cyan-200 transition-colors mt-0.5">
-                      {nextAchievement.title}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                  <span className="text-[10px] sm:text-xs font-mono font-bold text-zinc-300 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
-                    {nextAchievement.progress} / {nextAchievement.target}
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-                </div>
-              </button>
-            )}
-          </section>
-        )}
-
-        {/* Liga dos Titãs — Ranking Geral (posicionado estrategicamente entre o Nível do Usuário e o Check-in da Turma) */}
-        <RankingLeaderboard
-          ranking={ranking}
-          loading={rankingLoading}
-          onOpenGamificationGuide={() => setIsGamificationGuideOpen(true)}
-          onOpenCheckinPhoto={(photo) => {
-            setSelectedPhotosList([{
-              id: photo.id,
-              date: new Date().toISOString(),
-              dayOfWeek: photo.dayOfWeekFull ? photo.dayOfWeekFull.substring(0, 3).toUpperCase() : "TREINO",
-              dayOfWeekFull: photo.dayOfWeekFull,
-              formattedDate: photo.formattedDate,
-              photoUrl: photo.photoUrl,
-              durationMinutes: 0,
-              studentId: "",
-              studentName: photo.studentName,
-              studentImage: photo.studentImage,
-            }]);
-            setSelectedPhotoIndex(0);
-          }}
-        />
-
-        {/* Seção de Fotos do Dia e da Semana dos Concorrentes na Tela Inicial */}
-        {!rankingLoading && ranking && (
-          <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-5 sm:p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-50 text-[#2563EB] rounded-xl border border-blue-100">
-                  <Camera className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
-                    Check-ins da Turma (Fotos da Semana)
-                  </h3>
-                  <p className="text-[11px] text-[#94A3B8]">
-                    Fotos de treino dos concorrentes nos últimos 7 dias
-                  </p>
-                </div>
-              </div>
-
-              {groupedStudentFeeds && groupedStudentFeeds.length > 0 && (
-                <span className="text-[10px] font-bold bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded-full">
-                  {groupedStudentFeeds.length} {groupedStudentFeeds.length === 1 ? "atleta no mural" : "atletas no mural"}
-                </span>
-              )}
-            </div>
-
-            {groupedStudentFeeds && groupedStudentFeeds.length > 0 ? (
-              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin">
-                {groupedStudentFeeds.map((group) => (
-                  <StudentWorkoutInstagramCard
-                    key={group.studentId || group.studentName}
-                    studentGroup={group}
-                    onOpenZoom={(_photo, allPhotos, initialIdx) => {
-                      setSelectedPhotosList(allPhotos);
-                      setSelectedPhotoIndex(initialIdx);
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
-                <p className="text-xs text-[#64748B] font-semibold">
-                  Nenhum colega postou foto de treino hoje ainda.
-                </p>
-                <p className="text-[11px] text-[#94A3B8] mt-0.5">
-                  Conclua seu treino com foto para liderar o mural da assessoria!
-                </p>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Abas */}
-        {/* Abas Principais */}
-        <div className="hidden sm:flex border-b border-slate-200 mb-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 sm:pb-12">
+        {/* Abas no Desktop (Design System TechFitness: Segmented Control Glassmorphic) */}
+        <div className="hidden sm:flex items-center gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80 mb-8 backdrop-blur-sm shadow-xs">
           <button
-            onClick={() => handleTabChange("fichas")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === "fichas"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+            type="button"
+            onClick={() => handleTabChange("home")}
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "home"
+                ? "bg-white text-[#2563EB] shadow-xs"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
             }`}
           >
-            <Dumbbell className={`w-4 h-4 transition-colors ${activeTab === "fichas" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <Home className="w-4 h-4" />
+            <span>Início</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange("fichas")}
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === "fichas"
+                ? "bg-white text-[#2563EB] shadow-xs"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+            }`}
+          >
+            <Dumbbell className="w-4 h-4" />
             <span>Meus Treinos</span>
           </button>
+
           <button
+            type="button"
             onClick={() => handleTabChange("grupos")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "grupos" || activeTab === "dupla"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "bg-white text-[#2563EB] shadow-xs"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
             }`}
           >
-            <Users className={`w-4 h-4 transition-colors ${activeTab === "grupos" || activeTab === "dupla" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <Users className="w-4 h-4" />
             <span>Grupos</span>
           </button>
+
           <button
+            type="button"
             onClick={() => handleTabChange("peso")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "peso"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "bg-white text-[#2563EB] shadow-xs"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
             }`}
           >
-            <TrendingUp className={`w-4 h-4 transition-colors ${activeTab === "peso" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <TrendingUp className="w-4 h-4" />
             <span>Peso</span>
           </button>
+
           <button
+            type="button"
             onClick={() => handleTabChange("conquistas")}
-            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider text-center border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === "conquistas"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "bg-white text-[#2563EB] shadow-xs"
+                : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
             }`}
           >
-            <Trophy className={`w-4 h-4 transition-colors ${activeTab === "conquistas" ? "text-[#2563EB]" : "text-slate-400"}`} />
+            <Trophy className="w-4 h-4" />
             <span>Conquistas</span>
           </button>
         </div>
 
-        {/* Aba 1: Meus Treinos */}
+        {/* =========================================================================
+            ABA 1: INÍCIO (Cockpit de Gamificação, Ranking e Comunidade)
+            ========================================================================= */}
+        {activeTab === "home" && (
+          <div className="space-y-6 sm:space-y-8 animate-fade-in">
+            {/* Welcome Block + Atalho de Treino */}
+            <section className="text-center sm:text-left space-y-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0]/80 text-[#2563EB] text-xs font-semibold mb-3 tracking-wide uppercase shadow-2xs">
+                  <Sparkles className="w-3.5 h-3.5 fill-[#2563EB]/10" /> Hora do show
+                </div>
+                <h1 className="font-display text-3xl font-extrabold text-[#0F172A] tracking-tight">
+                  Pronto para treinar hoje, <span className="text-[#2563EB]">{session?.user?.name?.split(" ")[0]}</span>?
+                </h1>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
+                  {trainer && (
+                    <p className="text-xs text-[#94A3B8]">
+                      Assessoria Esportiva: <span className="text-[#0F172A] font-semibold">{trainer.name}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Atalho Rápido para o Treino do Dia (CTA) */}
+              {plans && plans.length > 0 && (
+                <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#2563EB]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#2563EB] to-[#00C2FF] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                      <Dumbbell className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#2563EB] tracking-wider block">
+                        Rotina Disponível
+                      </span>
+                      <h2 className="text-base font-extrabold text-[#0F172A] leading-tight mt-0.5">
+                        {plans[0]?.name || "Seu Treino Prescrito"}
+                      </h2>
+                      <p className="text-xs text-[#64748B] mt-0.5">
+                        {plans[0]?.exercises?.length || 0} exercícios prontos para executar
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("fichas")}
+                    className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer w-full sm:w-auto"
+                  >
+                    <span>Abrir Meus Treinos</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* Clima Atual */}
+            <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+              <WeatherCard />
+            </section>
+
+            {/* Painel RPG de Nível, XP e Streak */}
+            {gamificationLoading ? (
+              <section className="p-3 sm:p-5 rounded-2xl bg-slate-900 shadow-xl relative overflow-hidden animate-pulse">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-slate-800 shrink-0"></div>
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-28 sm:w-36 bg-slate-800 rounded"></div>
+                      <div className="h-3 w-20 sm:w-24 bg-slate-800 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5 items-end">
+                    <div className="h-7 w-20 sm:w-24 bg-slate-800 rounded-xl"></div>
+                    <div className="h-7 w-20 sm:w-24 bg-slate-800 rounded-xl"></div>
+                  </div>
+                </div>
+                <div className="mt-3 sm:mt-4 space-y-1.5">
+                  <div className="h-2 w-full bg-slate-800 rounded-full"></div>
+                </div>
+              </section>
+            ) : gamification && (
+              <section className="p-3 sm:p-5 md:p-6 rounded-2xl bg-slate-900 bg-linear-to-br from-slate-900 via-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/10 animate-fade-in">
+                {/* Elemento decorativo de luz de fundo */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/15 rounded-full blur-3xl pointer-events-none" />
+                
+                {/* Linha Superior: Nível + Chips de Gamificação */}
+                <div className="flex items-center justify-between gap-2 sm:gap-4 relative z-10">
+                  
+                  {/* Informações do Nível */}
+                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                    <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-tr from-[#2563EB] to-[#00C2FF] flex flex-col items-center justify-center shadow-lg shadow-blue-500/25 border border-white/20 shrink-0">
+                      <span className="text-[8px] sm:text-[9px] uppercase font-extrabold text-blue-100 leading-none">Nível</span>
+                      <span className="text-base sm:text-xl font-black font-mono leading-none mt-0.5">{gamification.level}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h3 
+                          className="font-display text-sm sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent"
+                          title={gamification.levelTitle}
+                        >
+                          {gamification.levelTitle}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setIsGamificationGuideOpen(true)}
+                          className="p-1 rounded-lg text-cyan-300/80 hover:text-cyan-200 hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0"
+                          title="Como funciona a gamificação?"
+                          aria-label="Ver regras e pontuação de XP"
+                        >
+                          <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </button>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
+                        <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
+                        <span className="font-medium truncate">{gamification.totalXp.toLocaleString("pt-BR")} XP</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Estatísticas Compactas (Badges Glassmorphism empilhados no topo direito) */}
+                  <div className="flex flex-col gap-1.5 shrink-0 items-end">
+                    {/* Constância / Frequência Semanal (Acima) */}
+                    <div 
+                      className="w-full min-w-[76px] sm:min-w-[94px] px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-1.5 backdrop-blur-sm transition-colors"
+                      title={`Frequência Semanal: ${gamification.streak} ${gamification.streak === 1 ? "semana seguida" : "semanas seguidas"}`}
+                    >
+                      <div className={`p-1 rounded-lg shrink-0 ${gamification.streak > 0 ? "bg-amber-500/20 text-amber-400" : "bg-zinc-800 text-zinc-500"}`}>
+                        <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
+                          {gamification.streak}
+                        </span>
+                        <span className="text-[9px] sm:text-[10px] text-zinc-400 font-semibold leading-none">
+                          <span className="sm:hidden">sem</span>
+                          <span className="hidden sm:inline">{gamification.streak === 1 ? "semana" : "semanas"}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Total Treinos (Abaixo) */}
+                    <div 
+                      className="w-full min-w-[76px] sm:min-w-[94px] px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-1.5 backdrop-blur-sm transition-colors"
+                      title={`Total de Treinos Concluídos: ${gamification.totalSessions}`}
+                    >
+                      <div className="p-1 rounded-lg shrink-0 bg-blue-500/20 text-blue-400">
+                        <Dumbbell className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs sm:text-sm font-black font-mono text-white leading-none">
+                          {gamification.totalSessions}
+                        </span>
+                        <span className="text-[9px] sm:text-[10px] text-zinc-400 font-semibold leading-none">
+                          {gamification.totalSessions === 1 ? "treino" : "treinos"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Barra de Progresso de Nível (XP) Integrada */}
+                <div className="mt-3 sm:mt-4 space-y-1.5 relative z-10">
+                  <div className="flex justify-between items-center text-[9px] sm:text-[11px] text-zinc-400">
+                    <span className="font-medium">Progresso para Nível {gamification.level + 1}</span>
+                    <span className="font-mono font-semibold text-zinc-300">
+                      {gamification.currentLevelXp} / {gamification.nextLevelXpNeeded} XP
+                    </span>
+                  </div>
+                  <div className="w-full h-2 sm:h-2.5 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#00C2FF] transition-all duration-1000 shadow-[0_0_8px_rgba(37,99,235,0.6)]"
+                      style={{ width: `${Math.min(100, (gamification.currentLevelXp / gamification.nextLevelXpNeeded) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Teaser da Próxima Conquista (Atalho de Dopamina na Home) */}
+                {nextAchievement && (
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("conquistas")}
+                    className="mt-3.5 pt-2.5 border-t border-white/10 w-full flex items-center justify-between text-left group cursor-pointer hover:bg-white/5 p-1 rounded-xl transition-all relative z-10 active:scale-[0.99]"
+                    title={`Ir para Jornada de Conquistas: ${nextAchievement.title}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/10">
+                        <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] sm:text-[10px] uppercase font-extrabold tracking-wider text-amber-400 leading-none">
+                            Próxima Conquista
+                          </span>
+                          <span className="text-[9px] text-zinc-400 font-medium hidden sm:inline">• Toque para ver</span>
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-cyan-200 transition-colors mt-0.5">
+                          {nextAchievement.title}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-zinc-300 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+                        {nextAchievement.progress} / {nextAchievement.target}
+                      </span>
+                      <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                  </button>
+                )}
+              </section>
+            )}
+
+            {/* Liga dos Titãs — Ranking Geral */}
+            <RankingLeaderboard
+              ranking={ranking}
+              loading={rankingLoading}
+              onOpenGamificationGuide={() => setIsGamificationGuideOpen(true)}
+              onOpenCheckinPhoto={(photo) => {
+                setSelectedPhotosList([{
+                  id: photo.id,
+                  date: new Date().toISOString(),
+                  dayOfWeek: photo.dayOfWeekFull ? photo.dayOfWeekFull.substring(0, 3).toUpperCase() : "TREINO",
+                  dayOfWeekFull: photo.dayOfWeekFull,
+                  formattedDate: photo.formattedDate,
+                  photoUrl: photo.photoUrl,
+                  durationMinutes: 0,
+                  studentId: "",
+                  studentName: photo.studentName,
+                  studentImage: photo.studentImage,
+                }]);
+                setSelectedPhotoIndex(0);
+              }}
+            />
+
+            {/* Seção de Fotos do Dia e da Semana dos Concorrentes na Tela Inicial */}
+            {!rankingLoading && ranking && (
+              <section className="bg-white border border-[#E2E8F0] rounded-3xl p-5 sm:p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-50 text-[#2563EB] rounded-xl border border-blue-100">
+                      <Camera className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
+                        Check-ins da Turma (Fotos da Semana)
+                      </h3>
+                      <p className="text-[11px] text-[#94A3B8]">
+                        Fotos de treino dos concorrentes nos últimos 7 dias
+                      </p>
+                    </div>
+                  </div>
+
+                  {groupedStudentFeeds && groupedStudentFeeds.length > 0 && (
+                    <span className="text-[10px] font-bold bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded-full">
+                      {groupedStudentFeeds.length} {groupedStudentFeeds.length === 1 ? "atleta no mural" : "atletas no mural"}
+                    </span>
+                  )}
+                </div>
+
+                {groupedStudentFeeds && groupedStudentFeeds.length > 0 ? (
+                  <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+                    {groupedStudentFeeds.map((group) => (
+                      <StudentWorkoutInstagramCard
+                        key={group.studentId || group.studentName}
+                        studentGroup={group}
+                        onOpenZoom={(_photo, allPhotos, initialIdx) => {
+                          setSelectedPhotosList(allPhotos);
+                          setSelectedPhotoIndex(initialIdx);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
+                    <p className="text-xs text-[#64748B] font-semibold">
+                      Nenhum colega postou foto de treino hoje ainda.
+                    </p>
+                    <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                      Conclua seu treino com foto para liderar o mural da assessoria!
+                    </p>
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            ABA 2: MEUS TREINOS (Foco Total nas Fichas e Execução)
+            ========================================================================= */}
         {activeTab === "fichas" && (
-          <WorkoutTab
-            loading={loading}
-            plans={plans}
-            handleOpenEdit={handleOpenEdit}
-            setSelectedPlanForPreview={setSelectedPlanForPreview}
-            onOpenImportModal={() => setIsImportModalOpen(true)}
-          />
+          <div className="space-y-6 animate-fade-in">
+            <div className="mb-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-xs font-semibold mb-2">
+                <Dumbbell className="w-3.5 h-3.5" /> Fichas de Treino
+              </div>
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+                Meus Treinos
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Rotinas periodizadas e prescrições do seu treinador.
+              </p>
+            </div>
+
+            <WorkoutTab
+              loading={loading}
+              plans={plans}
+              handleOpenEdit={handleOpenEdit}
+              setSelectedPlanForPreview={setSelectedPlanForPreview}
+              onOpenImportModal={() => setIsImportModalOpen(true)}
+            />
+          </div>
         )}
 
 
@@ -1575,48 +1654,6 @@ export default function StudentDashboard() {
       )}
 
 
-      {/* Mobile Bottom Navigation Bar */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-[#E2E8F0]/80 pb-[safe-area-inset-bottom] shadow-[0_-4px_24px_rgba(0,0,0,0.04)] select-none">
-        <div className="flex items-center justify-around h-16">
-          <button
-            onClick={() => handleTabChange("fichas")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
-              activeTab === "fichas" ? "text-[#2563EB]" : "text-[#94A3B8]"
-            }`}
-          >
-            <Dumbbell className={`w-5 h-5 transition-transform duration-300 ${activeTab === "fichas" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
-            <span>Meus Treinos</span>
-          </button>
-          <button
-            onClick={() => handleTabChange("grupos")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
-              activeTab === "grupos" || activeTab === "dupla" ? "text-[#2563EB]" : "text-[#94A3B8]"
-            }`}
-          >
-            <Users className={`w-5 h-5 transition-transform duration-300 ${activeTab === "grupos" || activeTab === "dupla" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
-            <span>Grupos</span>
-          </button>
-          <button
-            onClick={() => handleTabChange("peso")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
-              activeTab === "peso" ? "text-[#2563EB]" : "text-[#94A3B8]"
-            }`}
-          >
-            <TrendingUp className={`w-5 h-5 transition-transform duration-300 ${activeTab === "peso" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
-            <span>Peso</span>
-          </button>
-          <button
-            onClick={() => handleTabChange("conquistas")}
-            className={`flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-bold transition-all active:scale-95 ${
-              activeTab === "conquistas" ? "text-[#2563EB]" : "text-[#94A3B8]"
-            }`}
-          >
-            <Trophy className={`w-5 h-5 transition-transform duration-300 ${activeTab === "conquistas" ? "scale-110 text-[#2563EB]" : "text-[#94A3B8]"}`} />
-            <span>Conquistas</span>
-          </button>
-        </div>
-      </div>
-
       {/* Modal de Importação de Treinos com IA */}
       <ImportWorkoutModal
         isOpen={isImportModalOpen}
@@ -1831,11 +1868,26 @@ export default function StudentDashboard() {
           isImportModalOpen ? "hidden" : ""
         }`}
       >
-        <div className="max-w-md mx-auto px-2 py-1 flex items-center justify-around gap-1">
-          {/* Aba 1: Treinos */}
+        <div className="max-w-md mx-auto px-1.5 py-1 flex items-center justify-around gap-1">
+          {/* Aba 1: Início */}
+          <button
+            onClick={() => handleTabChange("home")}
+            className={`flex-1 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-pointer active:scale-95 ${
+              activeTab === "home"
+                ? "text-[#2563EB] font-bold"
+                : "text-slate-400 hover:text-slate-600 font-medium"
+            }`}
+          >
+            <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "home" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
+              <Home className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Início</span>
+          </button>
+
+          {/* Aba 2: Treinos */}
           <button
             onClick={() => handleTabChange("fichas")}
-            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+            className={`flex-1 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-pointer active:scale-95 ${
               activeTab === "fichas"
                 ? "text-[#2563EB] font-bold"
                 : "text-slate-400 hover:text-slate-600 font-medium"
@@ -1844,13 +1896,13 @@ export default function StudentDashboard() {
             <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "fichas" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
               <Dumbbell className="w-5 h-5" />
             </div>
-            <span className="text-[11px] tracking-tight leading-none">Treinos</span>
+            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Treinos</span>
           </button>
 
-          {/* Aba 2: Grupos & Mural */}
+          {/* Aba 3: Grupos & Mural */}
           <button
             onClick={() => handleTabChange("grupos")}
-            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+            className={`flex-1 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-pointer active:scale-95 ${
               activeTab === "grupos" || activeTab === "dupla"
                 ? "text-[#2563EB] font-bold"
                 : "text-slate-400 hover:text-slate-600 font-medium"
@@ -1859,13 +1911,13 @@ export default function StudentDashboard() {
             <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "grupos" || activeTab === "dupla" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
               <Users className="w-5 h-5" />
             </div>
-            <span className="text-[11px] tracking-tight leading-none">Grupos</span>
+            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Grupos</span>
           </button>
 
-          {/* Aba 3: Peso */}
+          {/* Aba 4: Peso */}
           <button
             onClick={() => handleTabChange("peso")}
-            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+            className={`flex-1 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-pointer active:scale-95 ${
               activeTab === "peso"
                 ? "text-[#2563EB] font-bold"
                 : "text-slate-400 hover:text-slate-600 font-medium"
@@ -1874,13 +1926,13 @@ export default function StudentDashboard() {
             <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "peso" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
               <TrendingUp className="w-5 h-5" />
             </div>
-            <span className="text-[11px] tracking-tight leading-none">Peso</span>
+            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Peso</span>
           </button>
 
-          {/* Aba 4: Conquistas */}
+          {/* Aba 5: Conquistas */}
           <button
             onClick={() => handleTabChange("conquistas")}
-            className={`flex-1 min-h-[48px] py-1.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer active:scale-95 ${
+            className={`flex-1 min-h-[48px] py-1 px-1 rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-pointer active:scale-95 ${
               activeTab === "conquistas"
                 ? "text-[#2563EB] font-bold"
                 : "text-slate-400 hover:text-slate-600 font-medium"
@@ -1889,7 +1941,7 @@ export default function StudentDashboard() {
             <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "conquistas" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
               <Trophy className="w-5 h-5" />
             </div>
-            <span className="text-[11px] tracking-tight leading-none">Conquistas</span>
+            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Conquistas</span>
           </button>
         </div>
       </nav>
