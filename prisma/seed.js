@@ -1518,7 +1518,7 @@ const exercisesData = [
     "name": "Remada baixa aberta",
     "muscleGroup": "Costas",
     "equipment": "Polia",
-    "description": null,
+    "description": "Sente-se no banco da polia baixa com os joelhos levemente flexionados e os pés firmes no apoio. Segure a barra com pegada pronada (palmas para baixo), com as mãos mais afastadas que a largura dos ombros. Mantenha a coluna ereta, o peito estufado e o abdômen contraído. Puxe a barra em direção à linha do abdômen/estômago, guiando o movimento com os cotovelos abertos para fora e unindo as escápulas no final da puxada. Segure a contração por 1 segundo e retorne estendendo os braços de forma lenta e controlada, sem curvar a lombar. Repita pelo número indicado de repetições.",
     "videoUrl": "https://www.youtube.com/watch?v=oU8VDKR-xIA"
   },
   {
