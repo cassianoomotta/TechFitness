@@ -177,7 +177,7 @@ export default function AchievementsPage() {
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Voltar ao Dashboard
           </Link>
-          <BrandLogo size={28} />
+          <BrandLogo size={28} href="/student/dashboard" />
         </div>
       </header>
 

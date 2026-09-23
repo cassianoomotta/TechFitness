@@ -807,7 +807,7 @@ export default function StudentDashboard() {
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-          <BrandLogo size={36} />
+          <BrandLogo size={36} onClick={() => handleTabChange("home")} />
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Botão Especial de Administrador: Ver quem ingressou no app (exclusivo para cassianoomotta@gmail.com) */}

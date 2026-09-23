@@ -170,7 +170,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
             <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
           </Link>
 
-          <BrandLogo size={32} />
+          <BrandLogo size={32} href={backUrl} />
         </div>
 
         {/* Título da Página */}

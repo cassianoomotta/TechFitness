@@ -1,10 +1,13 @@
 import React from "react";
+import Link from "next/link";
 
 interface BrandLogoProps {
   className?: string;
   size?: number;
   showText?: boolean;
   textColorClass?: string;
+  href?: string;
+  onClick?: () => void;
 }
 
 export default function BrandLogo({
@@ -12,9 +15,11 @@ export default function BrandLogo({
   size = 40,
   showText = true,
   textColorClass = "text-[#0F172A]",
+  href,
+  onClick,
 }: BrandLogoProps) {
-  return (
-    <div className={`flex items-center gap-3 ${className}`}>
+  const content = (
+    <div className={`flex items-center gap-3 ${!href && !onClick ? className : ""}`}>
       {/* Dynamic SVG Logo */}
       <div 
         style={{ width: size, height: size }} 
@@ -74,4 +79,33 @@ export default function BrandLogo({
       )}
     </div>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        onClick={onClick}
+        className={`inline-flex items-center cursor-pointer transition-transform active:scale-95 focus:outline-none ${className}`}
+        title="Ir para a Página Inicial"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`inline-flex items-center text-left cursor-pointer transition-transform active:scale-95 focus:outline-none ${className}`}
+        title="Ir para a Página Inicial"
+        aria-label="Ir para a Página Inicial"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return content;
 }

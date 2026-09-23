@@ -349,7 +349,7 @@ export default function TrainerDashboard() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <BrandLogo size={36} />
+            <BrandLogo size={36} href="/trainer/dashboard" />
 
             <nav className="hidden md:flex items-center gap-1">
               <Link
