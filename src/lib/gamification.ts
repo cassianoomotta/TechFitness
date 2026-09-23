@@ -68,7 +68,7 @@ export const ALL_ACHIEVEMENTS: AchievementDef[] = [
 // ── Streak Calculation ──
 
 /** Retorna a string "YYYY-MM-DD" da segunda-feira da semana de uma data */
-function getWeekStart(d: Date): string {
+export function getWeekStart(d: Date): string {
   const temp = new Date(d);
   temp.setHours(0, 0, 0, 0);
   const day = temp.getDay();
@@ -175,15 +175,177 @@ export function getUnlockedAchievements(
 
 // ── XP & Level ──
 
-const XP_PER_LEVEL = 1000;
+export const XP_PER_LEVEL = 1000;
 
-export function calculateXp(totalSessions: number, prsCount: number, measurementsCount: number) {
-  const totalXp = (totalSessions * 300) + (prsCount * 150) + (measurementsCount * 100);
+export interface XpBreakdown {
+  totalXp: number;
+  level: number;
+  currentLevelXp: number;
+  nextLevelXpNeeded: number;
+  workoutXp: number;
+  bonusAdherenceXp: number;
+  extraWorkoutXp: number;
+  prsXp: number;
+  measurementsXp: number;
+}
+
+/**
+ * Determina a meta de treinos por semana do aluno com base nas suas fichas.
+ * Se tiver dias da semana definidos (ex: Seg, Ter, Qua, Sex), conta os dias únicos.
+ * Se tiver fichas sem dias, conta o número de fichas (mínimo 3, máximo 6).
+ * Se não tiver fichas, o padrão é 3 treinos por semana.
+ */
+export function getWeeklyGoalFromPlans(
+  plans?: Array<{ weekDays?: string | string[] | any; division?: string }> | null
+): number {
+  if (!plans || plans.length === 0) return 3;
+
+  const distinctDays = new Set<string>();
+  for (const p of plans) {
+    if (p.weekDays) {
+      if (Array.isArray(p.weekDays)) {
+        p.weekDays.forEach((d: string) => distinctDays.add(String(d).trim()));
+      } else if (typeof p.weekDays === "string") {
+        p.weekDays.split(",").forEach((d: string) => distinctDays.add(d.trim()));
+      }
+    }
+  }
+
+  if (distinctDays.size > 0) {
+    return Math.max(2, Math.min(distinctDays.size, 7));
+  }
+
+  return Math.max(3, Math.min(plans.length, 6));
+}
+
+/**
+ * Calcula a aderência semanal: quantas semanas foram perfeitas (100% da meta) e quantos treinos foram extras.
+ */
+export function calculateSessionsAdherence(
+  sessions: Array<{ date: string | Date }>,
+  weeklyGoal: number = 3
+) {
+  if (!sessions || sessions.length === 0) {
+    return { perfectWeeks: 0, extraSessions: 0, baseSessions: 0 };
+  }
+
+  const sessionsByWeek: Record<string, Set<string>> = {};
+  for (const s of sessions) {
+    const d = s.date instanceof Date ? s.date : new Date(s.date);
+    const w = getWeekStart(d);
+    if (!sessionsByWeek[w]) {
+      sessionsByWeek[w] = new Set<string>();
+    }
+    sessionsByWeek[w].add(d.toLocaleDateString("en-CA"));
+  }
+
+  let perfectWeeks = 0;
+  let extraSessions = 0;
+  let baseSessions = 0;
+
+  for (const distinctDays of Object.values(sessionsByWeek)) {
+    const count = distinctDays.size;
+    if (count >= weeklyGoal) {
+      perfectWeeks++;
+      baseSessions += weeklyGoal;
+      extraSessions += (count - weeklyGoal);
+    } else {
+      baseSessions += count;
+    }
+  }
+
+  return { perfectWeeks, extraSessions, baseSessions };
+}
+
+/**
+ * Fórmula Justa de Gamificação:
+ * - 150 XP por treino da ficha prescrita
+ * - +400 XP de Bônus de Meta Batida (Semana Perfeita)
+ * - +75 XP por treino extra além da meta da semana
+ * - +100 XP por Recorde Pessoal de Carga (PR)
+ * - +50 XP por medição corporal
+ */
+export function calculateXp(
+  totalSessions: number,
+  prsCount: number,
+  measurementsCount: number,
+  options?: {
+    perfectWeeks?: number;
+    extraSessions?: number;
+  }
+): XpBreakdown {
+  const perfectWeeks = options?.perfectWeeks ?? 0;
+  const extraSessions = options?.extraSessions ?? 0;
+
+  const baseSessions = Math.max(0, totalSessions - extraSessions);
+  const workoutXp = baseSessions * 150;
+  const bonusAdherenceXp = perfectWeeks * 400;
+  const extraWorkoutXp = extraSessions * 75;
+  const prsXp = prsCount * 100;
+  const measurementsXp = measurementsCount * 50;
+
+  const totalXp = workoutXp + bonusAdherenceXp + extraWorkoutXp + prsXp + measurementsXp;
   const level = Math.floor(totalXp / XP_PER_LEVEL) + 1;
   const currentLevelXp = totalXp % XP_PER_LEVEL;
   const nextLevelXpNeeded = XP_PER_LEVEL;
 
-  return { totalXp, level, currentLevelXp, nextLevelXpNeeded };
+  return {
+    totalXp,
+    level,
+    currentLevelXp,
+    nextLevelXpNeeded,
+    workoutXp,
+    bonusAdherenceXp,
+    extraWorkoutXp,
+    prsXp,
+    measurementsXp,
+  };
+}
+
+/**
+ * Calcula XP específico por período (Semana Atual, Mês Atual ou Geral)
+ */
+export function calculatePeriodXp(
+  sessions: Array<{ date: string | Date }>,
+  weeklyGoal: number,
+  prsCount: number,
+  measurementsCount: number,
+  period: "weekly" | "monthly" | "allTime"
+): XpBreakdown {
+  const now = new Date();
+  const currentWeekStart = new Date(getWeekStart(now));
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  let filteredSessions = sessions;
+  let periodPrs = prsCount;
+  let periodMeasurements = measurementsCount;
+
+  if (period === "weekly") {
+    filteredSessions = sessions.filter((s) => {
+      const d = s.date instanceof Date ? s.date : new Date(s.date);
+      return d >= currentWeekStart;
+    });
+    // No semanal, PRs e medições do período têm peso proporcional
+    periodPrs = Math.min(prsCount, filteredSessions.length);
+    periodMeasurements = Math.min(measurementsCount, 1);
+  } else if (period === "monthly") {
+    filteredSessions = sessions.filter((s) => {
+      const d = s.date instanceof Date ? s.date : new Date(s.date);
+      return d >= currentMonthStart;
+    });
+    periodPrs = Math.min(prsCount, filteredSessions.length * 2);
+    periodMeasurements = Math.min(measurementsCount, 4);
+  }
+
+  const { perfectWeeks, extraSessions } = calculateSessionsAdherence(
+    filteredSessions,
+    weeklyGoal
+  );
+
+  return calculateXp(filteredSessions.length, periodPrs, periodMeasurements, {
+    perfectWeeks,
+    extraSessions,
+  });
 }
 
 export function getLevelTitle(level: number): string {

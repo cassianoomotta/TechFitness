@@ -185,6 +185,7 @@ export default function EditProfilePhotoModal({
                 name={userName}
                 image={currentImage}
                 size="xl"
+                expandable={false}
                 className="!w-28 !h-28 !text-3xl"
               />
             )}

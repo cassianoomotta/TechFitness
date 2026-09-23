@@ -8,6 +8,7 @@ import WeatherCard from "./components/WeatherCard";
 import ImportWorkoutModal from "./components/ImportWorkoutModal";
 import RankingLeaderboard, { RankingData } from "./components/RankingLeaderboard";
 import RegisteredUsersModal from "./components/RegisteredUsersModal";
+import { GamificationGuideModal } from "./components/GamificationGuideModal";
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -37,6 +38,7 @@ import {
   Trophy,
   Camera,
   Trash2,
+  HelpCircle,
 } from "lucide-react";
 
 interface Achievement {
@@ -240,6 +242,7 @@ export default function StudentDashboard() {
   const [achievementFilter, setAchievementFilter] = useState<"all" | "unlocked" | "locked">("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isRegisteredUsersModalOpen, setIsRegisteredUsersModalOpen] = useState(false);
+  const [isGamificationGuideOpen, setIsGamificationGuideOpen] = useState(false);
 
   // Capturar código de convite ou aba via URL (ex: link de convite recebido via WhatsApp)
   useEffect(() => {
@@ -765,6 +768,7 @@ export default function StudentDashboard() {
                   name={session?.user?.name}
                   image={profilePhoto || session?.user?.image}
                   size="md"
+                  expandable={false}
                 />
                 <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white">
                   <Camera className="w-2.5 h-2.5" />
@@ -915,9 +919,20 @@ export default function StudentDashboard() {
                   <span className="text-base sm:text-xl font-black font-mono leading-none mt-0.5">{gamification.level}</span>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-display text-xs sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent">
-                    {gamification.levelTitle}
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-display text-xs sm:text-base font-extrabold tracking-tight truncate bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent">
+                      {gamification.levelTitle}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setIsGamificationGuideOpen(true)}
+                      className="p-1 rounded-lg text-cyan-300/80 hover:text-cyan-200 hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0"
+                      title="Como funciona a gamificação?"
+                      aria-label="Ver regras e pontuação de XP"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
                   <p className="text-[10px] sm:text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
                     <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
                     <span className="font-medium truncate">{gamification.totalXp.toLocaleString("pt-BR")} XP</span>
@@ -983,6 +998,7 @@ export default function StudentDashboard() {
         <RankingLeaderboard
           ranking={ranking}
           loading={rankingLoading}
+          onOpenGamificationGuide={() => setIsGamificationGuideOpen(true)}
           onOpenCheckinPhoto={(photo) => {
             setSelectedPhotosList([{
               id: photo.id,
@@ -1780,6 +1796,12 @@ export default function StudentDashboard() {
       <RegisteredUsersModal
         isOpen={isRegisteredUsersModalOpen}
         onClose={() => setIsRegisteredUsersModalOpen(false)}
+      />
+
+      {/* Guia Explicativo e Objetivo de Gamificação */}
+      <GamificationGuideModal
+        isOpen={isGamificationGuideOpen}
+        onClose={() => setIsGamificationGuideOpen(false)}
       />
 
     </div>

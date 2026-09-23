@@ -193,6 +193,7 @@ function WelcomeContent() {
                 name={name || "Aluno"}
                 image={imagePreview}
                 size="xl"
+                expandable={false}
                 className="border-4 border-blue-100 shadow-md group-hover:scale-105 transition-transform"
               />
               <div className="absolute -bottom-1 -right-1 p-2 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white group-hover:bg-blue-700 transition-colors">

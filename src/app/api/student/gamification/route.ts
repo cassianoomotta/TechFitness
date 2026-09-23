@@ -7,6 +7,8 @@ import {
   calculateXp,
   getLevelTitle,
   ALL_ACHIEVEMENTS,
+  getWeeklyGoalFromPlans,
+  calculateSessionsAdherence,
 } from "@/lib/gamification";
 
 export async function GET() {
@@ -57,12 +59,17 @@ export async function GET() {
       where: { studentId: studentProfile.id },
     });
 
-    // 4. Calcular o Streak Atual
+    // 4. Calcular o Streak Atual e Aderência Semanal à Ficha
     const streak = calculateStreak(sessions, studentPlans);
+    const weeklyGoal = getWeeklyGoalFromPlans(studentPlans);
+    const { perfectWeeks, extraSessions } = calculateSessionsAdherence(sessions, weeklyGoal);
 
-    // 5. Cálculo de XP e Nível
+    // 5. Cálculo Justo de XP e Nível
     const { totalXp, level, currentLevelXp, nextLevelXpNeeded } =
-      calculateXp(totalSessions, prsCount, measurementsCount);
+      calculateXp(totalSessions, prsCount, measurementsCount, {
+        perfectWeeks,
+        extraSessions,
+      });
 
     const levelTitle = getLevelTitle(level);
 

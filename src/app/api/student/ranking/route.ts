@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-
-import { calculateXp, getLevelTitle } from "@/lib/gamification";
+import {
+  calculateXp,
+  getLevelTitle,
+  getWeeklyGoalFromPlans,
+  calculatePeriodXp,
+  getWeekStart,
+} from "@/lib/gamification";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -62,9 +67,12 @@ export async function GET() {
     }
     const targetStudentIds = Array.from(memberIds);
 
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const periodStartDate = startOfMonth < sevenDaysAgo ? startOfMonth : sevenDaysAgo;
 
-    // 2. Executa em paralelo: dados leves dos estudantes (_count nativo) e contagem de PRs agrupada
+    // 2. Executa em paralelo: dados dos estudantes com planos, sessões do período e contagem de PRs agrupada
     const [students, prGroups] = await Promise.all([
       prisma.studentProfile.findMany({
         where: { id: { in: targetStudentIds } },
@@ -77,6 +85,12 @@ export async function GET() {
               image: true,
             },
           },
+          workoutPlans: {
+            select: {
+              weekDays: true,
+              division: true,
+            },
+          },
           _count: {
             select: {
               sessions: true,
@@ -85,8 +99,7 @@ export async function GET() {
           },
           sessions: {
             where: {
-              photoUrl: { not: null },
-              date: { gte: sevenDaysAgo },
+              date: { gte: periodStartDate },
             },
             select: {
               id: true,
@@ -121,19 +134,38 @@ export async function GET() {
       6: { short: "SÁB", full: "Sábado" },
     };
 
-    // Calcular XP e mapear check-ins fotográficos dos últimos 7 dias de cada aluno
-    const rankedStudents = students.map((student) => {
+    // Calcular XP Semanal, Mensal e Geral com base na meta da ficha de cada atleta
+    const processedStudents = students.map((student) => {
       const totalSessions = student._count.sessions;
       const measurementsCount = student._count.measurements;
       const prsCount = prsCountByStudent.get(student.id) || 0;
+      const weeklyGoal = getWeeklyGoalFromPlans(student.workoutPlans);
 
-      // Usar lógica centralizada
-      const { totalXp, level } = calculateXp(totalSessions, prsCount, measurementsCount);
-      const levelTitle = getLevelTitle(level);
+      // 1. XP Geral (All-time)
+      const allTimeResult = calculateXp(totalSessions, prsCount, measurementsCount);
+      const levelTitle = getLevelTitle(allTimeResult.level);
 
-      // Check-ins com foto dos últimos 7 dias associados ao dia da semana
+      // 2. XP Semanal (Semana Atual)
+      const weeklyResult = calculatePeriodXp(
+        student.sessions,
+        weeklyGoal,
+        prsCount,
+        measurementsCount,
+        "weekly"
+      );
+
+      // 3. XP Mensal (Mês Atual)
+      const monthlyResult = calculatePeriodXp(
+        student.sessions,
+        weeklyGoal,
+        prsCount,
+        measurementsCount,
+        "monthly"
+      );
+
+      // Check-ins fotográficos dos últimos 7 dias para o mural/feed
       const weeklyCheckins = student.sessions
-        .filter((s) => s.photoUrl)
+        .filter((s) => s.photoUrl && new Date(s.date) >= sevenDaysAgo)
         .map((s) => {
           const d = new Date(s.date);
           const dayInfo = DAY_NAMES[d.getDay()] || { short: "TREINO", full: "Dia de Treino" };
@@ -155,19 +187,42 @@ export async function GET() {
         name: student.user.name || student.user.email.split("@")[0],
         email: maskEmail(student.user.email),
         image: student.user.image,
-        totalXp,
-        level,
+        weeklyGoal,
+        // Pontuações
+        weeklyXp: weeklyResult.totalXp,
+        monthlyXp: monthlyResult.totalXp,
+        totalXp: allTimeResult.totalXp,
+        level: allTimeResult.level,
         levelTitle,
         totalSessions,
         weeklyCheckins,
       };
     });
 
-    // Ordenar por XP decrescente
-    rankedStudents.sort((a, b) => b.totalXp - a.totalXp);
+    // Helper para gerar ordenação e posições por período
+    const buildPeriodRanking = (xpKey: "weeklyXp" | "monthlyXp" | "totalXp") => {
+      const sorted = [...processedStudents]
+        .map((s) => ({
+          ...s,
+          // Para visualização, o display XP é o XP do período correspondente
+          displayXp: s[xpKey],
+        }))
+        .sort((a, b) => b.displayXp - a.displayXp);
 
-    // Feed agregado de fotos da semana de todos os colegas da equipe
-    const weeklyFeed = rankedStudents
+      const top5 = sorted.slice(0, 5);
+      const userPosition = currentUserProfile
+        ? sorted.findIndex((s) => s.id === currentUserProfile.id) + 1
+        : -1;
+
+      return { top5, allRanked: sorted, userPosition };
+    };
+
+    const weeklyData = buildPeriodRanking("weeklyXp");
+    const monthlyData = buildPeriodRanking("monthlyXp");
+    const allTimeData = buildPeriodRanking("totalXp");
+
+    // Feed agregado de fotos da semana
+    const weeklyFeed = processedStudents
       .flatMap((s) =>
         s.weeklyCheckins.map((chk) => ({
           ...chk,
@@ -178,20 +233,18 @@ export async function GET() {
       )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Pegar os top 5
-    const top5 = rankedStudents.slice(0, 5);
-
-    let userPosition = -1;
-    if (currentUserProfile) {
-      userPosition = rankedStudents.findIndex((s) => s.id === currentUserProfile.id) + 1;
-    }
-
     return NextResponse.json({
-      top5,
-      allRanked: rankedStudents,
-      userPosition,
-      totalParticipants: rankedStudents.length,
+      // Padrão semanal para disputa contínua e dinâmica
+      top5: weeklyData.top5,
+      allRanked: weeklyData.allRanked,
+      userPosition: weeklyData.userPosition,
+      totalParticipants: processedStudents.length,
       weeklyFeed,
+      periods: {
+        weekly: weeklyData,
+        monthly: monthlyData,
+        allTime: allTimeData,
+      },
     });
   } catch (error) {
     console.error("ERRO AO BUSCAR RANKING DE GAMIFICACAO:", error);

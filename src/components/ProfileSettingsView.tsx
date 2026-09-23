@@ -180,6 +180,7 @@ export default function ProfileSettingsView({ backUrl, roleLabel }: ProfileSetti
               name={name}
               image={image}
               size="xl"
+              expandable={false}
               className="border-4 border-white shadow-xl ring-2 ring-[#2563EB]/20"
             />
             <button
