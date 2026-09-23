@@ -1,21 +1,63 @@
 "use client";
+import dynamic from "next/dynamic";
 import BrandLogo from "@/components/BrandLogo";
 import WorkoutTab from "./components/WorkoutTab";
-import GroupsTab, { ComparisonResult } from "./components/GroupsTab";
-import WeightTab from "./components/WeightTab";
-import AchievementsTab from "./components/AchievementsTab";
+import type { ComparisonResult } from "./components/GroupsTab";
 import WeatherCard from "./components/WeatherCard";
-import ImportWorkoutModal from "./components/ImportWorkoutModal";
 import RankingLeaderboard, { RankingData } from "./components/RankingLeaderboard";
-import RegisteredUsersModal from "./components/RegisteredUsersModal";
-import { GamificationGuideModal } from "./components/GamificationGuideModal";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
 import UserAvatar from "@/components/UserAvatar";
-import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import Link from "next/link";
+
+// Skeleton de carregamento instantâneo para abas carregadas sob demanda (zero layout shift)
+function TabLoadingSkeleton({ title }: { title: string }) {
+  return (
+    <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/60 border border-white/10 backdrop-blur-xl animate-pulse space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</span>
+        <div className="h-6 w-16 bg-slate-800 rounded-lg" />
+      </div>
+      <div className="h-28 w-full bg-slate-800/60 rounded-xl" />
+      <div className="space-y-2">
+        <div className="h-12 w-full bg-slate-800/40 rounded-xl" />
+        <div className="h-12 w-full bg-slate-800/40 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+// Modularização dinâmica via next/dynamic: o código só é baixado quando a respectiva aba/modal é acionada
+const GroupsTab = dynamic(() => import("./components/GroupsTab"), {
+  loading: () => <TabLoadingSkeleton title="Grupos e Comunidade" />,
+});
+
+const WeightTab = dynamic(() => import("./components/WeightTab"), {
+  loading: () => <TabLoadingSkeleton title="Evolução de Peso e Medidas" />,
+});
+
+const AchievementsTab = dynamic(() => import("./components/AchievementsTab"), {
+  loading: () => <TabLoadingSkeleton title="Jornada de Conquistas" />,
+});
+
+const RegisteredUsersModal = dynamic(() => import("./components/RegisteredUsersModal"), {
+  ssr: false,
+});
+
+const ImportWorkoutModal = dynamic(() => import("./components/ImportWorkoutModal"), {
+  ssr: false,
+});
+
+const GamificationGuideModal = dynamic(
+  () => import("./components/GamificationGuideModal").then((mod) => mod.GamificationGuideModal),
+  { ssr: false }
+);
+
+const EditProfilePhotoModal = dynamic(() => import("@/components/EditProfilePhotoModal"), {
+  ssr: false,
+});
 import StudentWorkoutInstagramCard, {
   StudentGroupedFeed,
   WeeklyCheckinFeedItem,
@@ -384,6 +426,18 @@ export default function StudentDashboard() {
   const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
 
+  // Calcular a conquista bloqueada mais próxima de ser conquistada para o Teaser de Gamificação na Home
+  const nextAchievement = useMemo(() => {
+    if (!gamification?.achievements || gamification.achievements.length === 0) return null;
+    const locked = gamification.achievements.filter((a: Achievement) => !a.unlocked);
+    if (locked.length === 0) return null;
+    return [...locked].sort((a, b) => {
+      const pctA = a.target > 0 ? a.progress / a.target : 0;
+      const pctB = b.target > 0 ? b.progress / b.target : 0;
+      return pctB - pctA;
+    })[0];
+  }, [gamification]);
+
   // Agrupamento de fotos por aluno no estilo Instagram (1 card por aluno com carrossel se houver múltiplas fotos)
   const groupedStudentFeeds: StudentGroupedFeed[] = React.useMemo(() => {
     if (!ranking?.weeklyFeed) return [];
@@ -529,22 +583,6 @@ export default function StudentDashboard() {
       }
     };
 
-    const fetchPrs = async () => {
-      try {
-        const response = await fetch("/api/student/prs");
-        if (response.ok) {
-          const data = await response.json();
-          setPrs(data);
-          cachedPrs = data;
-          setDashboardSessionCache("tf_st_prs", data);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar PRs:", error);
-      } finally {
-        setPrsLoading(false);
-      }
-    };
-
     const fetchGamification = async () => {
       try {
         const response = await fetch("/api/student/gamification");
@@ -582,10 +620,32 @@ export default function StudentDashboard() {
     };
 
     fetchPlans();
-    fetchPrs();
     fetchGamification();
     fetchRanking();
   }, []);
+
+  // Buscar PRs sob demanda somente quando a aba de Conquistas for aberta (otimização de TTFB na Home)
+  useEffect(() => {
+    if (activeTab === "conquistas" && prs.length === 0) {
+      const fetchPrs = async () => {
+        setPrsLoading(true);
+        try {
+          const response = await fetch("/api/student/prs");
+          if (response.ok) {
+            const data = await response.json();
+            setPrs(data);
+            cachedPrs = data;
+            setDashboardSessionCache("tf_st_prs", data);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar PRs:", error);
+        } finally {
+          setPrsLoading(false);
+        }
+      };
+      fetchPrs();
+    }
+  }, [activeTab, prs.length]);
 
   useEffect(() => {
     const savedTab = localStorage.getItem("student_active_tab");
@@ -999,6 +1059,40 @@ export default function StudentDashboard() {
                 />
               </div>
             </div>
+
+            {/* Teaser da Próxima Conquista (Atalho de Dopamina na Home) */}
+            {nextAchievement && (
+              <button
+                type="button"
+                onClick={() => handleTabChange("conquistas")}
+                className="mt-3.5 pt-2.5 border-t border-white/10 w-full flex items-center justify-between text-left group cursor-pointer hover:bg-white/5 p-1 rounded-xl transition-all relative z-10 active:scale-[0.99]"
+                title={`Ir para Jornada de Conquistas: ${nextAchievement.title}`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/10">
+                    <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-extrabold tracking-wider text-amber-400 leading-none">
+                        Próxima Conquista
+                      </span>
+                      <span className="text-[9px] text-zinc-400 font-medium hidden sm:inline">• Toque para ver</span>
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-cyan-200 transition-colors mt-0.5">
+                      {nextAchievement.title}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  <span className="text-[10px] sm:text-xs font-mono font-bold text-zinc-300 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+                    {nextAchievement.progress} / {nextAchievement.target}
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </button>
+            )}
           </section>
         )}
 
