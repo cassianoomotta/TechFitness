@@ -92,4 +92,11 @@ Para testes de interface, validações E2E, logins no navegador ou chamadas aute
 
 ---
 
-*Seguindo rigorosamente este arquivo, garantimos que o TechFitness permaneça escalável, elegante, seguro e com código 100% tipado.*
+## 10. Privacidade, LGPD e Blindagem de Dados de Usuários (🚨 REGRA INVIOLÁVEL)
+- **Zero Exposição de Dados de Usuários Reais:** É **terminantemente proibido**, em qualquer circunstância, capturar, expor, divulgar ou commitar nomes reais, fotos de perfil, e-mails, dados antropométricos ou treinos de usuários/atletas reais em materiais acessíveis ao público (incluindo capturas de tela para portfólio, documentação, README, issues do GitHub, marketing ou redes sociais).
+- **Material de Portfólio & Demonstrações Públicas:** Todas as telas, gravações ou imagens destinadas a vitrines públicas devem conter **estritamente dados sintéticos, mockados ou contas de teste fictícias** (ex: *"Aluno Teste"*, *"student@test.com"*), sem listar alunos ou contas reais do banco de dados de produção.
+- **Princípio da Privacidade por Design (LGPD):** O TechFitness lida com dados sensíveis de saúde e rotina. Nenhum print de tela ou vídeo para o portfólio pode ser gerado a partir de perfis com vínculos a usuários reais sem anonimização prévia total.
+
+---
+
+*Seguindo rigorosamente este arquivo, garantimos que o TechFitness permaneça escalável, elegante, seguro, com código 100% tipado e total conformidade com a privacidade de seus usuários.*
