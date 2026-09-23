@@ -170,6 +170,32 @@ function sortPlansByWeekDays(plansList: WorkoutPlan[]) {
   });
 }
 
+// =========================================================================
+// Cache em memória e sessão para alta performance (Navegação instantânea 0ms - SWR)
+// =========================================================================
+let cachedPlans: WorkoutPlan[] | null = null;
+let cachedTrainer: TrainerInfo | null = null;
+let cachedPrs: any[] | null = null;
+let cachedGamification: GamificationData | null = null;
+let cachedRanking: RankingData | null = null;
+
+function getDashboardSessionCache<T>(key: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setDashboardSessionCache<T>(key: string, data: T): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(key, JSON.stringify(data));
+  } catch {}
+}
+
 export default function StudentDashboard() {
   const { data: session, update } = useSession();
 
@@ -193,9 +219,15 @@ export default function StudentDashboard() {
     fetchUserProfile();
   }, []);
   
-  const [plans, setPlans] = useState<WorkoutPlan[]>([]);
-  const [trainer, setTrainer] = useState<TrainerInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [plans, setPlans] = useState<WorkoutPlan[]>(
+    () => cachedPlans || getDashboardSessionCache<WorkoutPlan[]>("tf_st_plans") || []
+  );
+  const [trainer, setTrainer] = useState<TrainerInfo | null>(
+    () => cachedTrainer || getDashboardSessionCache<TrainerInfo>("tf_st_trainer")
+  );
+  const [loading, setLoading] = useState<boolean>(
+    () => !cachedPlans && !getDashboardSessionCache("tf_st_plans")
+  );
 
   // Estados da Aba e Grupos/Duelo
   const [activeTab, setActiveTab] = useState<"fichas" | "conquistas" | "grupos" | "dupla" | "peso">("fichas");
@@ -325,15 +357,27 @@ export default function StudentDashboard() {
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
   // Estados para Recordes Pessoais (PRs)
-  const [prs, setPrs] = useState<any[]>([]);
-  const [prsLoading, setPrsLoading] = useState(true);
+  const [prs, setPrs] = useState<any[]>(
+    () => cachedPrs || getDashboardSessionCache<any[]>("tf_st_prs") || []
+  );
+  const [prsLoading, setPrsLoading] = useState<boolean>(
+    () => !cachedPrs && !getDashboardSessionCache("tf_st_prs")
+  );
 
   // Estados de Gamificação (RPG)
-  const [gamification, setGamification] = useState<GamificationData | null>(null);
-  const [gamificationLoading, setGamificationLoading] = useState(true);
+  const [gamification, setGamification] = useState<GamificationData | null>(
+    () => cachedGamification || getDashboardSessionCache<GamificationData>("tf_st_gamification")
+  );
+  const [gamificationLoading, setGamificationLoading] = useState<boolean>(
+    () => !cachedGamification && !getDashboardSessionCache("tf_st_gamification")
+  );
 
-  const [ranking, setRanking] = useState<RankingData | null>(null);
-  const [rankingLoading, setRankingLoading] = useState(true);
+  const [ranking, setRanking] = useState<RankingData | null>(
+    () => cachedRanking || getDashboardSessionCache<RankingData>("tf_st_ranking")
+  );
+  const [rankingLoading, setRankingLoading] = useState<boolean>(
+    () => !cachedRanking && !getDashboardSessionCache("tf_st_ranking")
+  );
   const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
 
@@ -464,11 +508,16 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await fetch("/api/student/workout-plans", { cache: 'no-store' });
+        const response = await fetch("/api/student/workout-plans");
         if (response.ok) {
           const data = await response.json();
-          setPlans(sortPlansByWeekDays(data.plans));
+          const sorted = sortPlansByWeekDays(data.plans);
+          setPlans(sorted);
           setTrainer(data.trainer);
+          cachedPlans = sorted;
+          cachedTrainer = data.trainer;
+          setDashboardSessionCache("tf_st_plans", sorted);
+          setDashboardSessionCache("tf_st_trainer", data.trainer);
         }
       } catch (error) {
         console.error("Erro ao buscar treinos:", error);
@@ -479,10 +528,12 @@ export default function StudentDashboard() {
 
     const fetchPrs = async () => {
       try {
-        const response = await fetch("/api/student/prs", { cache: 'no-store' });
+        const response = await fetch("/api/student/prs");
         if (response.ok) {
           const data = await response.json();
           setPrs(data);
+          cachedPrs = data;
+          setDashboardSessionCache("tf_st_prs", data);
         }
       } catch (error) {
         console.error("Erro ao buscar PRs:", error);
@@ -493,10 +544,12 @@ export default function StudentDashboard() {
 
     const fetchGamification = async () => {
       try {
-        const response = await fetch("/api/student/gamification", { cache: 'no-store' });
+        const response = await fetch("/api/student/gamification");
         if (response.ok) {
           const data = await response.json();
           setGamification(data);
+          cachedGamification = data;
+          setDashboardSessionCache("tf_st_gamification", data);
           
           // Auto-select the first tier that has locked achievements (where the user is currently progressing)
           const firstLockedTier = data.achievements.find((a: Achievement) => !a.unlocked)?.tier || 4;
@@ -511,10 +564,12 @@ export default function StudentDashboard() {
 
     const fetchRanking = async () => {
       try {
-        const response = await fetch("/api/student/ranking", { cache: 'no-store' });
+        const response = await fetch("/api/student/ranking");
         if (response.ok) {
           const data = await response.json();
           setRanking(data);
+          cachedRanking = data;
+          setDashboardSessionCache("tf_st_ranking", data);
         }
       } catch (error) {
         console.error("Erro ao buscar ranking:", error);
@@ -846,7 +901,7 @@ export default function StudentDashboard() {
             </div>
           </section>
         ) : gamification && (
-          <section className="mb-4 sm:mb-8 p-3 sm:p-5 md:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/10 animate-fade-in">
+          <section className="mb-4 sm:mb-8 p-3 sm:p-5 md:p-6 rounded-2xl bg-slate-900 bg-linear-to-br from-slate-900 via-slate-900 to-zinc-950 text-white shadow-xl relative overflow-hidden border border-white/10 animate-fade-in">
             {/* Elemento decorativo de luz de fundo */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#2563EB]/15 rounded-full blur-3xl pointer-events-none" />
             

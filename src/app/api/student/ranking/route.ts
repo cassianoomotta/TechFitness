@@ -27,9 +27,23 @@ export async function GET() {
       );
     }
 
-    // Identificar perfil atual primeiro para saber o trainerId
+    // 1. Identificar perfil e atletas participantes em uma única query aninhada
     const currentUserProfile = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
+      select: {
+        id: true,
+        groupMemberships: {
+          select: {
+            group: {
+              select: {
+                members: {
+                  select: { studentId: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!currentUserProfile) {
@@ -39,63 +53,63 @@ export async function GET() {
       );
     }
 
-    // 1. Buscar todos os grupos que o aluno atual participa
-    const userMemberships = await prisma.groupMember.findMany({
-      where: { studentId: currentUserProfile.id },
-      select: { groupId: true },
-    });
-
-    const userGroupIds = userMemberships.map((m) => m.groupId);
-
-    // 2. Determinar os atletas participantes: todos os membros de todas as turmas do aluno (totalizados e deduplicados)
-    let targetStudentIds: string[] = [];
-
-    if (userGroupIds.length === 0) {
-      // Se ainda não participa de turmas, exibe o próprio aluno
-      targetStudentIds = [currentUserProfile.id];
-    } else {
-      const groupMembers = await prisma.groupMember.findMany({
-        where: { groupId: { in: userGroupIds } },
-        select: { studentId: true },
-      });
-
-      // Deduplica IDs para que cada atleta apareça uma única vez com sua pontuação totalizada
-      targetStudentIds = Array.from(
-        new Set([currentUserProfile.id, ...groupMembers.map((m) => m.studentId)])
-      );
+    // Coleta IDs únicos de todos os atletas das turmas do aluno
+    const memberIds = new Set<string>([currentUserProfile.id]);
+    for (const gm of currentUserProfile.groupMemberships || []) {
+      for (const m of gm.group?.members || []) {
+        if (m.studentId) memberIds.add(m.studentId);
+      }
     }
-
-    // Buscar perfis dos atletas dos grupos do usuário (totalizado)
-    const students = await prisma.studentProfile.findMany({
-      where: { id: { in: targetStudentIds } },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-        sessions: {
-          select: {
-            id: true,
-            date: true,
-            photoUrl: true,
-            durationMs: true,
-            satisfaction: true,
-          },
-          orderBy: { date: "desc" },
-        },
-        measurements: {
-          select: { id: true },
-        },
-        logs: {
-          select: { exerciseId: true },
-        },
-      },
-    });
+    const targetStudentIds = Array.from(memberIds);
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // 2. Executa em paralelo: dados leves dos estudantes (_count nativo) e contagem de PRs agrupada
+    const [students, prGroups] = await Promise.all([
+      prisma.studentProfile.findMany({
+        where: { id: { in: targetStudentIds } },
+        select: {
+          id: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+          _count: {
+            select: {
+              sessions: true,
+              measurements: true,
+            },
+          },
+          sessions: {
+            where: {
+              photoUrl: { not: null },
+              date: { gte: sevenDaysAgo },
+            },
+            select: {
+              id: true,
+              date: true,
+              photoUrl: true,
+              durationMs: true,
+              satisfaction: true,
+            },
+            orderBy: { date: "desc" },
+          },
+        },
+      }),
+      prisma.exerciseLog.groupBy({
+        by: ["studentId", "exerciseId"],
+        where: { studentId: { in: targetStudentIds } },
+      }),
+    ]);
+
+    // Mapeamento O(1) de recordes pessoais (PRs) por aluno
+    const prsCountByStudent = new Map<string, number>();
+    for (const pr of prGroups) {
+      prsCountByStudent.set(pr.studentId, (prsCountByStudent.get(pr.studentId) || 0) + 1);
+    }
 
     const DAY_NAMES: Record<number, { short: string; full: string }> = {
       0: { short: "DOM", full: "Domingo" },
@@ -109,13 +123,9 @@ export async function GET() {
 
     // Calcular XP e mapear check-ins fotográficos dos últimos 7 dias de cada aluno
     const rankedStudents = students.map((student) => {
-      const totalSessions = student.sessions.length;
-      
-      // Contagem de exercícios únicos com registro de carga (PRs)
-      const uniqueExercises = new Set(student.logs.map((log) => log.exerciseId));
-      const prsCount = uniqueExercises.size;
-
-      const measurementsCount = student.measurements.length;
+      const totalSessions = student._count.sessions;
+      const measurementsCount = student._count.measurements;
+      const prsCount = prsCountByStudent.get(student.id) || 0;
 
       // Usar lógica centralizada
       const { totalXp, level } = calculateXp(totalSessions, prsCount, measurementsCount);
@@ -123,7 +133,7 @@ export async function GET() {
 
       // Check-ins com foto dos últimos 7 dias associados ao dia da semana
       const weeklyCheckins = student.sessions
-        .filter((s) => s.photoUrl && new Date(s.date) >= sevenDaysAgo)
+        .filter((s) => s.photoUrl)
         .map((s) => {
           const d = new Date(s.date);
           const dayInfo = DAY_NAMES[d.getDay()] || { short: "TREINO", full: "Dia de Treino" };
@@ -135,7 +145,7 @@ export async function GET() {
             dayOfWeekFull: dayInfo.full,
             formattedDate,
             photoUrl: s.photoUrl,
-            durationMinutes: Math.round(s.durationMs / 60000),
+            durationMinutes: s.durationMs ? Math.round(s.durationMs / 60000) : 0,
             satisfaction: s.satisfaction,
           };
         });
