@@ -15,7 +15,9 @@ import {
   CheckCircle,
   Activity,
   X,
+  TrendingUp,
 } from "lucide-react";
+import BodyMetricsChart from "@/components/BodyMetricsChart";
 
 interface Measurement {
   id: string;
@@ -69,6 +71,9 @@ export default function StudentMeasurementsPage() {
 
   // Ampliar Foto Modal
   const [selectedPhotoForZoom, setSelectedPhotoForZoom] = useState("");
+
+  // Modo de Visualização do Histórico (Gráfico vs Fichas vs Ambos)
+  const [historyViewMode, setHistoryViewMode] = useState<"chart" | "cards" | "all">("all");
 
   // Carregar dados
   const fetchData = async () => {
@@ -511,20 +516,71 @@ export default function StudentMeasurementsPage() {
             </div>
           </section>
 
-          {/* Coluna Direita: Histórico de Avaliações */}
+          {/* Coluna Direita: Histórico de Avaliações & Gráficos */}
           <section className="w-full lg:w-7/12 space-y-6">
-            <h3 className="text-xs font-bold text-[#475569] uppercase tracking-widest flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#2563EB]" /> Histórico de Medidas ({history.length})
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h3 className="text-xs font-bold text-[#475569] uppercase tracking-widest flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#2563EB]" /> Histórico de Medidas ({history.length})
+              </h3>
 
-            {history.length === 0 ? (
-              <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8] border border-[#E2E8F0] bg-white shadow-sm">
-                <Activity className="w-10 h-10 mx-auto text-[#475569] mb-3" />
-                <p className="text-xs font-semibold text-[#0F172A]">Nenhuma medição registrada</p>
-                <p className="text-[10px] mt-0.5 text-[#94A3B8]">Registre a primeira medição do seu aluno na coluna ao lado.</p>
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+              {history.length > 0 && (
+                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setHistoryViewMode("chart")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      historyViewMode === "chart"
+                        ? "bg-white text-[#2563EB] shadow-xs"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Gráfico
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHistoryViewMode("cards")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      historyViewMode === "cards"
+                        ? "bg-white text-[#2563EB] shadow-xs"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Fichas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHistoryViewMode("all")}
+                    className={`hidden sm:block px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      historyViewMode === "all"
+                        ? "bg-white text-[#2563EB] shadow-xs"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Ambos
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 1. Visão Gráfica de Monitoramento */}
+            {(historyViewMode === "chart" || historyViewMode === "all") && history.length > 0 && (
+              <BodyMetricsChart
+                measurements={history}
+                title={`Evolução Biométrica: ${studentName || "Aluno"}`}
+                subtitle="Monitore a resposta do atleta aos treinos prescritos e ajustes nutricionais."
+              />
+            )}
+
+            {/* 2. Fichas de Avaliação */}
+            {(historyViewMode === "cards" || historyViewMode === "all" || history.length === 0) && (
+              history.length === 0 ? (
+                <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8] border border-[#E2E8F0] bg-white shadow-sm">
+                  <Activity className="w-10 h-10 mx-auto text-[#475569] mb-3" />
+                  <p className="text-xs font-semibold text-[#0F172A]">Nenhuma medição registrada</p>
+                  <p className="text-[10px] mt-0.5 text-[#94A3B8]">Registre a primeira medição do seu aluno na coluna ao lado.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
                 {history.map((m) => (
                   <div
                     key={m.id}
@@ -601,7 +657,8 @@ export default function StudentMeasurementsPage() {
                   </div>
                 ))}
               </div>
-            )}
+            )
+          )}
           </section>
         </main>
       )}

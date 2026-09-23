@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Loader2, TrendingUp, ChevronRight, Scale } from 'lucide-react';
+import BodyMetricsChart from '@/components/BodyMetricsChart';
 
 interface WeightMeasurement {
   id: string;
@@ -50,6 +51,8 @@ export default function WeightTab({
   setExpandedMeasurementId,
   setSelectedPhotoForZoom,
 }: WeightTabProps) {
+  const [viewMode, setViewMode] = useState<"chart" | "history" | "all">("all");
+
   return (
     <>
       <div className="space-y-6 animate-fade-in">
@@ -141,9 +144,75 @@ export default function WeightTab({
           )}
         </div>
 
-        {/* Card Histórico */}
-        <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] shadow-sm space-y-4">
-          <h3 className="text-base font-bold text-[#0F172A]">Histórico de Registros</h3>
+        {/* Seletor de Visão & Monitoramento */}
+        {measurements.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-blue-50 text-[#2563EB]">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
+                  Painel de Monitoramento & Evolução
+                </h3>
+                <p className="text-[11px] text-[#64748B]">
+                  {measurements.length} {measurements.length === 1 ? "medição registrada" : "medições registradas"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setViewMode("chart")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "chart"
+                    ? "bg-white text-[#2563EB] shadow-xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Gráfico
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("history")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "history"
+                    ? "bg-white text-[#2563EB] shadow-xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Histórico
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("all")}
+                className={`hidden sm:block px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "all"
+                    ? "bg-white text-[#2563EB] shadow-xs"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Ambos
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 1. Visão Gráfica com Curvas de Evolução */}
+        {(viewMode === "chart" || viewMode === "all") && (
+          <BodyMetricsChart
+            measurements={measurements}
+            weightGoal={weightGoal}
+            title="Sua Trajetória Corporal"
+            subtitle="Gráfico de progresso com curvas suaves, histórico de pesagens e variação total."
+          />
+        )}
+
+        {/* 2. Card Histórico Detalhado */}
+        {(viewMode === "history" || viewMode === "all") && (
+          <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] shadow-sm space-y-4">
+            <h3 className="text-base font-bold text-[#0F172A]">Histórico de Registros</h3>
           
           {measurementsLoading ? (
             /* Skeleton Shimmer — Substituindo Loader2 spinner */
@@ -306,6 +375,7 @@ export default function WeightTab({
             </div>
           )}
         </div>
+        )}
       </div>
     </>
   );
