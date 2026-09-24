@@ -7,6 +7,7 @@ import WeatherCard from "./components/WeatherCard";
 import RankingLeaderboard, { RankingData } from "./components/RankingLeaderboard";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
 import UserAvatar from "@/components/UserAvatar";
@@ -281,6 +282,11 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState<boolean>(
     () => !cachedPlans && !getDashboardSessionCache("tf_st_plans")
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Estados da Aba e Grupos/Duelo
   const [activeTab, setActiveTab] = useState<"home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso">("home");
@@ -623,6 +629,17 @@ export default function StudentDashboard() {
       setSavingEdit(false);
     }
   };
+
+  useEffect(() => {
+    if (editingPlan || selectedPlanForPreview || activeVideoUrl || !!selectedPhotoForZoom) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [editingPlan, selectedPlanForPreview, activeVideoUrl, selectedPhotoForZoom]);
 
   const handleArchivePlan = async (plan: WorkoutPlan) => {
     try {
@@ -1524,33 +1541,34 @@ export default function StudentDashboard() {
       </main>
 
       {/* Modal de Edição de Ficha */}
-      {editingPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200 animate-scale-up space-y-4">
+      {mounted && editingPlan && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-md my-auto bg-white rounded-3xl p-5 sm:p-6 shadow-2xl relative border border-slate-200 animate-scale-up space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto">
             {/* Fechar */}
             <button
               onClick={() => setEditingPlan(null)}
               className="absolute top-4 right-4 p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+              aria-label="Fechar"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs shrink-0">
                 <Dumbbell className="w-5 h-5" />
               </div>
-              <div>
-                <h3 className="font-display text-base font-extrabold text-[#0F172A]">
+              <div className="min-w-0 pr-8">
+                <h3 className="font-display text-base font-extrabold text-[#0F172A] truncate">
                   Editar Ficha de Treino
                 </h3>
-                <p className="text-[11px] text-[#64748B]">
+                <p className="text-[11px] text-[#64748B] truncate">
                   Personalize o nome da ficha, divisão e frequência
                 </p>
               </div>
             </div>
 
             {editError && (
-              <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl">
+              <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl animate-fade-in">
                 {editError}
               </p>
             )}
@@ -1564,7 +1582,10 @@ export default function StudentDashboard() {
                 <input
                   type="text"
                   value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  onChange={(e) => {
+                    setEditName(e.target.value);
+                    if (editError) setEditError("");
+                  }}
                   placeholder="Ex: Costa e Peito, Treino A, Perna Completo"
                   autoFocus
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none text-base md:text-xs font-medium text-slate-900 transition-all"
@@ -1572,37 +1593,50 @@ export default function StudentDashboard() {
               </div>
 
               {/* Campo Divisão com botões rápidos */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold text-slate-700 block">
                     Letra / Divisão
                   </label>
-                  <span className="text-[10px] text-slate-400">Sugestões rápidas</span>
+                  <span className="text-[10px] text-slate-400 font-medium">Sugestões rápidas</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    {["A", "B", "C", "D", "E"].map((letter) => (
+
+                {/* Grid com as letras rápidas A, B, C, D, E */}
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  {["A", "B", "C", "D", "E"].map((letter) => {
+                    const isSelected = editDivision.trim().toUpperCase() === letter;
+                    return (
                       <button
                         key={letter}
                         type="button"
-                        onClick={() => setEditDivision(letter)}
-                        className={`w-8 h-8 rounded-lg font-black text-xs transition-all cursor-pointer border ${
-                          editDivision.toUpperCase() === letter
-                            ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-                            : "bg-slate-100 border-slate-200/80 text-slate-600 hover:bg-slate-200"
+                        onClick={() => {
+                          setEditDivision(letter);
+                          if (editError) setEditError("");
+                        }}
+                        className={`h-10 sm:h-11 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 cursor-pointer border flex items-center justify-center active:scale-95 ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/30 ring-2 ring-blue-600/20"
+                            : "bg-slate-50 border-slate-200/90 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                       >
                         {letter}
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
+
+                {/* Input de texto para divisão personalizada ou confirmação */}
+                <div className="relative">
                   <input
                     type="text"
                     value={editDivision}
-                    onChange={(e) => setEditDivision(e.target.value)}
-                    placeholder="Outro"
-                    maxLength={15}
-                    className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 outline-none text-base md:text-xs font-bold text-slate-900 transition-all"
+                    onChange={(e) => {
+                      setEditDivision(e.target.value);
+                      if (editError) setEditError("");
+                    }}
+                    placeholder="Ou digite outra divisão (ex: Superior, Pernas, F...)"
+                    maxLength={20}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none text-base md:text-xs font-semibold text-slate-900 transition-all placeholder:text-slate-400 placeholder:font-normal"
                   />
                 </div>
               </div>
@@ -1624,7 +1658,7 @@ export default function StudentDashboard() {
                   )}
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                   {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => {
                     const isSelected = editWeekDays.includes(day);
                     return (
@@ -1632,10 +1666,10 @@ export default function StudentDashboard() {
                         key={day}
                         type="button"
                         onClick={() => handleToggleEditDay(day)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                        className={`py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer border flex items-center justify-center active:scale-95 ${
                           isSelected
-                            ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                            ? "bg-blue-600 border-blue-600 text-white shadow-xs ring-2 ring-blue-600/20"
+                            : "bg-slate-50 border-slate-200/90 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                       >
                         {day}
@@ -1677,13 +1711,14 @@ export default function StudentDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal de Visualização da Ficha Completa */}
-      {selectedPlanForPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] animate-scale-up flex flex-col max-h-[90vh]">
+      {mounted && selectedPlanForPreview && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-lg my-auto bg-white rounded-2xl p-5 sm:p-6 shadow-2xl relative border border-[#E2E8F0] animate-scale-up flex flex-col max-h-[90vh]">
             {/* Fechar */}
             <button
               onClick={() => setSelectedPlanForPreview(null)}
@@ -1772,13 +1807,14 @@ export default function StudentDashboard() {
               </Link>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Player de Vídeo Inline (Overlay) */}
-      {activeVideoUrl && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-3xl bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-800 animate-scale-up">
+      {mounted && activeVideoUrl && createPortal(
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-3xl my-auto bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-800 animate-scale-up">
             {/* Botão de Fechar */}
             <button
               onClick={() => setActiveVideoUrl(null)}
@@ -1852,13 +1888,14 @@ export default function StudentDashboard() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Zoom Foto */}
-      {selectedPhotoForZoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
-          <div className="relative max-w-sm max-h-[85vh] w-full flex items-center justify-center animate-scale-up">
+      {mounted && selectedPhotoForZoom && createPortal(
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="relative max-w-sm max-h-[85vh] w-full my-auto flex items-center justify-center animate-scale-up">
             <button
               onClick={() => setSelectedPhotoForZoom("")}
               className="absolute -top-12 right-0 p-2 rounded-lg bg-white hover:bg-zinc-800 text-[#94A3B8] hover:text-white transition-all cursor-pointer border border-[#E2E8F0]"
@@ -1871,7 +1908,8 @@ export default function StudentDashboard() {
               className="max-w-full max-h-[75vh] rounded-2xl object-contain border border-[#E2E8F0]"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
 

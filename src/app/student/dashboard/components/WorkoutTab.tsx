@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Edit,
   Eye,
@@ -76,6 +77,7 @@ export default function WorkoutTab({
   onBulkAction,
   hasTrainer,
 }: WorkoutTabProps) {
+  const [mounted, setMounted] = useState(false);
   const [isArchivedSectionOpen, setIsArchivedSectionOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<WorkoutPlan | null>(null);
   const [planToRequestDeletion, setPlanToRequestDeletion] = useState<WorkoutPlan | null>(null);
@@ -86,6 +88,30 @@ export default function WorkoutTab({
   const [reorderedPlans, setReorderedPlans] = useState<WorkoutPlan[]>([]);
   const [activeMenuPlanId, setActiveMenuPlanId] = useState<string | null>(null);
   const [expandedPlanIds, setExpandedPlanIds] = useState<Record<string, boolean>>({});
+  const [animatingSwap, setAnimatingSwap] = useState<{
+    idA: string;
+    idB: string;
+    dirA: "up" | "down";
+  } | null>(null);
+  const swapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => {
+      if (swapTimeoutRef.current) clearTimeout(swapTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isBulkModalOpen || planToDelete || planToRequestDeletion) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isBulkModalOpen, planToDelete, planToRequestDeletion]);
 
   const togglePlanExpand = (planId: string) => {
     setExpandedPlanIds((prev) => ({
@@ -163,12 +189,42 @@ export default function WorkoutTab({
   };
 
   const handleMovePlan = (index: number, direction: "up" | "down") => {
+    if (animatingSwap || isActionLoading) return;
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= reorderedPlans.length) return;
-    const updated = [...reorderedPlans];
-    const [moved] = updated.splice(index, 1);
-    updated.splice(newIndex, 0, moved);
-    setReorderedPlans(updated);
+
+    const itemA = reorderedPlans[index];
+    const itemB = reorderedPlans[newIndex];
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion) {
+      const updated = [...reorderedPlans];
+      const [moved] = updated.splice(index, 1);
+      updated.splice(newIndex, 0, moved);
+      setReorderedPlans(updated);
+      return;
+    }
+
+    setAnimatingSwap({
+      idA: itemA.id,
+      idB: itemB.id,
+      dirA: direction,
+    });
+
+    if (swapTimeoutRef.current) clearTimeout(swapTimeoutRef.current);
+
+    swapTimeoutRef.current = setTimeout(() => {
+      setReorderedPlans((prev) => {
+        const updated = [...prev];
+        const [moved] = updated.splice(index, 1);
+        updated.splice(newIndex, 0, moved);
+        return updated;
+      });
+      setAnimatingSwap(null);
+    }, 280);
   };
 
   const handleSaveReorder = async () => {
@@ -231,15 +287,15 @@ export default function WorkoutTab({
       ) : (
         <div className="space-y-6">
           {/* Cabeçalho da Aba */}
-          <div className="flex items-center justify-between pb-1 flex-wrap gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Meus Treinos</h3>
-              <p className="text-[11px] text-slate-500">
+          <div className="flex items-center justify-between pb-1 gap-2">
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate">Meus Treinos</h3>
+              <p className="text-[11px] text-slate-500 truncate">
                 {activePlans.length} ficha{activePlans.length > 1 ? 's' : ''} ativa{activePlans.length > 1 ? 's' : ''}
                 {archivedPlans.length > 0 && ` • ${archivedPlans.length} arquivada${archivedPlans.length > 1 ? 's' : ''}`}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto justify-end">
               {activePlans.length > 0 && (
                 <button
                   type="button"
@@ -249,21 +305,20 @@ export default function WorkoutTab({
                     setBulkModalTab("actions");
                     setIsBulkModalOpen(true);
                   }}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+                  className="px-2.5 sm:px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11px] sm:text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   title="Gerenciar e organizar treinos"
                 >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600" />
-                  <span className="hidden sm:inline">Gerenciar Treinos</span>
-                  <span className="sm:hidden">Gerenciar</span>
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                  <span>Gerenciar Treinos</span>
                 </button>
               )}
               <button
                 type="button"
                 onClick={onOpenImportModal}
-                className="px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                className="px-2.5 sm:px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-bold text-[11px] sm:text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
               >
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                Importar com IA
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Importar com IA</span>
               </button>
             </div>
           </div>
@@ -569,11 +624,11 @@ export default function WorkoutTab({
       {/* =========================================================================
           MODAL: GERENCIAR TREINOS (ORGANIZAR ORDEM / ARQUIVAR / EXCLUIR EM LOTE)
           ========================================================================= */}
-      {isBulkModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+      {mounted && isBulkModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[calc(100dvh-2rem)] my-auto animate-scale-up">
             {/* Cabeçalho */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                   <SlidersHorizontal className="w-5 h-5" />
@@ -593,7 +648,7 @@ export default function WorkoutTab({
             </div>
 
             {/* Segmented Control Tabs */}
-            <div className="flex p-1 bg-slate-100 rounded-2xl gap-1 border border-slate-200/60">
+            <div className="flex p-1 bg-slate-100 rounded-2xl gap-1 border border-slate-200/60 shrink-0 my-3">
               <button
                 type="button"
                 onClick={() => setBulkModalTab("actions")}
@@ -625,71 +680,73 @@ export default function WorkoutTab({
 
             {bulkModalTab === "actions" ? (
               <>
-                <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 text-xs text-blue-900 leading-relaxed space-y-1">
-                  <p className="font-semibold flex items-center gap-1.5">
-                    💡 Organização Semanal Limpa
-                  </p>
-                  <p className="text-[11px] text-blue-800">
-                    Ao arquivar, suas fichas saem da tela principal para você focar no novo ciclo, mas permanecem 100% salvas na gaveta de arquivados. Seus recordes de peso (PRs) e fotos continuam preservados!
-                  </p>
-                </div>
+                <div className="overflow-y-auto min-h-0 flex-1 pr-1 space-y-3">
+                  <div className="p-3 rounded-2xl bg-blue-50/60 border border-blue-100 text-xs text-blue-900 leading-relaxed space-y-1">
+                    <p className="font-semibold flex items-center gap-1.5 text-[11px] sm:text-xs">
+                      💡 Organização Semanal Limpa
+                    </p>
+                    <p className="text-[11px] text-blue-800">
+                      Ao arquivar, suas fichas saem da tela principal para você focar no novo ciclo, mas permanecem 100% salvas na gaveta de arquivados. Seus recordes de peso (PRs) e fotos continuam preservados!
+                    </p>
+                  </div>
 
-                {/* Seletor Todos */}
-                <div className="flex items-center justify-between px-1 py-1">
-                  <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={selectedPlanIds.length === activePlans.length && activePlans.length > 0}
-                      onChange={handleToggleSelectAll}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
-                    />
-                    <span>Selecionar Todos ({selectedPlanIds.length}/{activePlans.length})</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    {selectedPlanIds.length} marcado{selectedPlanIds.length > 1 ? 's' : ''}
-                  </span>
-                </div>
+                  {/* Seletor Todos */}
+                  <div className="flex items-center justify-between px-1 py-1">
+                    <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={selectedPlanIds.length === activePlans.length && activePlans.length > 0}
+                        onChange={handleToggleSelectAll}
+                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+                      />
+                      <span>Selecionar Todos ({selectedPlanIds.length}/{activePlans.length})</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {selectedPlanIds.length} marcado{selectedPlanIds.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
 
-                {/* Lista de Fichas com Checkboxes */}
-                <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
-                  {activePlans.map((plan) => {
-                    const isSelected = selectedPlanIds.includes(plan.id);
-                    return (
-                      <div
-                        key={plan.id}
-                        onClick={() => handleToggleSelectPlan(plan.id)}
-                        className={`p-3 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer select-none ${
-                          isSelected
-                            ? "bg-blue-50/50 border-blue-300 shadow-xs"
-                            : "bg-slate-50 border-slate-200/80 hover:border-slate-300"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => {}}
-                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer pointer-events-none"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
-                              {plan.division || "A"}
-                            </span>
-                            <p className="text-xs font-bold text-slate-800 truncate">
-                              {plan.name}
+                  {/* Lista de Fichas com Checkboxes */}
+                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    {activePlans.map((plan) => {
+                      const isSelected = selectedPlanIds.includes(plan.id);
+                      return (
+                        <div
+                          key={plan.id}
+                          onClick={() => handleToggleSelectPlan(plan.id)}
+                          className={`p-3 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer select-none ${
+                            isSelected
+                              ? "bg-blue-50/50 border-blue-300 shadow-xs"
+                              : "bg-slate-50 border-slate-200/80 hover:border-slate-300"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer pointer-events-none"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
+                                {plan.division || "A"}
+                              </span>
+                              <p className="text-xs font-bold text-slate-800 truncate">
+                                {plan.name}
+                              </p>
+                            </div>
+                            <p className="text-[10px] text-slate-500 mt-0.5 ml-7">
+                              {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
                             </p>
                           </div>
-                          <p className="text-[10px] text-slate-500 mt-0.5 ml-7">
-                            {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
-                          </p>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => setIsBulkModalOpen(false)}
@@ -719,71 +776,108 @@ export default function WorkoutTab({
               </>
             ) : (
               <>
-                <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed space-y-1">
-                  <p className="font-semibold flex items-center gap-1.5">
-                    ↕️ Sequência Inteligente de Treinos
-                  </p>
-                  <p className="text-[11px] text-amber-800">
-                    A ordem abaixo define a sequência inteligente sugerida na tela inicial (ex: 1º Treino ➔ 2º Treino ➔ 3º Treino). Use as setas para mover cada treino para cima ou para baixo.
-                  </p>
-                </div>
+                <div className="overflow-y-auto min-h-0 flex-1 pr-1 space-y-3">
+                  <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed space-y-1">
+                    <p className="font-semibold flex items-center gap-1.5 text-[11px] sm:text-xs">
+                      ↕️ Sequência Inteligente de Treinos
+                    </p>
+                    <p className="text-[11px] text-amber-800">
+                      A ordem abaixo define a sequência inteligente sugerida na tela inicial (ex: 1º Treino ➔ 2º Treino ➔ 3º Treino). Use as setas para mover cada treino para cima ou para baixo.
+                    </p>
+                  </div>
 
-                {/* Lista Reordenável */}
-                <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-                  {reorderedPlans.map((plan, index) => {
-                    const isFirst = index === 0;
-                    const isLast = index === reorderedPlans.length - 1;
+                  {/* Lista Reordenável */}
+                  <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+                    {reorderedPlans.map((plan, index) => {
+                      const isFirst = index === 0;
+                      const isLast = index === reorderedPlans.length - 1;
 
-                    return (
-                      <div
-                        key={plan.id}
-                        className="p-3 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-all"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <span className="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                            {index + 1}º
-                          </span>
-                          <span className="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
-                            {plan.division || "A"}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-slate-800 truncate">
-                              {plan.name}
-                            </p>
-                            <p className="text-[10px] text-slate-500 mt-0.5 truncate">
-                              {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
-                            </p>
+                      const isItemA = animatingSwap?.idA === plan.id;
+                      const isItemB = animatingSwap?.idB === plan.id;
+                      const isAnimating = isItemA || isItemB;
+
+                      let transformStyle = "translateY(0)";
+                      if (isItemA) {
+                        transformStyle =
+                          animatingSwap?.dirA === "up"
+                            ? "translateY(calc(-100% - 0.5rem))"
+                            : "translateY(calc(100% + 0.5rem))";
+                      } else if (isItemB) {
+                        transformStyle =
+                          animatingSwap?.dirA === "up"
+                            ? "translateY(calc(100% + 0.5rem))"
+                            : "translateY(calc(-100% - 0.5rem))";
+                      }
+
+                      return (
+                        <div
+                          key={plan.id}
+                          style={{
+                            transform: transformStyle,
+                            transition: isAnimating
+                              ? "transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms ease, border-color 280ms ease, background-color 280ms ease"
+                              : "transform 0s",
+                          }}
+                          className={`p-3 rounded-2xl border flex items-center justify-between gap-3 will-change-transform ${
+                            isItemA
+                              ? "z-20 border-blue-400 bg-blue-50/90 shadow-lg shadow-blue-500/15 scale-[1.02]"
+                              : isItemB
+                              ? "z-10 border-slate-200/90 bg-slate-100/70 opacity-90 scale-[0.99]"
+                              : "border-slate-200 bg-slate-50 shadow-2xs hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span
+                              className={`w-6 h-6 rounded-lg font-extrabold text-[11px] flex items-center justify-center shrink-0 transition-colors ${
+                                isItemA
+                                  ? "bg-blue-600 text-white shadow-xs shadow-blue-500/20"
+                                  : "bg-slate-200 text-slate-700"
+                              }`}
+                            >
+                              {index + 1}º
+                            </span>
+                            <span className="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
+                              {plan.division || "A"}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-bold text-slate-800 truncate">
+                                {plan.name}
+                              </p>
+                              <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                                {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Botões Mover (Apple HIG: alvos de 36px-44px) */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={isFirst || isActionLoading || !!animatingSwap}
+                              onClick={() => handleMovePlan(index, "up")}
+                              className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 active:scale-90 text-slate-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                              title="Mover para cima"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isLast || isActionLoading || !!animatingSwap}
+                              onClick={() => handleMovePlan(index, "down")}
+                              className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 active:scale-90 text-slate-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                              title="Mover para baixo"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-
-                        {/* Botões Mover (Apple HIG: alvos de 36px-44px) */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            disabled={isFirst || isActionLoading}
-                            onClick={() => handleMovePlan(index, "up")}
-                            className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 active:scale-90 text-slate-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
-                            title="Mover para cima"
-                          >
-                            <ArrowUp className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isLast || isActionLoading}
-                            onClick={() => handleMovePlan(index, "down")}
-                            className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 active:scale-90 text-slate-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
-                            title="Mover para baixo"
-                          >
-                            <ArrowDown className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Botões de Ação para Salvar Ordem */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => setIsBulkModalOpen(false)}
@@ -804,15 +898,16 @@ export default function WorkoutTab({
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* =========================================================================
           MODAL: CONFIRMAÇÃO DE EXCLUSÃO DIRETA (FICHA DO ALUNO)
           ========================================================================= */}
-      {planToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+      {mounted && planToDelete && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 my-auto animate-scale-up">
             <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -840,15 +935,16 @@ export default function WorkoutTab({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* =========================================================================
           MODAL: SOLICITAÇÃO DE EXCLUSÃO DE FICHA DO TREINADOR (PROTOCOLO 3 DIAS)
           ========================================================================= */}
-      {planToRequestDeletion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+      {mounted && planToRequestDeletion && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto animate-scale-up max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
               <Clock className="w-6 h-6" />
             </div>
@@ -898,7 +994,8 @@ export default function WorkoutTab({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
