@@ -85,6 +85,14 @@ export default function WorkoutTab({
   const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
   const [reorderedPlans, setReorderedPlans] = useState<WorkoutPlan[]>([]);
   const [activeMenuPlanId, setActiveMenuPlanId] = useState<string | null>(null);
+  const [expandedPlanIds, setExpandedPlanIds] = useState<Record<string, boolean>>({});
+
+  const togglePlanExpand = (planId: string) => {
+    setExpandedPlanIds((prev) => ({
+      ...prev,
+      [planId]: !prev[planId],
+    }));
+  };
 
   // Separar fichas ativas das arquivadas
   const activePlans = plans.filter((p) => !p.isArchived);
@@ -260,25 +268,18 @@ export default function WorkoutTab({
             </div>
           </div>
 
-          {/* Lista de Fichas Ativas em Grid Responsivo (2 Colunas no Desktop) */}
+          {/* Lista de Fichas Ativas em Formato de Lista Unificada */}
           {activePlans.length === 0 ? (
             <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
               Todas as suas fichas estão arquivadas no momento. Você pode visualizá-las ou desarquivá-las abaixo.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               {activePlans.map((plan: WorkoutPlan) => {
                 const isPendingDeletion = plan.deletionStatus === "PENDING_DELETION";
                 const isTrainerPlan = plan.createdByType === "TRAINER" && hasTrainer;
                 const isMenuOpen = activeMenuPlanId === plan.id;
-
-                const uniqueMuscles = Array.from(
-                  new Set(
-                    plan.exercises
-                      .map((ex: Exercise) => ex.muscleGroup?.trim())
-                      .filter(Boolean)
-                  )
-                );
+                const isExpanded = !!expandedPlanIds[plan.id];
                 const totalSets = plan.exercises.reduce((acc: number, ex: Exercise) => acc + (Number(ex.sets) || 3), 0);
 
                 return (
@@ -392,24 +393,57 @@ export default function WorkoutTab({
                         </div>
                       </div>
 
-                      {/* Tags Visuais de Grupos Musculares */}
-                      {uniqueMuscles.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 my-3">
-                          {uniqueMuscles.slice(0, 3).map((group: string) => (
-                            <span
-                              key={group}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1"
+                      {/* Lista de Exercícios em Formato de Linhas (Visão Holística / Opção A) */}
+                      {plan.exercises && plan.exercises.length > 0 ? (
+                        <div className="my-3 space-y-1.5">
+                          {((isExpanded || plan.exercises.length <= 4)
+                            ? plan.exercises
+                            : plan.exercises.slice(0, 4)
+                          ).map((ex: Exercise, idx: number) => (
+                            <div
+                              key={ex.id || idx}
+                              className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-100/90 transition-colors"
                             >
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                              {group}
-                            </span>
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">
+                                  {idx + 1}.
+                                </span>
+                                <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                                  {ex.name}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
+                                  {ex.sets || 3} séries × {ex.reps || "10-12"} reps
+                                </span>
+                              </div>
+                            </div>
                           ))}
-                          {uniqueMuscles.length > 3 && (
-                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-500">
-                              +{uniqueMuscles.length - 3}
-                            </span>
+
+                          {/* Seta para expandir e ver todos os exercícios caso exceda 4 */}
+                          {plan.exercises.length > 4 && (
+                            <button
+                              type="button"
+                              onClick={() => togglePlanExpand(plan.id)}
+                              className="w-full py-2 mt-1 flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/70 rounded-xl transition-all cursor-pointer border border-blue-100/60 bg-blue-50/30"
+                            >
+                              <span>
+                                {isExpanded
+                                  ? "Recolher exercícios"
+                                  : `Ver todos os ${plan.exercises.length} exercícios (+${plan.exercises.length - 4})`}
+                              </span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-blue-600" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-blue-600" />
+                              )}
+                            </button>
                           )}
                         </div>
+                      ) : (
+                        <p className="my-3 text-xs text-slate-400 italic">
+                          Nenhum exercício cadastrado nesta ficha.
+                        </p>
                       )}
                     </div>
 
