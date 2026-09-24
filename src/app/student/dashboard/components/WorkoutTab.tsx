@@ -13,6 +13,7 @@ import {
   AlertCircle,
   X,
   Check,
+  SlidersHorizontal,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -209,11 +210,11 @@ export default function WorkoutTab({
                     setIsBulkModalOpen(true);
                   }}
                   className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105 active:scale-95"
-                  title="Arquivar ou organizar treinos da semana"
+                  title="Gerenciar e organizar treinos"
                 >
-                  <Archive className="w-3.5 h-3.5 text-slate-600" />
-                  <span className="hidden sm:inline">Arquivar Semana</span>
-                  <span className="sm:hidden">Arquivar</span>
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600" />
+                  <span className="hidden sm:inline">Gerenciar Treinos</span>
+                  <span className="sm:hidden">Gerenciar</span>
                 </button>
               )}
               <button
