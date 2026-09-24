@@ -44,13 +44,14 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: clip;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: #F8FAFC;
   color: #0F172A;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   min-height: 100dvh;

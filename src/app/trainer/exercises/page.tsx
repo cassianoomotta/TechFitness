@@ -15,6 +15,7 @@ import {
   Trash2,
   Tv,
 } from "lucide-react";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 
 interface Exercise {
@@ -360,10 +361,7 @@ export default function ExercisesPage() {
 
         {/* Exercises Grid */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-            <p className="text-sm">Carregando biblioteca de exercícios...</p>
-          </div>
+          <DumbbellLoading text="Carregando biblioteca de exercícios..." subtext="Acessando banco com +300 movimentos cadastrados" />
         ) : exercises.length === 0 ? (
           <div className="glass-card rounded-2xl p-12 text-center text-[#475569] bg-white border border-[#E2E8F0]">
             <Dumbbell className="w-12 h-12 mx-auto text-[#475569] mb-4" />

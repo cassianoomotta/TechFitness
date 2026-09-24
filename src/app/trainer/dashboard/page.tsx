@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 interface Student {
   id: string;
@@ -565,10 +566,7 @@ export default function TrainerDashboard() {
 
         {/* Students List */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-            <p className="text-sm">Carregando lista de alunos...</p>
-          </div>
+          <DumbbellLoading text="Carregando lista de alunos..." subtext="Sincronizando frequências e prontuários" />
         ) : filteredStudents.length === 0 ? (
           <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8] bg-white">
             <Users className="w-12 h-12 mx-auto text-[#475569] mb-4" />

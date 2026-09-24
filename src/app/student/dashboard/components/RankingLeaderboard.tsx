@@ -12,6 +12,7 @@ import {
 import UserAvatar from "@/components/UserAvatar";
 import FullRankingModal from "./FullRankingModal";
 import { WeeklyCheckinFeedItem } from "@/components/StudentWorkoutInstagramCard";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 export interface RankingItem {
   id: string;
@@ -100,9 +101,8 @@ export default function RankingLeaderboard({
 
   if (loading) {
     return (
-      <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center py-12 text-[#94A3B8]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-        <p className="text-xs">Carregando classificação dos Titãs...</p>
+      <section className="mb-8 bg-white border border-[#E2E8F0] rounded-3xl p-6 shadow-sm">
+        <DumbbellLoading text="Carregando classificação dos Titãs..." subtext="Calculando posições e pontuações do ranking" />
       </section>
     );
   }

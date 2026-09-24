@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
+import DumbbellLoading from "@/components/DumbbellLoading";
 import {
   ArrowLeft,
   Loader2,
@@ -142,10 +143,7 @@ export default function AchievementsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-[#94A3B8]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
-          <p className="text-sm font-medium">Carregando sua jornada...</p>
-        </div>
+        <DumbbellLoading fullScreen text="Carregando sua jornada..." subtext="Calculando conquistas desbloqueadas e tiers" />
       </div>
     );
   }

@@ -24,6 +24,7 @@ import {
   Clock,
 } from "lucide-react";
 import ImportWorkoutModal, { ParsedPlan } from "@/app/student/dashboard/components/ImportWorkoutModal";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 interface Exercise {
   id: string;
@@ -588,10 +589,7 @@ export default function NewPlanPage() {
       </section>
 
       {studentLoading ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-[#94A3B8] py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-          <p className="text-sm">Carregando dados do aluno...</p>
-        </div>
+        <DumbbellLoading fullScreen text="Carregando dados do aluno..." subtext="Preparando ambiente de montagem de ficha personalizada" />
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
           

@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 interface SessionLog {
   id: string;
@@ -261,10 +262,7 @@ export default function StudentProgressPage() {
       </section>
 
       {loading ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-[#94A3B8] py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-          <p className="text-sm">Buscando métricas de evolução...</p>
-        </div>
+        <DumbbellLoading fullScreen text="Buscando métricas de evolução..." subtext="Carregando gráficos de consistência, sessões e PRs" />
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           

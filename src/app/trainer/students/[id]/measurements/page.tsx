@@ -18,6 +18,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import BodyMetricsChart from "@/components/BodyMetricsChart";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 interface Measurement {
   id: string;
@@ -280,10 +281,7 @@ export default function StudentMeasurementsPage() {
       </section>
 
       {loading ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-[#94A3B8] py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-          <p className="text-sm">Buscando histórico físico...</p>
-        </div>
+        <DumbbellLoading fullScreen text="Buscando histórico físico..." subtext="Carregando pesagens e medições antropométricas" />
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
           

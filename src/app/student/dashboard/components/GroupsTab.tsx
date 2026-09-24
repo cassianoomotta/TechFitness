@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
+import DumbbellLoading from "@/components/DumbbellLoading";
 
 // Tipagens estritas para Grupos e Timeline
 export interface GroupSummary {
@@ -1216,10 +1217,7 @@ export default function GroupsTab({
 
           {/* Estado de Carregamento da Timeline */}
           {timelineLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-              <p className="text-xs font-medium">Sincronizando mural da comunidade...</p>
-            </div>
+            <DumbbellLoading text="Sincronizando mural da comunidade..." subtext="Carregando check-ins fotográficos das suas turmas" />
           ) : displayedTimeline.length === 0 ? (
             <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-10 text-center max-w-lg mx-auto shadow-xs">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-3.5 border border-blue-100">
@@ -1476,10 +1474,7 @@ export default function GroupsTab({
           </div>
 
           {groupsLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-              <p className="text-xs">Carregando seus grupos...</p>
-            </div>
+            <DumbbellLoading text="Carregando seus grupos..." subtext="Buscando turmas e comunidades ativas" />
           ) : groups.length === 0 ? (
             <div className="bg-white border border-slate-200/80 rounded-2xl p-8 text-center max-w-lg mx-auto shadow-xs">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 border border-slate-200/60">
@@ -1701,10 +1696,7 @@ export default function GroupsTab({
 
           {/* Resultado do Duelo */}
           {comparisonLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-              <p className="text-xs">Consolidando dados do duelo...</p>
-            </div>
+            <DumbbellLoading text="Consolidando dados do duelo..." subtext="Comparando consistência, volume e frequência" />
           ) : comparison ? (
             <div className="space-y-6">
               {/* Duelo de Consistência e Volume */}
@@ -1988,10 +1980,7 @@ export default function GroupsTab({
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[85vh] flex flex-col">
             {detailLoading && !selectedGroupDetail ? (
-              <div className="flex flex-col items-center justify-center py-20 text-[#94A3B8]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-                <p className="text-xs">Carregando grupo...</p>
-              </div>
+              <DumbbellLoading text="Carregando informações do grupo..." />
             ) : selectedGroupDetail ? (
               <>
                 {/* Header do Grupo */}
@@ -2075,10 +2064,7 @@ export default function GroupsTab({
                     Ranking de Consistência no Grupo
                   </h4>
                   {detailLoading && (!selectedGroupDetail.members || selectedGroupDetail.members.length === 0) ? (
-                    <div className="py-8 flex flex-col items-center justify-center text-[#94A3B8]">
-                      <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] mb-2" />
-                      <p className="text-xs">Carregando membros e posições...</p>
-                    </div>
+                    <DumbbellLoading size="sm" text="Carregando membros e posições..." />
                   ) : (selectedGroupDetail.members || []).map((member: GroupMemberDetail, idx: number) => (
                     <div
                       key={member.id}
