@@ -828,11 +828,14 @@ export default function WorkoutSessionPlayer() {
         return;
       }
 
-      // Limpar dados de sessão local
+      // Limpar dados de sessão local e registrar última ficha concluída
       localStorage.removeItem(`workout_start_time_${planId}`);
       localStorage.removeItem(STORAGE_KEY_SETS);
       localStorage.removeItem(STORAGE_KEY_REST);
       localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
+      try {
+        localStorage.setItem("tf_last_completed_plan_id", planId);
+      } catch {}
 
       // Dados para o modal de vitória
       setVictoryData({

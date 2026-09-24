@@ -287,46 +287,41 @@ export default function StudentDashboard() {
   const [isRegisteredUsersModalOpen, setIsRegisteredUsersModalOpen] = useState(false);
   const [isGamificationGuideOpen, setIsGamificationGuideOpen] = useState(false);
 
-  // Seleção de rotina ativa no Hub da Home e detecção do dia da semana
-  const [selectedHomePlanIndex, setSelectedHomePlanIndex] = useState<number>(0);
+  // Identificação do último treino concluído para seleção inteligente da rotina na Home
+  const [lastCompletedPlanId, setLastCompletedPlanId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return localStorage.getItem("tf_last_completed_plan_id");
+    } catch {
+      return null;
+    }
+  });
 
-  const WEEK_DAY_MAP: Record<number, string> = useMemo(() => ({
-    0: "Dom",
-    1: "Seg",
-    2: "Ter",
-    3: "Qua",
-    4: "Qui",
-    5: "Sex",
-    6: "Sáb",
-  }), []);
+  // Determinar a rotina a exibir na Home (próxima da sequência baseada no último treino realizado)
+  const suggestedPlan = useMemo(() => {
+    if (!plans || plans.length === 0) return null;
+    if (plans.length === 1) return plans[0];
 
-  const WEEK_DAY_FULL: Record<number, string> = useMemo(() => ({
-    0: "Domingo",
-    1: "Segunda-feira",
-    2: "Terça-feira",
-    3: "Quarta-feira",
-    4: "Quinta-feira",
-    5: "Sexta-feira",
-    6: "Sábado",
-  }), []);
-
-  const todayIndex = new Date().getDay();
-  const todayShort = WEEK_DAY_MAP[todayIndex];
-  const todayFull = WEEK_DAY_FULL[todayIndex];
-
-  // Auto-selecionar o treino do dia da semana se houver correspondência
-  useEffect(() => {
-    if (plans && plans.length > 0) {
-      const matchIndex = plans.findIndex((p) => {
-        if (!p.weekDays) return false;
-        const days = p.weekDays.split(",").map((d) => d.trim().toLowerCase());
-        return days.includes(todayShort.toLowerCase());
-      });
-      if (matchIndex !== -1) {
-        setSelectedHomePlanIndex(matchIndex);
+    if (lastCompletedPlanId) {
+      const lastIndex = plans.findIndex((p) => p.id === lastCompletedPlanId);
+      if (lastIndex !== -1) {
+        // Próximo treino cíclico: se o último foi o último do array, volta para o primeiro (0)
+        const nextIndex = (lastIndex + 1) % plans.length;
+        return plans[nextIndex];
       }
     }
-  }, [plans, todayShort]);
+
+    // Se ainda não houver último treino registrado, tenta encaixar pelo dia da semana de hoje
+    const todayIndex = new Date().getDay();
+    const WEEK_DAY_MAP = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const todayShort = WEEK_DAY_MAP[todayIndex];
+    const todayPlan = plans.find((p) =>
+      p.weekDays?.toLowerCase().includes(todayShort.toLowerCase())
+    );
+    if (todayPlan) return todayPlan;
+
+    return plans[0];
+  }, [plans, lastCompletedPlanId]);
 
   // Capturar código de convite ou aba via URL (ex: link de convite recebido via WhatsApp)
   useEffect(() => {
@@ -618,6 +613,12 @@ export default function StudentDashboard() {
           const sorted = sortPlansByWeekDays(data.plans);
           setPlans(sorted);
           setTrainer(data.trainer);
+          if (data.lastCompletedPlanId) {
+            setLastCompletedPlanId(data.lastCompletedPlanId);
+            try {
+              localStorage.setItem("tf_last_completed_plan_id", data.lastCompletedPlanId);
+            } catch {}
+          }
           cachedPlans = sorted;
           cachedTrainer = data.trainer;
           setDashboardSessionCache("tf_st_plans", sorted);
@@ -1059,143 +1060,35 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              {/* Hub Ativo de Treino do Dia (UX Inteligente & Seletor de Fichas) */}
-              {plans && plans.length > 0 && (() => {
-                const activePlan = plans[selectedHomePlanIndex] || plans[0];
-                const isToday = activePlan?.weekDays
-                  ?.toLowerCase()
-                  .includes(todayShort.toLowerCase());
-
-                return (
-                  <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#2563EB]/40 transition-all space-y-4">
-                    {/* Cabeçalho do Card */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
-                      <div className="flex items-center gap-2">
-                        {isToday ? (
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/80 flex items-center gap-1 shadow-2xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Treino de Hoje ({todayFull})
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 flex items-center gap-1 shadow-2xs">
-                            <Dumbbell className="w-3 h-3 text-[#2563EB]" />
-                            Rotina de Treino
-                          </span>
-                        )}
-                        {plans.length > 1 && (
-                          <span className="text-[10px] text-slate-400 font-semibold">
-                            ({selectedHomePlanIndex + 1} de {plans.length} rotinas)
-                          </span>
-                        )}
-                      </div>
-
-                      {trainer && (
-                        <span className="text-[11px] text-slate-400">
-                          Prescrito por: <strong className="text-slate-700">{trainer.name}</strong>
-                        </span>
-                      )}
+              {/* Rotina Disponível (Layout Original Limpo, seleção inteligente baseada no último treino) */}
+              {plans.length > 0 && suggestedPlan && (
+                <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#2563EB]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#00C2FF]/10 flex items-center justify-center text-[#2563EB] flex-none">
+                      <Dumbbell className="w-6 h-6" />
                     </div>
-
-                    {/* Seletor Rápido de Fichas (Chips/Pills) se tiver mais de 1 treino */}
-                    {plans.length > 1 && (
-                      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-0.5">
-                        {plans.map((p, idx) => {
-                          const isSel = idx === selectedHomePlanIndex;
-                          const pIsToday = p.weekDays
-                            ?.toLowerCase()
-                            .includes(todayShort.toLowerCase());
-                          return (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => setSelectedHomePlanIndex(idx)}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
-                                isSel
-                                  ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25"
-                                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/70"
-                              }`}
-                            >
-                              <span>{p.division ? `(${p.division})` : ""} {p.name}</span>
-                              {pIsToday && (
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.2 rounded-md font-extrabold ${
-                                    isSel
-                                      ? "bg-white/25 text-white"
-                                      : "bg-emerald-100 text-emerald-700"
-                                  }`}
-                                >
-                                  Hoje
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Corpo do Treino Selecionado */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-extrabold text-[#0F172A] leading-tight">
-                            {activePlan.name}
-                          </h2>
-                          {activePlan.division && (
-                            <span className="text-[9px] font-bold text-[#2563EB] bg-[#00C2FF]/10 px-1.5 py-0.5 rounded">
-                              Divisão {activePlan.division}
-                            </span>
-                          )}
-                        </div>
-
-                        {activePlan.weekDays && (
-                          <div className="flex flex-wrap items-center gap-1 mt-1">
-                            <span className="text-[10px] text-slate-400 font-medium mr-1">Dias:</span>
-                            {activePlan.weekDays.split(",").map((day) => {
-                              const isTodayBadge = day.trim().toLowerCase() === todayShort.toLowerCase();
-                              return (
-                                <span
-                                  key={day}
-                                  className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
-                                    isTodayBadge
-                                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200 font-black"
-                                      : "bg-slate-100 text-slate-600 border border-slate-200/60"
-                                  }`}
-                                >
-                                  {day.trim()}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        <p className="text-xs text-[#64748B] pt-0.5">
-                          {activePlan.exercises?.length || 0} exercícios cadastrados • Tempo estimado: ~45 min
-                        </p>
-                      </div>
-
-                      {/* Botões de Ação Direta */}
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <Link
-                          href={`/student/workout-session/${activePlan.id}`}
-                          className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1E40AF] hover:from-[#1E40AF] hover:to-[#1E3A8A] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-white stroke-[3px]" />
-                          <span>Iniciar Este Treino</span>
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleTabChange("fichas")}
-                          className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
-                          title="Ver todas as fichas detalhadas"
-                        >
-                          <span>Fichas</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#2563EB] tracking-wider block">
+                        Rotina Disponível
+                      </span>
+                      <h2 className="text-base font-extrabold text-[#0F172A] leading-tight mt-0.5">
+                        {suggestedPlan.division ? `(${suggestedPlan.division}) ` : ""}{suggestedPlan.name}
+                      </h2>
+                      <p className="text-xs text-[#64748B] mt-0.5">
+                        {suggestedPlan.exercises?.length || 0} exercícios prontos para executar
+                      </p>
                     </div>
                   </div>
-                );
-              })()}
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("fichas")}
+                    className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer w-full sm:w-auto"
+                  >
+                    <span>Abrir Meus Treinos</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </section>
 
             {/* Clima Atual */}

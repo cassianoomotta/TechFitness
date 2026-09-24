@@ -98,6 +98,35 @@ export async function GET() {
       return 0;
     });
 
+    // Identificar qual ficha foi realizada na última sessão para determinar o próximo treino do ciclo
+    const lastSession = await prisma.workoutSession.findFirst({
+      where: {
+        studentId: studentProfile.id,
+        completed: true,
+      },
+      orderBy: { date: "desc" },
+      select: {
+        id: true,
+        logs: {
+          select: { exerciseId: true },
+          take: 10,
+        },
+      },
+    });
+
+    let lastCompletedPlanId: string | null = null;
+    if (lastSession && lastSession.logs.length > 0) {
+      const sessionExerciseIds = new Set(lastSession.logs.map((l: { exerciseId: string }) => l.exerciseId));
+      let maxMatches = 0;
+      for (const p of plans) {
+        const matches = p.exercises.filter((pe) => sessionExerciseIds.has(pe.exerciseId)).length;
+        if (matches > maxMatches) {
+          maxMatches = matches;
+          lastCompletedPlanId = p.id;
+        }
+      }
+    }
+
     // Mapear retorno
     const formattedResponse = {
       trainer: studentProfile.trainer
@@ -106,6 +135,7 @@ export async function GET() {
             email: studentProfile.trainer.user.email,
           }
         : null,
+      lastCompletedPlanId,
       plans: plans.map((plan) => ({
         id: plan.id,
         name: plan.name,
