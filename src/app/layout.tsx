@@ -6,13 +6,11 @@ import SessionProvider from "@/components/providers/SessionProvider";
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
 });
 
 import type { Metadata, Viewport } from "next";
