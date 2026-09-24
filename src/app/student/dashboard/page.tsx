@@ -142,6 +142,7 @@ interface WorkoutPlan {
   createdByType?: "TRAINER" | "STUDENT" | string;
   deletionStatus?: "ACTIVE" | "PENDING_DELETION" | "ARCHIVED" | string;
   deletionRequestedAt?: string | null;
+  order?: number;
 }
 
 interface TrainerInfo {
@@ -201,6 +202,9 @@ const DAY_ORDER: Record<string, number> = {
 
 function sortPlansByWeekDays(plansList: WorkoutPlan[]) {
   return [...plansList].sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined && a.order !== b.order) {
+      return a.order - b.order;
+    }
     if (!a.weekDays && !b.weekDays) return 0;
     if (!a.weekDays) return 1;
     if (!b.weekDays) return -1;
@@ -695,7 +699,7 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleBulkAction = async (planIds: string[], action: "ARCHIVE" | "UNARCHIVE" | "DELETE") => {
+  const handleBulkAction = async (planIds: string[], action: "ARCHIVE" | "UNARCHIVE" | "DELETE" | "REORDER") => {
     try {
       const res = await fetch("/api/student/workout-plans/bulk", {
         method: "POST",
@@ -716,7 +720,7 @@ export default function StudentDashboard() {
               planIds.includes(p.id) ? { ...p, isArchived: false, deletionStatus: "ACTIVE" } : p
             )
           );
-        } else if (action === "DELETE") {
+        } else if (action === "DELETE" || action === "REORDER") {
           await fetchPlans();
         }
         showToast(data.message || "Operação realizada com sucesso.");

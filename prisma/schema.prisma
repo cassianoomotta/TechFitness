@@ -83,6 +83,7 @@ model WorkoutPlan {
   createdByType       String                @default("TRAINER") // "TRAINER" | "STUDENT"
   deletionRequestedAt DateTime?
   deletionStatus      String                @default("ACTIVE") // "ACTIVE" | "PENDING_DELETION" | "ARCHIVED"
+  order               Int                   @default(0)
   createdAt           DateTime              @default(now())
 
   parentPlanId String?

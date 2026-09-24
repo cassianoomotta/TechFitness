@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const bulkActionSchema = z.object({
   planIds: z.array(z.string()).min(1, "Selecione ao menos um treino."),
-  action: z.enum(["ARCHIVE", "UNARCHIVE", "DELETE"]),
+  action: z.enum(["ARCHIVE", "UNARCHIVE", "DELETE", "REORDER"]),
 });
 
 // POST: Processa ações em lote (Arquivar, Desarquivar ou Excluir) para treinos do aluno
@@ -107,6 +107,30 @@ export async function POST(request: Request) {
         action: "UNARCHIVE",
         count: validIds.length,
         message: `${validIds.length} ficha(s) restaurada(s) para ativas com sucesso.`,
+      });
+    }
+
+    // 3. Reordenar Treinos
+    if (action === "REORDER") {
+      await Promise.all(
+        planIds.map((id, index) =>
+          prisma.workoutPlan.updateMany({
+            where: {
+              id,
+              studentId: studentProfile.id,
+            },
+            data: {
+              order: index,
+            },
+          })
+        )
+      );
+
+      return NextResponse.json({
+        success: true,
+        action: "REORDER",
+        count: planIds.length,
+        message: "Ordem dos treinos salva com sucesso.",
       });
     }
 

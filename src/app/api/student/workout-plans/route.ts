@@ -98,6 +98,9 @@ export async function GET() {
     };
 
     plans.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined && a.order !== b.order) {
+        return a.order - b.order;
+      }
       if (!a.weekDays && !b.weekDays) return 0;
       if (!a.weekDays) return 1;
       if (!b.weekDays) return -1;
@@ -170,6 +173,7 @@ export async function GET() {
         createdByType: plan.createdByType || "TRAINER",
         deletionStatus: plan.deletionStatus || "ACTIVE",
         deletionRequestedAt: plan.deletionRequestedAt ? plan.deletionRequestedAt.toISOString() : null,
+        order: plan.order ?? 0,
         createdAt: plan.createdAt,
         exercises: plan.exercises.map((pe) => ({
           id: pe.id,
