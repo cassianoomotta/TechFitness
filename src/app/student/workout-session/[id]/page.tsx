@@ -865,9 +865,52 @@ export default function WorkoutSessionPlayer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center text-[#94A3B8]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] mb-2" />
-        <p className="text-sm">Carregando player de treino...</p>
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in">
+        {/* Círculo visual que se completa (Progress Ring) */}
+        <div className="relative w-18 h-18 flex items-center justify-center mb-4">
+          <svg className="w-full h-full" viewBox="0 0 72 72">
+            <defs>
+              <linearGradient id="workout-loading-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#2563EB" />
+                <stop offset="100%" stopColor="#00C2FF" />
+              </linearGradient>
+            </defs>
+            {/* Pista de fundo translúcida */}
+            <circle
+              cx="36"
+              cy="36"
+              r="30"
+              fill="none"
+              stroke="#E2E8F0"
+              strokeWidth="4"
+              className="opacity-70"
+            />
+            {/* Arco que se completa continuamente */}
+            <circle
+              cx="36"
+              cy="36"
+              r="30"
+              fill="none"
+              stroke="url(#workout-loading-gradient)"
+              strokeWidth="4.5"
+              strokeLinecap="round"
+              strokeDasharray="188.5"
+              className="animate-ring-fill"
+            />
+          </svg>
+
+          {/* Ícone esportivo centralizado com micro-pulso */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-blue-50/90 text-blue-600 flex items-center justify-center shadow-2xs">
+              <Dumbbell className="w-4.5 h-4.5 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Texto solicitado pelo usuário */}
+        <p className="text-sm font-bold text-slate-800 tracking-tight">
+          Carregando treino.
+        </p>
       </div>
     );
   }

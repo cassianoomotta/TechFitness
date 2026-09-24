@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 const updatePlanSchema = z.object({
+  name: z.string().min(1, "O nome não pode ser vazio").max(100, "Nome muito longo").optional()
+    .transform((val) => val ? val.replace(/<[^>]*>/g, "").trim() : val),
   division: z.string().min(1, "A divisão não pode ser vazia").max(20, "Divisão muito longa")
     .transform((val) => val.replace(/<[^>]*>/g, "").trim()),
   weekDays: z.string().max(50).optional().nullable()
@@ -188,7 +190,7 @@ export async function PUT(
       );
     }
 
-    const { division, weekDays } = validation.data;
+    const { name, division, weekDays } = validation.data;
 
     // Buscar o plano de treino
     const plan = await prisma.workoutPlan.findUnique({
@@ -235,6 +237,7 @@ export async function PUT(
     const updatedPlan = await prisma.workoutPlan.update({
       where: { id },
       data: {
+        ...(name ? { name: name.trim() } : {}),
         division: division.trim(),
         weekDays: weekDays ? (typeof weekDays === 'string' ? weekDays.split(',').map((d: string) => d.trim()) : weekDays) : Prisma.DbNull,
       },

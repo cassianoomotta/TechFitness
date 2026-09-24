@@ -18,6 +18,7 @@ import {
   ArrowDown,
   ListOrdered,
   MoreVertical,
+  Dumbbell,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -259,156 +260,181 @@ export default function WorkoutTab({
             </div>
           </div>
 
-          {/* Lista de Fichas Ativas */}
+          {/* Lista de Fichas Ativas em Grid Responsivo (2 Colunas no Desktop) */}
           {activePlans.length === 0 ? (
             <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
               Todas as suas fichas estão arquivadas no momento. Você pode visualizá-las ou desarquivá-las abaixo.
             </div>
           ) : (
-            activePlans.map((plan: WorkoutPlan) => {
-              const isPendingDeletion = plan.deletionStatus === "PENDING_DELETION";
-              const isTrainerPlan = plan.createdByType === "TRAINER" && hasTrainer;
-              const isMenuOpen = activeMenuPlanId === plan.id;
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {activePlans.map((plan: WorkoutPlan) => {
+                const isPendingDeletion = plan.deletionStatus === "PENDING_DELETION";
+                const isTrainerPlan = plan.createdByType === "TRAINER" && hasTrainer;
+                const isMenuOpen = activeMenuPlanId === plan.id;
 
-              return (
-                <div
-                  key={plan.id}
-                  className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200/80 bg-white/90 shadow-xs hover:border-[#2563EB]/40 hover:shadow-md transition-all duration-200 relative"
-                >
-                  {/* Banner de Solicitação de Exclusão Pendente (3 dias) */}
-                  {isPendingDeletion && (
-                    <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900 animate-pulse">
-                      <div className="flex items-center gap-1.5 font-semibold text-[11px]">
-                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>Exclusão solicitada ao treinador (Prazo de até 3 dias)</span>
-                      </div>
-                      <span className="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full font-bold">
-                        Pendente
-                      </span>
-                    </div>
-                  )}
+                const uniqueMuscles = Array.from(
+                  new Set(
+                    plan.exercises
+                      .map((ex: Exercise) => ex.muscleGroup?.trim())
+                      .filter(Boolean)
+                  )
+                );
+                const totalSets = plan.exercises.reduce((acc: number, ex: Exercise) => acc + (Number(ex.sets) || 3), 0);
 
-                  {/* Topo do Card: Divisão, Título, Info e Menu Sutil ••• */}
-                  <div className="flex items-start justify-between gap-3 mb-2.5">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <span className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs shadow-blue-500/20">
-                        {plan.division || "A"}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A] truncate">
-                          {plan.name}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[11px] font-bold text-slate-500">
-                            {plan.exercises.length} exercício{plan.exercises.length > 1 ? 's' : ''}
+                return (
+                  <div
+                    key={plan.id}
+                    className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200/80 bg-white/95 shadow-xs hover:border-[#2563EB]/40 hover:shadow-md transition-all duration-200 flex flex-col justify-between relative"
+                  >
+                    <div>
+                      {/* Banner de Solicitação de Exclusão Pendente (3 dias) */}
+                      {isPendingDeletion && (
+                        <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900 animate-pulse">
+                          <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Exclusão solicitada ao treinador (Prazo de até 3 dias)</span>
+                          </div>
+                          <span className="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                            Pendente
                           </span>
-                          {plan.weekDays && (
-                            <>
-                              <span className="text-slate-300 text-xs">•</span>
-                              <span className="text-[11px] text-blue-600 font-semibold truncate">
-                                {plan.weekDays}
+                        </div>
+                      )}
+
+                      {/* Topo do Card: Divisão, Título, Info e Menu Sutil ••• */}
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <span className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs shadow-blue-500/20">
+                            {plan.division || "A"}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A] truncate">
+                              {plan.name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[11px] font-bold text-slate-500">
+                                {plan.exercises.length} exercícios • {totalSets} séries
                               </span>
+                              {plan.weekDays && (
+                                <>
+                                  <span className="text-slate-300 text-xs">•</span>
+                                  <span className="text-[11px] text-blue-600 font-semibold truncate">
+                                    {plan.weekDays}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Menu Sutil de Ações (•••) */}
+                        <div className="relative shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setActiveMenuPlanId(isMenuOpen ? null : plan.id)}
+                            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
+                            title="Mais opções da ficha"
+                            aria-label="Mais opções"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+
+                          {isMenuOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-20"
+                                onClick={() => setActiveMenuPlanId(null)}
+                              />
+                              <div className="absolute right-0 top-9 z-30 w-48 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuPlanId(null);
+                                    handleOpenEdit(plan);
+                                  }}
+                                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                                >
+                                  <Edit className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>Editar ficha e divisão</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuPlanId(null);
+                                    onArchivePlan(plan);
+                                  }}
+                                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                                >
+                                  <Archive className="w-3.5 h-3.5 text-amber-600" />
+                                  <span>Arquivar treino</span>
+                                </button>
+
+                                {!isPendingDeletion && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveMenuPlanId(null);
+                                      if (isTrainerPlan) {
+                                        setPlanToRequestDeletion(plan);
+                                      } else {
+                                        setPlanToDelete(plan);
+                                      }
+                                    }}
+                                    className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2.5 cursor-pointer border-t border-slate-100"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                    <span>{isTrainerPlan ? "Solicitar exclusão" : "Excluir ficha"}</span>
+                                  </button>
+                                )}
+                              </div>
                             </>
                           )}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Menu Sutil de Ações (•••) */}
-                    <div className="relative shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setActiveMenuPlanId(isMenuOpen ? null : plan.id)}
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
-                        title="Mais opções da ficha"
-                        aria-label="Mais opções"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-
-                      {isMenuOpen && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-20"
-                            onClick={() => setActiveMenuPlanId(null)}
-                          />
-                          <div className="absolute right-0 top-9 z-30 w-48 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuPlanId(null);
-                                handleOpenEdit(plan);
-                              }}
-                              className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                      {/* Tags Visuais de Grupos Musculares */}
+                      {uniqueMuscles.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 my-3">
+                          {uniqueMuscles.slice(0, 3).map((group: string) => (
+                            <span
+                              key={group}
+                              className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1"
                             >
-                              <Edit className="w-3.5 h-3.5 text-blue-600" />
-                              <span>Editar divisão e dias</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuPlanId(null);
-                                onArchivePlan(plan);
-                              }}
-                              className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
-                            >
-                              <Archive className="w-3.5 h-3.5 text-amber-600" />
-                              <span>Arquivar treino</span>
-                            </button>
-
-                            {!isPendingDeletion && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveMenuPlanId(null);
-                                  if (isTrainerPlan) {
-                                    setPlanToRequestDeletion(plan);
-                                  } else {
-                                    setPlanToDelete(plan);
-                                  }
-                                }}
-                                className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2.5 cursor-pointer border-t border-slate-100"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                <span>{isTrainerPlan ? "Solicitar exclusão" : "Excluir ficha"}</span>
-                              </button>
-                            )}
-                          </div>
-                        </>
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                              {group}
+                            </span>
+                          ))}
+                          {uniqueMuscles.length > 3 && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-500">
+                              +{uniqueMuscles.length - 3}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
-                  </div>
 
-                  {/* Resumo sutil dos principais exercícios */}
-                  {plan.exercises.length > 0 && (
-                    <p className="text-[11px] text-slate-400 mb-3 truncate">
-                      {plan.exercises.slice(0, 4).map((ex: Exercise) => ex.name).join(" • ")}
-                      {plan.exercises.length > 4 && " ..."}
-                    </p>
-                  )}
-
-                  {/* Botões de Ação Ergonômicos (Apple HIG min 44px) */}
-                  <div className="flex gap-2.5 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlanForPreview(plan)}
-                      className="flex-1 min-h-[44px] py-2 px-3 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Ver Exercícios</span>
-                    </button>
-                    <Link
-                      href={`/student/workout-session/${plan.id}`}
-                      className="flex-[1.3] min-h-[44px] py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20 active:scale-95 text-center"
-                    >
-                      <Play className="w-3.5 h-3.5 fill-white stroke-[3px]" />
-                      <span>Treinar Agora</span>
-                    </Link>
+                    {/* Botões de Ação Ergonômicos (Apple HIG min 44px) */}
+                    <div className="flex gap-2.5 pt-2 border-t border-slate-100/80 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlanForPreview(plan)}
+                        className="flex-1 min-h-[44px] py-2 px-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Ver Exercícios</span>
+                      </button>
+                      <Link
+                        href={`/student/workout-session/${plan.id}`}
+                        className="flex-[1.2] min-h-[44px] py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 active:scale-95 text-center"
+                      >
+                        <Dumbbell className="w-4 h-4 text-white" />
+                        <span>Iniciar Treino</span>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
 
           {/* =========================================================================
@@ -491,10 +517,10 @@ export default function WorkoutTab({
                         </button>
                         <Link
                           href={`/student/workout-session/${plan.id}`}
-                          className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs text-center flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs text-center flex items-center justify-center gap-2 transition-colors cursor-pointer"
                         >
-                          <Play className="w-3.5 h-3.5 fill-white stroke-[3px]" />
-                          <span>Treinar Agora</span>
+                          <Dumbbell className="w-3.5 h-3.5 text-white" />
+                          <span>Iniciar Treino</span>
                         </Link>
                       </div>
                     </div>

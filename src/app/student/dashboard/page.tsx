@@ -555,8 +555,9 @@ export default function StudentDashboard() {
   };
 
 
-  // Estados para edição de Ficha (Divisão & Dias)
+  // Estados para edição de Ficha (Nome, Divisão & Dias)
   const [editingPlan, setEditingPlan] = useState<WorkoutPlan | null>(null);
+  const [editName, setEditName] = useState("");
   const [editDivision, setEditDivision] = useState("");
   const [editWeekDays, setEditWeekDays] = useState<string[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -564,6 +565,7 @@ export default function StudentDashboard() {
 
   const handleOpenEdit = (plan: WorkoutPlan) => {
     setEditingPlan(plan);
+    setEditName(plan.name);
     setEditDivision(plan.division);
     setEditWeekDays(plan.weekDays ? plan.weekDays.split(",") : []);
     setEditError("");
@@ -577,8 +579,16 @@ export default function StudentDashboard() {
     }
   };
 
+  const handleClearDays = () => {
+    setEditWeekDays([]);
+  };
+
   const handleSaveEdit = async () => {
     if (!editingPlan) return;
+    if (!editName.trim()) {
+      setEditError("O nome do treino não pode ser vazio.");
+      return;
+    }
     if (!editDivision.trim()) {
       setEditError("A divisão não pode ser vazia.");
       return;
@@ -591,16 +601,17 @@ export default function StudentDashboard() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          division: editDivision,
+          name: editName.trim(),
+          division: editDivision.trim(),
           weekDays: editWeekDays.length > 0 ? editWeekDays.join(",") : null,
         }),
       });
 
       if (response.ok) {
         const updated = await response.json();
-        const updatedPlans = plans.map((p) => p.id === editingPlan.id ? { ...p, division: updated.division, weekDays: updated.weekDays } : p);
+        const updatedPlans = plans.map((p) => p.id === editingPlan.id ? { ...p, name: updated.name || editName.trim(), division: updated.division, weekDays: updated.weekDays } : p);
         setPlans(sortPlansByWeekDays(updatedPlans));
-        showToast("Divisão e dias atualizados com sucesso!");
+        showToast("Ficha atualizada com sucesso!");
         setEditingPlan(null);
       } else {
         const data = await response.json();
@@ -1514,51 +1525,106 @@ export default function StudentDashboard() {
 
       {/* Modal de Edição de Ficha */}
       {editingPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200 animate-scale-up space-y-4">
             {/* Fechar */}
             <button
               onClick={() => setEditingPlan(null)}
-              className="absolute top-4 right-4 p-2 rounded-lg border border-[#E2E8F0] text-[#94A3B8] hover:text-[#0F172A] hover:bg-zinc-100 transition-all cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-display text-lg font-bold text-[#0F172A] mb-2 flex items-center gap-2">
-              <Dumbbell className="w-5 h-5 text-[#2563EB]" /> Editar Divisão e Dias
-            </h3>
-            <p className="text-xs text-[#94A3B8] leading-relaxed mb-6">
-              Ajuste o nome/letra da divisão de treino e marque quais dias da semana você pretende realizá-lo.
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                <Dumbbell className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-display text-base font-extrabold text-[#0F172A]">
+                  Editar Ficha de Treino
+                </h3>
+                <p className="text-[11px] text-[#64748B]">
+                  Personalize o nome da ficha, divisão e frequência
+                </p>
+              </div>
+            </div>
 
             {editError && (
-              <p className="text-xs font-semibold text-red-500 bg-red-500/5 border border-red-500/20 p-3 rounded-xl mb-4">
+              <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl">
                 {editError}
               </p>
             )}
 
-            <div className="space-y-5">
-              {/* Campo Divisão */}
+            <div className="space-y-4 pt-1">
+              {/* Campo Nome da Ficha */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">
-                  Letra / Nome da Divisão
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  Nome da Ficha / Treino
                 </label>
                 <input
                   type="text"
-                  value={editDivision}
-                  onChange={(e) => setEditDivision(e.target.value)}
-                  placeholder="Ex: A, B, Superior, Push"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Ex: Costa e Peito, Treino A, Perna Completo"
                   autoFocus
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none text-xs text-[#0F172A] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none text-base md:text-xs font-medium text-slate-900 transition-all"
                 />
               </div>
 
-              {/* Dias da Semana */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider block">
-                  Dias da Semana Planejados
-                </label>
-                <div className="flex flex-wrap gap-2">
+              {/* Campo Divisão com botões rápidos */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Letra / Divisão
+                  </label>
+                  <span className="text-[10px] text-slate-400">Sugestões rápidas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    {["A", "B", "C", "D", "E"].map((letter) => (
+                      <button
+                        key={letter}
+                        type="button"
+                        onClick={() => setEditDivision(letter)}
+                        className={`w-8 h-8 rounded-lg font-black text-xs transition-all cursor-pointer border ${
+                          editDivision.toUpperCase() === letter
+                            ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+                            : "bg-slate-100 border-slate-200/80 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {letter}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={editDivision}
+                    onChange={(e) => setEditDivision(e.target.value)}
+                    placeholder="Outro"
+                    maxLength={15}
+                    className="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 outline-none text-base md:text-xs font-bold text-slate-900 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Dias da Semana (Opcional) */}
+              <div className="space-y-2 pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Dias da Semana Planejados <span className="font-normal text-slate-400">(Opcional)</span>
+                  </label>
+                  {editWeekDays.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearDays}
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
+                    >
+                      Limpar dias
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
                   {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => {
                     const isSelected = editWeekDays.includes(day);
                     return (
@@ -1566,10 +1632,10 @@ export default function StudentDashboard() {
                         key={day}
                         type="button"
                         onClick={() => handleToggleEditDay(day)}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                           isSelected
-                            ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm shadow-blue-500/10"
-                            : "bg-white border-[#E2E8F0] text-[#475569] hover:border-zinc-300"
+                            ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
                         {day}
@@ -1577,14 +1643,19 @@ export default function StudentDashboard() {
                     );
                   })}
                 </div>
+
+                {/* Dica ergonômica de UX */}
+                <div className="p-2.5 rounded-xl bg-blue-50/60 border border-blue-100 text-[11px] text-blue-800 leading-relaxed">
+                  💡 <strong>Treino Cíclico:</strong> Se você prefere que o app avance automaticamente para o próximo treino após cada sessão (A ➔ B ➔ C), deixe os dias desmarcados.
+                </div>
               </div>
 
               {/* Ações */}
-              <div className="flex gap-3 pt-3 border-t border-[#E2E8F0] mt-6">
+              <div className="flex gap-2.5 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditingPlan(null)}
-                  className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] hover:bg-zinc-100/50 text-[#475569] font-bold text-xs transition-all cursor-pointer"
+                  className="flex-1 min-h-[44px] py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1592,7 +1663,7 @@ export default function StudentDashboard() {
                   type="button"
                   onClick={handleSaveEdit}
                   disabled={savingEdit}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] disabled:bg-opacity-50 disabled:pointer-events-none text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10"
+                  className="flex-1 min-h-[44px] py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 active:scale-95"
                 >
                   {savingEdit ? (
                     <>
@@ -1600,7 +1671,7 @@ export default function StudentDashboard() {
                       Salvando...
                     </>
                   ) : (
-                    "Salvar"
+                    "Salvar Alterações"
                   )}
                 </button>
               </div>
