@@ -87,6 +87,7 @@ export default function WorkoutSessionPlayer() {
   const [initialRestTime, setInitialRestTime] = useState(0);
   const [isResting, setIsResting] = useState(false);
   const [restEndTime, setRestEndTime] = useState<number | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Chaves do localStorage para persistência do treino
   const STORAGE_KEY_SETS = `workout_sets_${planId}`;
@@ -486,6 +487,12 @@ export default function WorkoutSessionPlayer() {
 
   const playRestAlertSound = () => {
     try {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate([100, 60, 200]);
+      }
+    } catch {}
+
+    try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       const osc1 = audioCtx.createOscillator();
@@ -614,6 +621,16 @@ export default function WorkoutSessionPlayer() {
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  // Formatar tempo do descanso no cronômetro redondo
+  const formatRestDisplay = (totalSecs: number) => {
+    if (totalSecs >= 60) {
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      return `${mins}:${String(secs).padStart(2, "0")}`;
+    }
+    return `${totalSecs}s`;
   };
 
   // Salvar sessão de treino
@@ -763,8 +780,16 @@ export default function WorkoutSessionPlayer() {
         </div>
       </header>
 
-      {/* Main Exercises List (Mobile-First scroll) */}
-      <main className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+      {/* Main Exercises List (Mobile-First scroll com folga inferior para widgets) */}
+      <main
+        className="flex-1 px-4 py-6 space-y-6 overflow-y-auto pb-40"
+        onFocus={() => setIsInputFocused(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsInputFocused(false);
+          }
+        }}
+      >
         {plan.exercises.map((exercise, exIndex) => (
           <div
             key={exercise.id}
@@ -1000,56 +1025,97 @@ export default function WorkoutSessionPlayer() {
         </button>
       </footer>
 
-      {/* Temporizador de Descanso Flutuante Overlay */}
+      {/* Cronômetro Redondo Flutuante no Canto Inferior Esquerdo (Stopwatch Ring) */}
       {isResting && (
-        <div className="absolute bottom-20 left-4 right-4 z-40 animate-slide-up">
-          <div className="bg-white border border-[#2563EB]/20 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-[#00C2FF]/10 p-2.5 rounded-xl text-[#2563EB] animate-pulse">
-                <Zap className="w-5 h-5 fill-[#2563EB]/10" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-[#0F172A]">Tempo de Descanso</h4>
-                <p className="text-[10px] text-[#94A3B8] mt-0.5">Prepare-se para a próxima série.</p>
-              </div>
-            </div>
+        <div
+          className={`fixed bottom-24 left-4 z-40 flex flex-col items-center select-none transition-all duration-300 ease-out ${
+            isInputFocused ? "opacity-0 translate-y-8 pointer-events-none" : "opacity-100 translate-y-0"
+          }`}
+        >
+          {/* Botões Satélites (+30s e Pular) */}
+          <div className="flex items-center gap-1.5 mb-1.5 animate-fade-in">
+            <button
+              type="button"
+              onClick={() => adjustRestTime(30)}
+              className="px-2.5 py-1 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-95 text-white text-[11px] font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40 cursor-pointer flex items-center gap-1 transition-transform"
+              title="Adicionar 30 segundos de descanso"
+            >
+              <span>+30s</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsResting(false)}
+              className="w-6 h-6 rounded-full bg-slate-900/90 hover:bg-slate-800 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center shadow border border-white/10 cursor-pointer transition-colors"
+              title="Pular descanso"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => adjustRestTime(-30)}
-                className="px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-[#0F172A] text-[10px] font-bold transition-all cursor-pointer"
-                title="Reduzir 30 segundos"
+          {/* Círculo do Cronômetro com Anel SVG */}
+          <button
+            type="button"
+            onClick={() => setIsResting(false)}
+            className={`relative w-16 h-16 rounded-full bg-slate-950/95 backdrop-blur-xl border shadow-2xl flex flex-col items-center justify-center cursor-pointer group active:scale-95 transition-all duration-300 ${
+              restTime <= 5
+                ? "border-amber-400/80 shadow-amber-500/20 animate-pulse ring-2 ring-amber-400/40"
+                : "border-white/15 hover:border-[#00C2FF]/60 hover:shadow-blue-500/20"
+            }`}
+            title="Toque para pular o descanso"
+          >
+            {/* Anel de Progresso SVG */}
+            <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 64 64">
+              <defs>
+                <linearGradient id="rest-ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#00C2FF" />
+                  <stop offset="100%" stopColor="#2563EB" />
+                </linearGradient>
+              </defs>
+              {/* Trilha inativa */}
+              <circle
+                cx="32"
+                cy="32"
+                r="27"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.12)"
+                strokeWidth="3.5"
+              />
+              {/* Arco de progresso ativo */}
+              <circle
+                cx="32"
+                cy="32"
+                r="27"
+                fill="none"
+                stroke={restTime <= 5 ? "#F59E0B" : "url(#rest-ring-grad)"}
+                strokeWidth="3.5"
+                strokeDasharray={2 * Math.PI * 27}
+                strokeDashoffset={
+                  initialRestTime > 0
+                    ? (2 * Math.PI * 27) * (1 - Math.max(0, Math.min(1, restTime / initialRestTime)))
+                    : 0
+                }
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-linear"
+              />
+            </svg>
+
+            {/* Tempo Digital no Centro */}
+            <div className="relative z-10 flex flex-col items-center justify-center leading-none text-center">
+              <span className="text-[8px] font-bold tracking-wider uppercase text-slate-400 mb-0.5 group-hover:hidden">
+                Rest
+              </span>
+              <span className="text-[8px] font-bold tracking-wider uppercase text-red-400 mb-0.5 hidden group-hover:inline">
+                Pular
+              </span>
+              <span
+                className={`font-mono font-black text-sm tracking-tight transition-colors ${
+                  restTime <= 5 ? "text-amber-400" : "text-white"
+                }`}
               >
-                -30s
-              </button>
-              <div className="font-mono text-2xl font-bold text-[#2563EB]">
-                {restTime}s
-              </div>
-              <button
-                type="button"
-                onClick={() => adjustRestTime(30)}
-                className="px-2 py-1 rounded bg-[#2563EB] hover:bg-[#1E40AF] text-white text-[10px] font-bold transition-all cursor-pointer"
-                title="Aumentar 30 segundos"
-              >
-                +30s
-              </button>
-              <button
-                onClick={() => setIsResting(false)}
-                className="p-1 rounded bg-white hover:bg-zinc-200 text-[#94A3B8] hover:text-[#0F172A]"
-              >
-                <X className="w-4 h-4" />
-              </button>
+                {formatRestDisplay(restTime)}
+              </span>
             </div>
-          </div>
-          
-          {/* Barra de Progresso do Descanso */}
-          <div className="w-full bg-white h-1.5 rounded-full overflow-hidden mt-2 border border-[#E2E8F0]/50">
-            <div
-              className="bg-[#2563EB] h-full transition-all duration-1000"
-              style={{ width: `${(restTime / initialRestTime) * 100}%` }}
-            />
-          </div>
+          </button>
         </div>
       )}
 
