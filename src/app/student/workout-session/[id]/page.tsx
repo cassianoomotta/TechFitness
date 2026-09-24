@@ -785,14 +785,8 @@ export default function WorkoutSessionPlayer() {
           </div>
         </div>
 
-        {/* Controles de Cabeçalho: Cronômetro Geral e Cancelar */}
+        {/* Controles de Cabeçalho: Cancelar e Cronômetro Geral à Direita */}
         <div className="flex items-center gap-2">
-          {/* Cronômetro Geral do Treino */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] font-mono text-xs font-semibold shadow-xs">
-            <Clock className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-            {formatTime(totalSeconds)}
-          </div>
-
           {/* Botão Cancelar Treino */}
           <button
             type="button"
@@ -803,6 +797,12 @@ export default function WorkoutSessionPlayer() {
             <X className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Cancelar</span>
           </button>
+
+          {/* Cronômetro Geral do Treino (à direita) */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] font-mono text-xs font-semibold shadow-xs">
+            <Clock className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            {formatTime(totalSeconds)}
+          </div>
         </div>
       </header>
 
