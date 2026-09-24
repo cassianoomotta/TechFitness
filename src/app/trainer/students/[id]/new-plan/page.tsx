@@ -20,6 +20,8 @@ import {
   Pencil,
   Check,
   FileText,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import ImportWorkoutModal, { ParsedPlan } from "@/app/student/dashboard/components/ImportWorkoutModal";
 
@@ -46,6 +48,41 @@ interface WorkoutExerciseInput {
   customName?: string | null;
 }
 
+interface SavedPlanExercise {
+  exerciseId: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  method: string;
+  recommendedRpe?: number | null;
+  recommendedWeight?: number | null;
+  notes?: string | null;
+  customName?: string | null;
+  exercise?: {
+    name: string;
+    muscleGroup: string;
+    equipment: string;
+  };
+}
+
+interface SavedWorkoutPlan {
+  id: string;
+  name: string;
+  description?: string | null;
+  division?: string | null;
+  weekDays?: string | string[] | null;
+  createdAt?: string | Date;
+  isArchived?: boolean;
+  createdByType?: string;
+  deletionStatus?: string;
+  deletionRequestedAt?: string | Date | null;
+  parentPlanId?: string | null;
+  _count?: {
+    linkedPlans?: number;
+  };
+  exercises?: SavedPlanExercise[];
+}
+
 const METHODS = ["Normal", "Drop Set", "Bi-Set", "Rest Pause", "Até a falha"];
 
 export default function NewPlanPage() {
@@ -58,7 +95,7 @@ export default function NewPlanPage() {
   // Estados do Aluno
   const [studentName, setStudentName] = useState("");
   const [studentLoading, setStudentLoading] = useState(true);
-  const [workoutPlans, setWorkoutPlans] = useState<any[]>([]);
+  const [workoutPlans, setWorkoutPlans] = useState<SavedWorkoutPlan[]>([]);
 
   // Estados dos Exercícios da Biblioteca
   const [library, setLibrary] = useState<Exercise[]>([]);
@@ -223,19 +260,19 @@ export default function NewPlanPage() {
   };
 
   // Carregar um treino existente para edição no construtor
-  const handleEditPlan = (plan: any) => {
+  const handleEditPlan = (plan: SavedWorkoutPlan) => {
     setEditingPlanId(plan.id);
     setWorkoutName(plan.name);
     setDescription(plan.description || "");
-    setDivision(plan.division);
-    setWeekDays(plan.weekDays ? plan.weekDays.split(",") : []);
+    setDivision(plan.division || "A");
+    setWeekDays(typeof plan.weekDays === "string" ? plan.weekDays.split(",") : Array.isArray(plan.weekDays) ? plan.weekDays : []);
     
     const isLinked = plan.parentPlanId !== null || (plan._count?.linkedPlans && plan._count.linkedPlans > 0);
     setIsPlanLinked(!!isLinked);
     setUpdateLinked(false);
 
     // Mapear os exercícios do plano para o formato do formulário
-    const mapped = plan.exercises.map((pe: any) => ({
+    const mapped = (plan.exercises || []).map((pe: SavedPlanExercise) => ({
       exerciseId: pe.exerciseId,
       name: pe.exercise?.name || "Exercício Desconhecido",
       muscleGroup: pe.exercise?.muscleGroup || "Outros",
@@ -244,8 +281,8 @@ export default function NewPlanPage() {
       reps: pe.reps,
       restSeconds: pe.restSeconds,
       method: pe.method,
-      recommendedRpe: pe.recommendedRpe,
-      recommendedWeight: pe.recommendedWeight,
+      recommendedRpe: pe.recommendedRpe || null,
+      recommendedWeight: pe.recommendedWeight || null,
       notes: pe.notes || "",
       customName: pe.customName || "",
     }));
@@ -284,6 +321,42 @@ export default function NewPlanPage() {
       } else {
         const data = await response.json();
         setError(data.error || "Erro ao excluir o treino.");
+      }
+    } catch {
+      setError("Erro ao se conectar com o servidor.");
+    }
+  };
+
+  // Responder à solicitação de exclusão do aluno
+  const handleDeletionDecision = async (planId: string, action: "APPROVE" | "REJECT") => {
+    const confirmMsg = action === "APPROVE"
+      ? "Deseja aceitar a solicitação e excluir permanentemente este treino do aluno?"
+      : "Deseja recusar a solicitação e manter o treino ativo para o aluno?";
+    if (!confirm(confirmMsg)) return;
+
+    setError("");
+    try {
+      const res = await fetch(`/api/trainer/workout-plans/${planId}/handle-deletion-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        if (action === "APPROVE") {
+          setWorkoutPlans((prev) => prev.filter((p) => p.id !== planId));
+          if (editingPlanId === planId) handleResetForm();
+        } else {
+          setWorkoutPlans((prev) =>
+            prev.map((p) =>
+              p.id === planId
+                ? { ...p, deletionStatus: "ACTIVE", deletionRequestedAt: null }
+                : p
+            )
+          );
+        }
+      } else {
+        const data = await res.json();
+        setError(data.error || "Erro ao processar solicitação.");
       }
     } catch {
       setError("Erro ao se conectar com o servidor.");
@@ -608,55 +681,97 @@ export default function NewPlanPage() {
                   Nenhum treino salvo para este aluno.
                 </p>
               ) : (
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                  {workoutPlans.map((plan) => (
-                    <div
-                      key={plan.id}
-                      className={`p-3 border rounded-xl flex items-center justify-between gap-4 transition-all ${
-                        editingPlanId === plan.id
-                          ? "bg-[#2563EB]/5 border-[#2563EB] shadow-sm"
-                          : "bg-zinc-50 border-[#E2E8F0] hover:border-zinc-300"
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-xs text-[#0F172A] truncate">
-                            {plan.name}
-                          </span>
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                  {workoutPlans.map((plan) => {
+                    const isPendingDeletion = plan.deletionStatus === "PENDING_DELETION";
+                    return (
+                      <div
+                        key={plan.id}
+                        className={`p-3 border rounded-xl flex flex-col gap-2.5 transition-all ${
+                          isPendingDeletion
+                            ? "bg-amber-50/70 border-amber-300 shadow-sm"
+                            : editingPlanId === plan.id
+                            ? "bg-[#2563EB]/5 border-[#2563EB] shadow-sm"
+                            : "bg-zinc-50 border-[#E2E8F0] hover:border-zinc-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-xs text-[#0F172A] truncate">
+                                {plan.name}
+                              </span>
+                              {plan.isArchived && (
+                                <span className="text-[9px] bg-slate-200 text-slate-700 font-bold px-1.5 py-0.5 rounded">
+                                  Arquivado
+                                </span>
+                              )}
+                              {isPendingDeletion && (
+                                <span className="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse">
+                                  <Clock className="w-2.5 h-2.5" /> Solicitação Pendente
+                                </span>
+                              )}
+                            </div>
+                            {plan.createdAt && (
+                              <p className="text-[10px] text-[#64748B] mt-1">
+                                Criado em {new Date(plan.createdAt).toLocaleDateString('pt-BR')}
+                              </p>
+                            )}
+                            {plan.description && (
+                              <p className="text-[10px] text-[#94A3B8] truncate mt-0.5">
+                                {plan.description}
+                              </p>
+                            )}
+                            <p className="text-[9px] text-[#94A3B8] mt-1 font-semibold">
+                              {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
+                            </p>
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleEditPlan(plan)}
+                              className="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB] hover:bg-white text-[#2563EB] text-[10px] font-bold transition-all cursor-pointer"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePlan(plan.id)}
+                              className="p-1.5 rounded-lg border border-[#E2E8F0] hover:border-red-500 hover:bg-red-50 text-red-500 transition-all cursor-pointer"
+                              title="Excluir ficha"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        {plan.createdAt && (
-                          <p className="text-[10px] text-[#64748B] mt-1">
-                            Criado em {new Date(plan.createdAt).toLocaleDateString('pt-BR')}
-                          </p>
+
+                        {isPendingDeletion && (
+                          <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between gap-2 flex-wrap text-[11px]">
+                            <span className="text-amber-800 font-medium flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                              Aluno solicitou exclusão (expira em 3 dias)
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleDeletionDecision(plan.id, "APPROVE")}
+                                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-[10px] transition-colors cursor-pointer shadow-xs"
+                              >
+                                Aceitar Exclusão
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeletionDecision(plan.id, "REJECT")}
+                                className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-slate-700 border border-slate-300 font-bold rounded-lg text-[10px] transition-colors cursor-pointer"
+                              >
+                                Manter Treino
+                              </button>
+                            </div>
+                          </div>
                         )}
-                        {plan.description && (
-                          <p className="text-[10px] text-[#94A3B8] truncate mt-0.5">
-                            {plan.description}
-                          </p>
-                        )}
-                        <p className="text-[9px] text-[#94A3B8] mt-1 font-semibold">
-                          {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
-                        </p>
                       </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleEditPlan(plan)}
-                          className="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB] hover:bg-white text-[#2563EB] text-[10px] font-bold transition-all cursor-pointer"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePlan(plan.id)}
-                          className="p-1.5 rounded-lg border border-[#E2E8F0] hover:border-red-500 hover:bg-red-50 text-red-500 transition-all cursor-pointer"
-                          title="Excluir ficha"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

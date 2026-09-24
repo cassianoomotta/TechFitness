@@ -39,6 +39,30 @@ export async function GET() {
       );
     }
 
+    // Processar auto-exclusão de fichas com solicitação pendente há mais de 3 dias (72 horas)
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const expiredPlans = await prisma.workoutPlan.findMany({
+      where: {
+        studentId: studentProfile.id,
+        deletionStatus: "PENDING_DELETION",
+        deletionRequestedAt: { lte: threeDaysAgo },
+      },
+      select: { id: true, name: true },
+    });
+
+    if (expiredPlans.length > 0) {
+      for (const ep of expiredPlans) {
+        await prisma.workoutPlan.delete({ where: { id: ep.id } });
+        await prisma.notification.create({
+          data: {
+            userId: session.user.id,
+            title: "Ficha Excluída Automaticamente",
+            message: `A ficha '${ep.name}' foi excluída automaticamente após o prazo de 3 dias sem contestação do treinador.`,
+          },
+        });
+      }
+    }
+
     // Buscar todos os planos de treino ativos do aluno
     const plans = await prisma.workoutPlan.findMany({
       where: { studentId: studentProfile.id },
@@ -142,6 +166,10 @@ export async function GET() {
         description: plan.description,
         division: plan.division,
         weekDays: Array.isArray(plan.weekDays) ? (plan.weekDays as string[]).join(",") : (plan.weekDays as string | null),
+        isArchived: Boolean(plan.isArchived),
+        createdByType: plan.createdByType || "TRAINER",
+        deletionStatus: plan.deletionStatus || "ACTIVE",
+        deletionRequestedAt: plan.deletionRequestedAt ? plan.deletionRequestedAt.toISOString() : null,
         createdAt: plan.createdAt,
         exercises: plan.exercises.map((pe) => ({
           id: pe.id,
@@ -261,6 +289,7 @@ export async function POST(request: Request) {
           division: String(plan.division || "A"),
           description: plan.description ? String(plan.description) : "Importado com IA",
           weekDays: Array.isArray(plan.weekDays) ? plan.weekDays : [],
+          createdByType: "STUDENT",
           exercises: {
             create: exercisesData,
           },

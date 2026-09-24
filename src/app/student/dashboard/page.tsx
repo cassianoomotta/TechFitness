@@ -138,6 +138,10 @@ interface WorkoutPlan {
   division: string;
   weekDays: string | null;
   exercises: Exercise[];
+  isArchived?: boolean;
+  createdByType?: "TRAINER" | "STUDENT" | string;
+  deletionStatus?: "ACTIVE" | "PENDING_DELETION" | "ARCHIVED" | string;
+  deletionRequestedAt?: string | null;
 }
 
 interface TrainerInfo {
@@ -299,15 +303,16 @@ export default function StudentDashboard() {
 
   // Determinar a rotina a exibir na Home (próxima da sequência baseada no último treino realizado)
   const suggestedPlan = useMemo(() => {
-    if (!plans || plans.length === 0) return null;
-    if (plans.length === 1) return plans[0];
+    const activePlans = (plans || []).filter((p) => !p.isArchived && p.deletionStatus !== "PENDING_DELETION");
+    if (activePlans.length === 0) return null;
+    if (activePlans.length === 1) return activePlans[0];
 
     if (lastCompletedPlanId) {
-      const lastIndex = plans.findIndex((p) => p.id === lastCompletedPlanId);
+      const lastIndex = activePlans.findIndex((p) => p.id === lastCompletedPlanId);
       if (lastIndex !== -1) {
         // Próximo treino cíclico: se o último foi o último do array, volta para o primeiro (0)
-        const nextIndex = (lastIndex + 1) % plans.length;
-        return plans[nextIndex];
+        const nextIndex = (lastIndex + 1) % activePlans.length;
+        return activePlans[nextIndex];
       }
     }
 
@@ -315,12 +320,12 @@ export default function StudentDashboard() {
     const todayIndex = new Date().getDay();
     const WEEK_DAY_MAP = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const todayShort = WEEK_DAY_MAP[todayIndex];
-    const todayPlan = plans.find((p) =>
+    const todayPlan = activePlans.find((p) =>
       p.weekDays?.toLowerCase().includes(todayShort.toLowerCase())
     );
     if (todayPlan) return todayPlan;
 
-    return plans[0];
+    return activePlans[0];
   }, [plans, lastCompletedPlanId]);
 
   // Capturar código de convite ou aba via URL (ex: link de convite recebido via WhatsApp)
@@ -601,6 +606,66 @@ export default function StudentDashboard() {
       setEditError("Erro ao salvar alterações.");
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleArchivePlan = async (plan: WorkoutPlan) => {
+    try {
+      const res = await fetch(`/api/student/workout-plans/${plan.id}/archive`, {
+        method: "PATCH",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlans((prev) =>
+          prev.map((p) => (p.id === plan.id ? { ...p, isArchived: data.isArchived } : p))
+        );
+        showToast(data.message || (data.isArchived ? "Ficha arquivada com sucesso." : "Ficha desarquivada."));
+      } else {
+        showToast("Não foi possível alterar o status da ficha.", "error");
+      }
+    } catch {
+      showToast("Erro de conexão ao arquivar ficha.", "error");
+    }
+  };
+
+  const handleDeletePlan = async (planId: string) => {
+    try {
+      const res = await fetch(`/api/student/workout-plans/${planId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setPlans((prev) => prev.filter((p) => p.id !== planId));
+        showToast("Ficha excluída com sucesso.");
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Não foi possível excluir a ficha.", "error");
+      }
+    } catch {
+      showToast("Erro de conexão ao excluir ficha.", "error");
+    }
+  };
+
+  const handleRequestDeletion = async (planId: string) => {
+    try {
+      const res = await fetch(`/api/student/workout-plans/${planId}/request-deletion`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlans((prev) =>
+          prev.map((p) =>
+            p.id === planId
+              ? { ...p, deletionStatus: "PENDING_DELETION", deletionRequestedAt: data.deletionRequestedAt }
+              : p
+          )
+        );
+        showToast("Solicitação enviada ao treinador (prazo de 3 dias).");
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Não foi possível solicitar exclusão.", "error");
+      }
+    } catch {
+      showToast("Erro de conexão ao enviar solicitação.", "error");
     }
   };
 
@@ -1345,6 +1410,10 @@ export default function StudentDashboard() {
               handleOpenEdit={handleOpenEdit}
               setSelectedPlanForPreview={setSelectedPlanForPreview}
               onOpenImportModal={() => setIsImportModalOpen(true)}
+              onArchivePlan={handleArchivePlan}
+              onDeletePlan={handleDeletePlan}
+              onRequestDeletion={handleRequestDeletion}
+              hasTrainer={Boolean(trainer)}
             />
           </div>
         )}

@@ -71,15 +71,19 @@ model Exercise {
 }
 
 model WorkoutPlan {
-  id          String                @id @default(cuid())
-  studentId   String
-  student     StudentProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  name        String // Ex: "Treino Hipertrofia A"
-  description String?
-  division    String // Ex: "A", "B", "C", "Push"
-  weekDays    Json? // Array de dias, ex: ["Seg", "Qua", "Sex"]
-  exercises   WorkoutPlanExercise[]
-  createdAt   DateTime              @default(now())
+  id                  String                @id @default(cuid())
+  studentId           String
+  student             StudentProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  name                String // Ex: "Treino Hipertrofia A"
+  description         String?
+  division            String // Ex: "A", "B", "C", "Push"
+  weekDays            Json? // Array de dias, ex: ["Seg", "Qua", "Sex"]
+  exercises           WorkoutPlanExercise[]
+  isArchived          Boolean               @default(false)
+  createdByType       String                @default("TRAINER") // "TRAINER" | "STUDENT"
+  deletionRequestedAt DateTime?
+  deletionStatus      String                @default("ACTIVE") // "ACTIVE" | "PENDING_DELETION" | "ARCHIVED"
+  createdAt           DateTime              @default(now())
 
   parentPlanId String?
   parentPlan   WorkoutPlan?  @relation("LinkedPlans", fields: [parentPlanId], references: [id], onDelete: SetNull)

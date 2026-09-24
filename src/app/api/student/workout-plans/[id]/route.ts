@@ -252,3 +252,65 @@ export async function PUT(
     );
   }
 }
+
+// DELETE: Excluir plano de treino (permitido imediatamente para fichas criadas pelo aluno ou sem treinador)
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "STUDENT") {
+      return NextResponse.json(
+        { error: "Não autorizado." },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!studentProfile) {
+      return NextResponse.json(
+        { error: "Perfil de aluno não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    const plan = await prisma.workoutPlan.findUnique({
+      where: { id },
+    });
+
+    if (!plan || plan.studentId !== studentProfile.id) {
+      return NextResponse.json(
+        { error: "Ficha não encontrada ou acesso negado." },
+        { status: 404 }
+      );
+    }
+
+    // Regra: se foi prescrito por treinador e o aluno tem treinador vinculado, não pode deletar direto
+    if (plan.createdByType === "TRAINER" && studentProfile.trainerId) {
+      return NextResponse.json(
+        { error: "Fichas prescritas por treinadores exigem solicitação de exclusão com prazo de 3 dias." },
+        { status: 403 }
+      );
+    }
+
+    // Excluir ficha imediatamente
+    await prisma.workoutPlan.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: "Ficha excluída com sucesso." });
+  } catch (error) {
+    console.error("ERRO AO EXCLUIR PLANO DE TREINO:", error);
+    return NextResponse.json(
+      { error: "Ocorreu um erro interno ao excluir o plano de treino." },
+      { status: 500 }
+    );
+  }
+}
