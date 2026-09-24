@@ -1079,14 +1079,13 @@ export default function StudentDashboard() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange("fichas")}
+                  <Link
+                    href={`/student/workout-session/${suggestedPlan.id}`}
                     className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer w-full sm:w-auto"
                   >
-                    <span>Abrir Meus Treinos</span>
+                    <span>Iniciar Treino</span>
                     <ArrowRight className="w-4 h-4" />
-                  </button>
+                  </Link>
                 </div>
               )}
             </section>
