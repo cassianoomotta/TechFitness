@@ -286,15 +286,23 @@ export default function WorkoutTab({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Cabeçalho da Aba */}
-          <div className="flex items-center justify-between pb-1 gap-2">
-            <div className="min-w-0">
-              <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate">Meus Treinos</h3>
-              <p className="text-[11px] text-slate-500 truncate">
-                {activePlans.length} ficha{activePlans.length > 1 ? 's' : ''} ativa{activePlans.length > 1 ? 's' : ''}
-                {archivedPlans.length > 0 && ` • ${archivedPlans.length} arquivada${archivedPlans.length > 1 ? 's' : ''}`}
-              </p>
+          {/* Cabeçalho da Aba e Ações */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-1 gap-2.5 sm:gap-2">
+            {/* Escrita reposicionada em linha própria no mobile: 100% legível, sem cortes */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-slate-800">
+                Rotinas de Treino
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[11px]">
+                {activePlans.length} ativa{activePlans.length > 1 ? 's' : ''}
+              </span>
+              {archivedPlans.length > 0 && (
+                <span className="text-[11px] text-slate-400 font-medium">
+                  • {archivedPlans.length} arquivada{archivedPlans.length > 1 ? 's' : ''}
+                </span>
+              )}
             </div>
+
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto justify-end">
               {activePlans.length > 0 && (
                 <button
