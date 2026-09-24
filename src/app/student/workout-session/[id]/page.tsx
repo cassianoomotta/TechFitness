@@ -23,6 +23,7 @@ import {
   Sparkles,
   Crown,
   Camera,
+  GripHorizontal,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 
@@ -88,6 +89,114 @@ export default function WorkoutSessionPlayer() {
   const [isResting, setIsResting] = useState(false);
   const [restEndTime, setRestEndTime] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+
+  // Posição flutuante móvel do cronômetro de descanso (Draggable)
+  const [timerPos, setTimerPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingTimer, setIsDraggingTimer] = useState(false);
+  const timerDragRef = useRef<{
+    startX: number;
+    startY: number;
+    initX: number;
+    initY: number;
+    hasMoved: boolean;
+  }>({ startX: 0, startY: 0, initX: 0, initY: 0, hasMoved: false });
+  const timerContainerRef = useRef<HTMLDivElement>(null);
+
+  // Restaurar posição salva do cronômetro do localStorage
+  useEffect(() => {
+    try {
+      const savedPos = localStorage.getItem("workout_timer_pos");
+      if (savedPos) {
+        const parsed = JSON.parse(savedPos);
+        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
+          const minX = 8;
+          const maxX = Math.max(minX, window.innerWidth - 84 - 8);
+          const minY = 56;
+          const maxY = Math.max(minY, window.innerHeight - 118 - 16);
+          setTimerPos({
+            x: Math.min(Math.max(parsed.x, minX), maxX),
+            y: Math.min(Math.max(parsed.y, minY), maxY),
+          });
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Persistir posição quando alterada
+  useEffect(() => {
+    if (timerPos) {
+      try {
+        localStorage.setItem("workout_timer_pos", JSON.stringify(timerPos));
+      } catch {}
+    }
+  }, [timerPos]);
+
+  // Início do arrasto (Touch ou Mouse)
+  const handleTimerDragStart = (clientX: number, clientY: number) => {
+    if (!timerContainerRef.current) return;
+    const rect = timerContainerRef.current.getBoundingClientRect();
+    timerDragRef.current = {
+      startX: clientX,
+      startY: clientY,
+      initX: rect.left,
+      initY: rect.top,
+      hasMoved: false,
+    };
+    setIsDraggingTimer(true);
+  };
+
+  // Movimentação do arrasto com limites de viewport
+  useEffect(() => {
+    if (!isDraggingTimer) return;
+
+    const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+      const deltaX = clientX - timerDragRef.current.startX;
+      const deltaY = clientY - timerDragRef.current.startY;
+
+      if (Math.hypot(deltaX, deltaY) > 4) {
+        timerDragRef.current.hasMoved = true;
+      }
+
+      const rawX = timerDragRef.current.initX + deltaX;
+      const rawY = timerDragRef.current.initY + deltaY;
+
+      const widgetWidth = 84;
+      const widgetHeight = 118;
+      const minX = 8;
+      const maxX = Math.max(minX, window.innerWidth - widgetWidth - 8);
+      const minY = 56;
+      const maxY = Math.max(minY, window.innerHeight - widgetHeight - 16);
+
+      const clampedX = Math.min(Math.max(rawX, minX), maxX);
+      const clampedY = Math.min(Math.max(rawY, minY), maxY);
+
+      setTimerPos({ x: clampedX, y: clampedY });
+    };
+
+    const handlePointerEnd = () => {
+      setIsDraggingTimer(false);
+      setTimeout(() => {
+        timerDragRef.current.hasMoved = false;
+      }, 80);
+    };
+
+    window.addEventListener("mousemove", handlePointerMove);
+    window.addEventListener("mouseup", handlePointerEnd);
+    window.addEventListener("touchmove", handlePointerMove, { passive: false });
+    window.addEventListener("touchend", handlePointerEnd);
+    window.addEventListener("touchcancel", handlePointerEnd);
+
+    return () => {
+      window.removeEventListener("mousemove", handlePointerMove);
+      window.removeEventListener("mouseup", handlePointerEnd);
+      window.removeEventListener("touchmove", handlePointerMove);
+      window.removeEventListener("touchend", handlePointerEnd);
+      window.removeEventListener("touchcancel", handlePointerEnd);
+    };
+  }, [isDraggingTimer]);
 
   // Chaves do localStorage para persistência do treino
   const STORAGE_KEY_SETS = `workout_sets_${planId}`;
@@ -1051,22 +1160,52 @@ export default function WorkoutSessionPlayer() {
         </button>
       </footer>
 
-      {/* Cronômetro Redondo Flutuante no Canto Inferior Esquerdo (Stopwatch Ring) */}
+      {/* Cronômetro Redondo Flutuante Móvel (Stopwatch Ring Draggable) */}
       {isResting && (
-        <div className="fixed bottom-24 left-4 z-40 flex flex-col items-center select-none animate-slide-up">
-          {/* Botões Satélites (+30s e Pular) */}
+        <div
+          ref={timerContainerRef}
+          style={
+            timerPos
+              ? { left: `${timerPos.x}px`, top: `${timerPos.y}px`, bottom: "auto", right: "auto" }
+              : undefined
+          }
+          className={`fixed ${timerPos ? "" : "bottom-24 left-4"} z-40 flex flex-col items-center select-none touch-none animate-slide-up transition-shadow duration-200 ${
+            isDraggingTimer ? "scale-105 opacity-95 cursor-grabbing" : "cursor-grab"
+          }`}
+          onMouseDown={(e) => {
+            if (e.button === 0) {
+              handleTimerDragStart(e.clientX, e.clientY);
+            }
+          }}
+          onTouchStart={(e) => {
+            if (e.touches.length > 0) {
+              handleTimerDragStart(e.touches[0].clientX, e.touches[0].clientY);
+            }
+          }}
+        >
+          {/* Botões Satélites (+30s, Alça de arrasto e Pular) */}
           <div className="flex items-center gap-1.5 mb-1.5 animate-fade-in">
             <button
               type="button"
               onClick={() => adjustRestTime(30)}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               className="px-2.5 py-1 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-95 text-white text-[11px] font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40 cursor-pointer flex items-center gap-1 transition-transform"
               title="Adicionar 30 segundos de descanso"
             >
               <span>+30s</span>
             </button>
+            <div
+              className="w-5 h-5 flex items-center justify-center text-slate-400 opacity-60 hover:opacity-100 cursor-grab active:cursor-grabbing"
+              title="Arraste para mover pela tela"
+            >
+              <GripHorizontal className="w-3.5 h-3.5" />
+            </div>
             <button
               type="button"
               onClick={() => setIsResting(false)}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               className="w-6 h-6 rounded-full bg-slate-900/90 hover:bg-slate-800 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center shadow border border-white/10 cursor-pointer transition-colors"
               title="Pular descanso"
             >
@@ -1074,19 +1213,24 @@ export default function WorkoutSessionPlayer() {
             </button>
           </div>
 
-          {/* Círculo do Cronômetro com Anel SVG */}
+          {/* Círculo do Cronômetro com Anel SVG (Levemente maior: 76px x 76px) */}
           <button
             type="button"
-            onClick={() => setIsResting(false)}
-            className={`relative w-16 h-16 rounded-full bg-slate-950/95 backdrop-blur-xl border shadow-2xl flex flex-col items-center justify-center cursor-pointer group active:scale-95 transition-all duration-300 ${
+            onClick={() => {
+              if (timerDragRef.current.hasMoved) return;
+              setIsResting(false);
+            }}
+            className={`relative w-[76px] h-[76px] rounded-full bg-slate-950/95 backdrop-blur-xl border shadow-2xl flex flex-col items-center justify-center cursor-pointer group active:scale-95 transition-all duration-300 ${
               restTime <= 5
-                ? "border-amber-400/80 shadow-amber-500/20 animate-pulse ring-2 ring-amber-400/40"
+                ? "border-amber-400/80 shadow-amber-500/25 animate-pulse ring-2 ring-amber-400/40"
+                : isDraggingTimer
+                ? "border-[#00C2FF] ring-2 ring-[#00C2FF]/40 shadow-blue-500/30"
                 : "border-white/15 hover:border-[#00C2FF]/60 hover:shadow-blue-500/20"
             }`}
-            title="Toque para pular o descanso"
+            title="Toque para pular o descanso ou arraste para mover"
           >
             {/* Anel de Progresso SVG */}
-            <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 64 64">
+            <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 76 76">
               <defs>
                 <linearGradient id="rest-ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#00C2FF" />
@@ -1095,25 +1239,25 @@ export default function WorkoutSessionPlayer() {
               </defs>
               {/* Trilha inativa */}
               <circle
-                cx="32"
-                cy="32"
-                r="27"
+                cx="38"
+                cy="38"
+                r="32"
                 fill="none"
                 stroke="rgba(255, 255, 255, 0.12)"
-                strokeWidth="3.5"
+                strokeWidth="4"
               />
               {/* Arco de progresso ativo */}
               <circle
-                cx="32"
-                cy="32"
-                r="27"
+                cx="38"
+                cy="38"
+                r="32"
                 fill="none"
                 stroke={restTime <= 5 ? "#F59E0B" : "url(#rest-ring-grad)"}
-                strokeWidth="3.5"
-                strokeDasharray={2 * Math.PI * 27}
+                strokeWidth="4"
+                strokeDasharray={2 * Math.PI * 32}
                 strokeDashoffset={
                   initialRestTime > 0
-                    ? (2 * Math.PI * 27) * (1 - Math.max(0, Math.min(1, restTime / initialRestTime)))
+                    ? (2 * Math.PI * 32) * (1 - Math.max(0, Math.min(1, restTime / initialRestTime)))
                     : 0
                 }
                 strokeLinecap="round"
@@ -1123,14 +1267,14 @@ export default function WorkoutSessionPlayer() {
 
             {/* Tempo Digital no Centro */}
             <div className="relative z-10 flex flex-col items-center justify-center leading-none text-center">
-              <span className="text-[8px] font-bold tracking-wider uppercase text-slate-400 mb-0.5 group-hover:hidden">
-                Rest
+              <span className="text-[9px] font-bold tracking-wider uppercase text-slate-400 mb-0.5 group-hover:hidden">
+                Tempo
               </span>
-              <span className="text-[8px] font-bold tracking-wider uppercase text-red-400 mb-0.5 hidden group-hover:inline">
+              <span className="text-[9px] font-bold tracking-wider uppercase text-red-400 mb-0.5 hidden group-hover:inline">
                 Pular
               </span>
               <span
-                className={`font-mono font-black text-sm tracking-tight transition-colors ${
+                className={`font-mono font-black text-base tracking-tight transition-colors ${
                   restTime <= 5 ? "text-amber-400" : "text-white"
                 }`}
               >
