@@ -69,6 +69,7 @@ export default function ImportWorkoutModal({
   const [activePlanIndex, setActivePlanIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [archivePrevious, setArchivePrevious] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -180,6 +181,7 @@ export default function ImportWorkoutModal({
         : "/api/student/workout-plans";
 
       const payload = parsedPlans.length > 1 ? {
+        archivePrevious,
         plans: parsedPlans.map((p) => ({
           name: p.name,
           division: p.division,
@@ -203,6 +205,7 @@ export default function ImportWorkoutModal({
         division: current.division,
         description: current.description,
         weekDays: current.weekDays,
+        archivePrevious,
         exercises: current.exercises.map((ex) => ({
           exerciseId: ex.exerciseId,
           name: ex.name,
@@ -253,6 +256,7 @@ export default function ImportWorkoutModal({
     setActivePlanIndex(0);
     setSaving(false);
     setSuccess(false);
+    setArchivePrevious(false);
     onClose();
   };
 
@@ -661,7 +665,21 @@ export default function ImportWorkoutModal({
 
         {/* Rodapé Fixo com Efeito Vidro (Sticky Glassmorphic Footer) - Etapa 2 */}
         {parsedPlan && !success && (
-          <div className="p-3.5 sm:p-4 bg-white/95 backdrop-blur-xl border-t border-slate-100/90 shadow-[0_-8px_25px_rgba(0,0,0,0.06)] flex items-center justify-between gap-2.5 sm:gap-3 shrink-0 z-10">
+          <div className="bg-white/95 backdrop-blur-xl border-t border-slate-100/90 shadow-[0_-8px_25px_rgba(0,0,0,0.06)] shrink-0 z-10">
+            {!onPlanSelectedForTrainer && !targetStudentId && (
+              <div className="px-4 py-2 border-b border-slate-100/80 bg-slate-50/60 flex items-center justify-between">
+                <label className="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={archivePrevious}
+                    onChange={(e) => setArchivePrevious(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+                  />
+                  <span>Arquivar treinos anteriores automaticamente para não poluir a tela</span>
+                </label>
+              </div>
+            )}
+            <div className="p-3.5 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={() => setParsedPlans([])}
@@ -706,6 +724,7 @@ export default function ImportWorkoutModal({
                 </>
               )}
             </button>
+            </div>
           </div>
         )}
       </div>

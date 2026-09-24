@@ -53,6 +53,7 @@ interface WorkoutTabProps {
   onArchivePlan: (plan: WorkoutPlan) => Promise<void>;
   onDeletePlan: (planId: string) => Promise<void>;
   onRequestDeletion: (planId: string) => Promise<void>;
+  onBulkAction: (planIds: string[], action: "ARCHIVE" | "UNARCHIVE" | "DELETE") => Promise<void>;
   hasTrainer: boolean;
 }
 
@@ -65,12 +66,15 @@ export default function WorkoutTab({
   onArchivePlan,
   onDeletePlan,
   onRequestDeletion,
+  onBulkAction,
   hasTrainer,
 }: WorkoutTabProps) {
   const [isArchivedSectionOpen, setIsArchivedSectionOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<WorkoutPlan | null>(null);
   const [planToRequestDeletion, setPlanToRequestDeletion] = useState<WorkoutPlan | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
 
   // Separar fichas ativas das arquivadas
   const activePlans = plans.filter((p) => !p.isArchived);
@@ -102,6 +106,42 @@ export default function WorkoutTab({
     setPlanToRequestDeletion(null);
     setPlanToDelete(null);
     await onArchivePlan(plan);
+  };
+
+  const handleToggleSelectPlan = (id: string) => {
+    setSelectedPlanIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedPlanIds.length === activePlans.length) {
+      setSelectedPlanIds([]);
+    } else {
+      setSelectedPlanIds(activePlans.map((p) => p.id));
+    }
+  };
+
+  const handleExecuteBulkAction = async (action: "ARCHIVE" | "DELETE") => {
+    if (selectedPlanIds.length === 0) return;
+    setIsActionLoading(true);
+    try {
+      await onBulkAction(selectedPlanIds, action);
+      setIsBulkModalOpen(false);
+      setSelectedPlanIds([]);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleUnarchiveAll = async () => {
+    if (archivedPlans.length === 0) return;
+    setIsActionLoading(true);
+    try {
+      await onBulkAction(archivedPlans.map((p) => p.id), "UNARCHIVE");
+    } finally {
+      setIsActionLoading(false);
+    }
   };
 
   return (
@@ -152,7 +192,7 @@ export default function WorkoutTab({
       ) : (
         <div className="space-y-6">
           {/* Cabeçalho da Aba */}
-          <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center justify-between pb-1 flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-bold text-slate-800">Meus Treinos</h3>
               <p className="text-[11px] text-slate-500">
@@ -160,14 +200,31 @@ export default function WorkoutTab({
                 {archivedPlans.length > 0 && ` • ${archivedPlans.length} arquivada${archivedPlans.length > 1 ? 's' : ''}`}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onOpenImportModal}
-              className="px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              Importar com IA
-            </button>
+            <div className="flex items-center gap-2">
+              {activePlans.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPlanIds(activePlans.map((p) => p.id));
+                    setIsBulkModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+                  title="Arquivar ou organizar treinos da semana"
+                >
+                  <Archive className="w-3.5 h-3.5 text-slate-600" />
+                  <span className="hidden sm:inline">Arquivar Semana</span>
+                  <span className="sm:hidden">Arquivar</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onOpenImportModal}
+                className="px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                Importar com IA
+              </button>
+            </div>
           </div>
 
           {/* Lista de Fichas Ativas */}
@@ -333,9 +390,26 @@ export default function WorkoutTab({
                   </div>
                   <span className="text-slate-800">Fichas Arquivadas ({archivedPlans.length})</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
-                  <span>{isArchivedSectionOpen ? "Ocultar" : "Visualizar"}</span>
-                  {isArchivedSectionOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <div className="flex items-center gap-2.5">
+                  {archivedPlans.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUnarchiveAll();
+                      }}
+                      disabled={isActionLoading}
+                      className="px-2.5 py-1 rounded-lg border border-slate-300 hover:border-blue-300 hover:bg-white text-slate-600 hover:text-blue-700 text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      title="Restaurar todas as fichas arquivadas para a lista ativa"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Desarquivar Todos</span>
+                    </button>
+                  )}
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
+                    <span>{isArchivedSectionOpen ? "Ocultar" : "Visualizar"}</span>
+                    {isArchivedSectionOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </div>
                 </div>
               </button>
 
@@ -391,6 +465,126 @@ export default function WorkoutTab({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: ORGANIZAR / ARQUIVAR TREINOS EM LOTE (SEMANA)
+          ========================================================================= */}
+      {isBulkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Archive className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#0F172A]">Organizar Treinos da Semana</h3>
+                  <p className="text-[11px] text-[#64748B]">Mova suas fichas para o arquivo em lote</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBulkModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 text-xs text-blue-900 leading-relaxed space-y-1">
+              <p className="font-semibold flex items-center gap-1.5">
+                💡 Organização Semanal Limpa
+              </p>
+              <p className="text-[11px] text-blue-800">
+                Ao arquivar, suas fichas saem da tela principal para você focar no novo ciclo, mas permanecem 100% salvas na gaveta de arquivados. Seus recordes de peso (PRs) e fotos continuam preservados!
+              </p>
+            </div>
+
+            {/* Seletor Todos */}
+            <div className="flex items-center justify-between px-1 py-1">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selectedPlanIds.length === activePlans.length && activePlans.length > 0}
+                  onChange={handleToggleSelectAll}
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+                />
+                <span>Selecionar Todos ({selectedPlanIds.length}/{activePlans.length})</span>
+              </label>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {selectedPlanIds.length} marcado{selectedPlanIds.length > 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {/* Lista de Fichas com Checkboxes */}
+            <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+              {activePlans.map((plan) => {
+                const isSelected = selectedPlanIds.includes(plan.id);
+                return (
+                  <div
+                    key={plan.id}
+                    onClick={() => handleToggleSelectPlan(plan.id)}
+                    className={`p-3 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer select-none ${
+                      isSelected
+                        ? "bg-blue-50/50 border-blue-300 shadow-xs"
+                        : "bg-slate-50 border-slate-200/80 hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => {}}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer pointer-events-none"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
+                          {plan.division || "A"}
+                        </span>
+                        <p className="text-xs font-bold text-slate-800 truncate">
+                          {plan.name}
+                        </p>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5 ml-7">
+                        {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => setIsBulkModalOpen(false)}
+                className="py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition-colors cursor-pointer text-center"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={selectedPlanIds.length === 0 || isActionLoading}
+                onClick={() => handleExecuteBulkAction("DELETE")}
+                className="py-2.5 px-3 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer text-center disabled:opacity-50 disabled:pointer-events-none"
+                title="Excluir fichas selecionadas"
+              >
+                Excluir ({selectedPlanIds.length})
+              </button>
+              <button
+                type="button"
+                disabled={selectedPlanIds.length === 0 || isActionLoading}
+                onClick={() => handleExecuteBulkAction("ARCHIVE")}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer text-center flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <Archive className="w-4 h-4" />
+                <span>Arquivar ({selectedPlanIds.length})</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

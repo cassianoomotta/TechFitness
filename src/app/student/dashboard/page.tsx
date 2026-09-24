@@ -669,32 +669,67 @@ export default function StudentDashboard() {
     }
   };
 
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const response = await fetch("/api/student/workout-plans");
-        if (response.ok) {
-          const data = await response.json();
-          const sorted = sortPlansByWeekDays(data.plans);
-          setPlans(sorted);
-          setTrainer(data.trainer);
-          if (data.lastCompletedPlanId) {
-            setLastCompletedPlanId(data.lastCompletedPlanId);
-            try {
-              localStorage.setItem("tf_last_completed_plan_id", data.lastCompletedPlanId);
-            } catch {}
-          }
-          cachedPlans = sorted;
-          cachedTrainer = data.trainer;
-          setDashboardSessionCache("tf_st_plans", sorted);
-          setDashboardSessionCache("tf_st_trainer", data.trainer);
+  const fetchPlans = async () => {
+    try {
+      const response = await fetch("/api/student/workout-plans");
+      if (response.ok) {
+        const data = await response.json();
+        const sorted = sortPlansByWeekDays(data.plans);
+        setPlans(sorted);
+        setTrainer(data.trainer);
+        if (data.lastCompletedPlanId) {
+          setLastCompletedPlanId(data.lastCompletedPlanId);
+          try {
+            localStorage.setItem("tf_last_completed_plan_id", data.lastCompletedPlanId);
+          } catch {}
         }
-      } catch (error) {
-        console.error("Erro ao buscar treinos:", error);
-      } finally {
-        setLoading(false);
+        cachedPlans = sorted;
+        cachedTrainer = data.trainer;
+        setDashboardSessionCache("tf_st_plans", sorted);
+        setDashboardSessionCache("tf_st_trainer", data.trainer);
       }
-    };
+    } catch (error) {
+      console.error("Erro ao buscar treinos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkAction = async (planIds: string[], action: "ARCHIVE" | "UNARCHIVE" | "DELETE") => {
+    try {
+      const res = await fetch("/api/student/workout-plans/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planIds, action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (action === "ARCHIVE") {
+          setPlans((prev) =>
+            prev.map((p) =>
+              planIds.includes(p.id) ? { ...p, isArchived: true, deletionStatus: "ARCHIVED" } : p
+            )
+          );
+        } else if (action === "UNARCHIVE") {
+          setPlans((prev) =>
+            prev.map((p) =>
+              planIds.includes(p.id) ? { ...p, isArchived: false, deletionStatus: "ACTIVE" } : p
+            )
+          );
+        } else if (action === "DELETE") {
+          await fetchPlans();
+        }
+        showToast(data.message || "Operação realizada com sucesso.");
+      } else {
+        showToast(data.error || "Erro ao processar operação em lote.", "error");
+      }
+    } catch {
+      showToast("Erro de conexão ao executar ação em lote.", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchPlans();
 
     const fetchGamification = async () => {
       try {
@@ -1413,6 +1448,7 @@ export default function StudentDashboard() {
               onArchivePlan={handleArchivePlan}
               onDeletePlan={handleDeletePlan}
               onRequestDeletion={handleRequestDeletion}
+              onBulkAction={handleBulkAction}
               hasTrainer={Boolean(trainer)}
             />
           </div>

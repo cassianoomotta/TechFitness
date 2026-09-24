@@ -240,6 +240,20 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
+    // Se o usuário optou por arquivar automaticamente os treinos anteriores da semana
+    if (body.archivePrevious) {
+      await prisma.workoutPlan.updateMany({
+        where: {
+          studentId: studentProfile.id,
+          isArchived: false,
+        },
+        data: {
+          isArchived: true,
+          deletionStatus: "ARCHIVED",
+        },
+      });
+    }
+
     const createPlanRecord = async (plan: {
       name: string;
       division?: string;
