@@ -293,6 +293,19 @@ export default function WorkoutSessionPlayer() {
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
   const [victoryData, setVictoryData] = useState<any | null>(null);
 
+  // Modal de Cancelamento de Treino
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+
+  const handleCancelWorkout = () => {
+    try {
+      localStorage.removeItem(`workout_start_time_${planId}`);
+      localStorage.removeItem(STORAGE_KEY_SETS);
+      localStorage.removeItem(STORAGE_KEY_REST);
+      localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
+    } catch {}
+    router.push("/student/dashboard");
+  };
+
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -547,11 +560,11 @@ export default function WorkoutSessionPlayer() {
     }
   }, [isResting, restEndTime, STORAGE_KEY_REST]);
 
-  const startRestTimer = (seconds: number) => {
-    if (seconds <= 0) return;
-    const endTime = Date.now() + seconds * 1000;
-    setInitialRestTime(seconds);
-    setRestTime(seconds);
+  const startRestTimer = (seconds?: number | null) => {
+    const validSeconds = seconds && Number(seconds) > 0 ? Number(seconds) : 60;
+    const endTime = Date.now() + validSeconds * 1000;
+    setInitialRestTime(validSeconds);
+    setRestTime(validSeconds);
     setRestEndTime(endTime);
     setIsResting(true);
     try {
@@ -576,28 +589,27 @@ export default function WorkoutSessionPlayer() {
     }
   };
 
-  const handleToggleSetComplete = (exIndex: number, setIndex: number, restSeconds: number) => {
-    let willRest = false;
+  const handleToggleSetComplete = (exIndex: number, setIndex: number, restSeconds?: number | null) => {
+    const currentSets = setsDataRef.current[exIndex] || setsData[exIndex] || [];
+    const isCurrentlyCompleted = Boolean(currentSets[setIndex]?.completed);
+    const nextCompleted = !isCurrentlyCompleted;
+
     updateSetsData((prev) => {
-      const currentSets = [...(prev[exIndex] || [])];
-      if (!currentSets[setIndex]) return prev;
-      const isCompleted = !currentSets[setIndex].completed;
-      willRest = isCompleted;
-
-      currentSets[setIndex] = {
-        ...currentSets[setIndex],
-        completed: isCompleted,
+      const sets = [...(prev[exIndex] || [])];
+      if (!sets[setIndex]) return prev;
+      sets[setIndex] = {
+        ...sets[setIndex],
+        completed: nextCompleted,
       };
-
       return {
         ...prev,
-        [exIndex]: currentSets,
+        [exIndex]: sets,
       };
     });
 
-    // Se marcou como completo, inicia o descanso do exercício
-    if (willRest) {
-      startRestTimer(restSeconds);
+    // Se marcou como completo, inicia o descanso do exercício imediatamente
+    if (nextCompleted) {
+      startRestTimer(restSeconds || 60);
     }
   };
 
@@ -773,10 +785,24 @@ export default function WorkoutSessionPlayer() {
           </div>
         </div>
 
-        {/* Cronômetro Geral do Treino */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E2E8F0] text-[#0F172A] font-mono text-xs font-semibold">
-          <Clock className="w-4 h-4 text-emerald-655 animate-pulse" />
-          {formatTime(totalSeconds)}
+        {/* Controles de Cabeçalho: Cronômetro Geral e Cancelar */}
+        <div className="flex items-center gap-2">
+          {/* Cronômetro Geral do Treino */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] font-mono text-xs font-semibold shadow-xs">
+            <Clock className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            {formatTime(totalSeconds)}
+          </div>
+
+          {/* Botão Cancelar Treino */}
+          <button
+            type="button"
+            onClick={() => setIsCancelModalOpen(true)}
+            className="p-1.5 px-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+            title="Cancelar treino e descartar sessão"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Cancelar</span>
+          </button>
         </div>
       </header>
 
@@ -1027,11 +1053,7 @@ export default function WorkoutSessionPlayer() {
 
       {/* Cronômetro Redondo Flutuante no Canto Inferior Esquerdo (Stopwatch Ring) */}
       {isResting && (
-        <div
-          className={`fixed bottom-24 left-4 z-40 flex flex-col items-center select-none transition-all duration-300 ease-out ${
-            isInputFocused ? "opacity-0 translate-y-8 pointer-events-none" : "opacity-100 translate-y-0"
-          }`}
-        >
+        <div className="fixed bottom-24 left-4 z-40 flex flex-col items-center select-none animate-slide-up">
           {/* Botões Satélites (+30s e Pular) */}
           <div className="flex items-center gap-1.5 mb-1.5 animate-fade-in">
             <button
@@ -1116,6 +1138,39 @@ export default function WorkoutSessionPlayer() {
               </span>
             </div>
           </button>
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Cancelamento de Treino */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-xs bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <X className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-slate-900">Cancelar Treino?</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Se cancelar agora, as cargas e séries registradas nesta sessão serão descartadas.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleCancelWorkout}
+                className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-all shadow-md shadow-red-500/20 active:scale-95 cursor-pointer"
+              >
+                Sim, Cancelar Treino
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(false)}
+                className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all active:scale-95 cursor-pointer"
+              >
+                Continuar Treinando
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
