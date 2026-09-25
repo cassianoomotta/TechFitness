@@ -936,7 +936,7 @@ export default function BodyCompositionDietCalculator({
                         Consumo Hídrico Diário Recomendado
                       </span>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800">
-                        {dietGoal === "cutting" ? "Emagrecer (42 ml/kg)" : dietGoal === "bulking" ? "Hipertrofia (48 ml/kg)" : "Manutenção (38 ml/kg)"}
+                        {dietGoal === "cutting" ? "Emagrecimento (42 ml/kg)" : dietGoal === "bulking" ? "Hipertrofia (48 ml/kg)" : "Manutenção (38 ml/kg)"}
                       </span>
                     </div>
                     <p className="text-[11px] text-cyan-800/80 mt-0.5">
