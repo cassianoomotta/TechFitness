@@ -102,6 +102,7 @@ export default function WorkoutSessionPlayer() {
 
   // Referências para áudio em segundo plano e tela bloqueada (Keep-Alive e Apito de Hardware)
   const keepAliveAudioRef = useRef<HTMLAudioElement | null>(null);
+  const directAudioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<ScreenWakeLockSentinel | null>(null);
   const hasPlayedAlertRef = useRef(false);
   const playRestAlertSoundRef = useRef<() => void>(() => {});
@@ -119,39 +120,57 @@ export default function WorkoutSessionPlayer() {
         navigator.mediaSession.playbackState = "none";
         navigator.mediaSession.metadata = null;
         try {
-          navigator.mediaSession.setActionHandler("play", null);
-          navigator.mediaSession.setActionHandler("pause", null);
-          navigator.mediaSession.setActionHandler("stop", null);
-          navigator.mediaSession.setActionHandler("seekbackward", null);
-          navigator.mediaSession.setActionHandler("seekforward", null);
-          navigator.mediaSession.setActionHandler("previoustrack", null);
-          navigator.mediaSession.setActionHandler("nexttrack", null);
+          const actions: MediaSessionAction[] = [
+            "play",
+            "pause",
+            "stop",
+            "seekbackward",
+            "seekforward",
+            "previoustrack",
+            "nexttrack",
+          ];
+          actions.forEach((act) => {
+            try {
+              navigator.mediaSession.setActionHandler(act, null);
+            } catch {}
+          });
         } catch {}
       }
     } catch {}
 
+    // Descarregar completamente o áudio de silêncio (essencial para o iOS fechar o card Now Playing da tela de bloqueio)
     if (keepAliveAudioRef.current) {
       try {
         keepAliveAudioRef.current.pause();
-        keepAliveAudioRef.current.currentTime = 0;
+        keepAliveAudioRef.current.removeAttribute("src");
+        keepAliveAudioRef.current.load();
+      } catch {}
+      keepAliveAudioRef.current = null;
+    }
+
+    // Descarregar áudio direto do apito
+    if (directAudioRef.current) {
+      try {
+        directAudioRef.current.pause();
+        directAudioRef.current.removeAttribute("src");
+        directAudioRef.current.load();
+      } catch {}
+      directAudioRef.current = null;
+    }
+
+    // Suspender AudioContext para liberar o hardware de som no iOS Safari
+    if (audioCtxRef.current && audioCtxRef.current.state === "running") {
+      try {
+        audioCtxRef.current.suspend().catch(() => {});
       } catch {}
     }
   }, []);
 
-  // Inicializar elemento de áudio silencioso e pré-carregar buffer de apito na memória RAM
+  // Pré-carregar buffer de apito na memória RAM para resposta instantânea
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     let isMounted = true;
-
-    try {
-      const silence = new Audio("/sounds/silence.wav");
-      silence.loop = true;
-      silence.volume = 0.05;
-      keepAliveAudioRef.current = silence;
-    } catch (e) {
-      console.warn("Erro ao instanciar elemento de áudio silencioso:", e);
-    }
 
     const initAudioContextAndBuffer = async () => {
       try {
@@ -923,16 +942,34 @@ export default function WorkoutSessionPlayer() {
         scheduleWhistleSequence(ctx.currentTime);
       }
 
-      // Redundância extra via HTML5 Audio para primeiro plano
+      // Redundância extra via HTML5 Audio para primeiro plano com descarte automático ao término
       try {
+        if (directAudioRef.current) {
+          directAudioRef.current.pause();
+          directAudioRef.current.removeAttribute("src");
+          directAudioRef.current.load();
+          directAudioRef.current = null;
+        }
         const directAudio = new Audio("/sounds/whistle.wav");
         directAudio.volume = 1.0;
+        directAudioRef.current = directAudio;
+        directAudio.onended = () => {
+          try {
+            directAudio.pause();
+            directAudio.removeAttribute("src");
+            directAudio.load();
+          } catch {}
+          if (directAudioRef.current === directAudio) {
+            directAudioRef.current = null;
+          }
+          clearLockScreenMediaSession();
+        };
         directAudio.play().catch(() => {});
       } catch {}
     } catch (err) {
       console.warn("Erro ao reproduzir apito imediato:", err);
     }
-  }, [scheduleWhistleSequence]);
+  }, [clearLockScreenMediaSession, scheduleWhistleSequence]);
 
   useEffect(() => {
     playWhistleImmediatelyRef.current = playWhistleImmediately;
@@ -1100,11 +1137,20 @@ export default function WorkoutSessionPlayer() {
       }
 
       // 3. Iniciar áudio silencioso de segundo plano para manter o processo e CoreAudio acordados
-      if (keepAliveAudioRef.current) {
-        try {
-          keepAliveAudioRef.current.currentTime = 0;
-          keepAliveAudioRef.current.play().catch(() => {});
-        } catch {}
+      try {
+        if (keepAliveAudioRef.current) {
+          keepAliveAudioRef.current.pause();
+          keepAliveAudioRef.current.removeAttribute("src");
+          keepAliveAudioRef.current.load();
+          keepAliveAudioRef.current = null;
+        }
+        const silence = new Audio("/sounds/silence.wav");
+        silence.loop = true;
+        silence.volume = 0.05;
+        keepAliveAudioRef.current = silence;
+        silence.play().catch(() => {});
+      } catch (err) {
+        console.warn("Erro ao iniciar áudio silencioso:", err);
       }
 
       // 4. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds

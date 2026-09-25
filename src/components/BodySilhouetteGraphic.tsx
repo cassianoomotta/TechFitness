@@ -371,18 +371,15 @@ export default function BodySilhouetteGraphic({
               <button
                 type="button"
                 onClick={() => onGoalChange && onGoalChange("cutting")}
-                className={`px-1.5 py-2 sm:px-2.5 sm:py-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
+                className={`px-1.5 py-2.5 sm:px-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
                   dietGoal === "cutting"
                     ? "bg-rose-950/60 border-rose-500 text-rose-300 ring-2 ring-rose-500/40 shadow-sm"
                     : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
                 }`}
               >
-                <div className="flex items-center justify-center gap-0.5 sm:gap-1 w-full min-w-0">
-                  <span className="text-[10.5px] sm:text-xs font-bold block text-slate-200 truncate">
-                    Emagrecimento
-                  </span>
-                  {dietGoal === "cutting" && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>}
-                </div>
+                <span className="text-xs sm:text-xs font-bold block text-slate-200">
+                  Emagrecer
+                </span>
                 <span className="text-sm font-extrabold font-mono text-white block mt-0.5">
                   {waterCuttingL} L
                 </span>
@@ -394,18 +391,15 @@ export default function BodySilhouetteGraphic({
               <button
                 type="button"
                 onClick={() => onGoalChange && onGoalChange("maintenance")}
-                className={`px-1.5 py-2 sm:px-2.5 sm:py-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
+                className={`px-1.5 py-2.5 sm:px-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
                   dietGoal === "maintenance"
                     ? "bg-blue-950/60 border-blue-500 text-blue-300 ring-2 ring-blue-500/40 shadow-sm"
                     : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
                 }`}
               >
-                <div className="flex items-center justify-center gap-0.5 sm:gap-1 w-full min-w-0">
-                  <span className="text-[10.5px] sm:text-xs font-bold block text-slate-200 truncate">
-                    Manutenção
-                  </span>
-                  {dietGoal === "maintenance" && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>}
-                </div>
+                <span className="text-xs sm:text-xs font-bold block text-slate-200">
+                  Manter
+                </span>
                 <span className="text-sm font-extrabold font-mono text-white block mt-0.5">
                   {waterMaintenanceL} L
                 </span>
@@ -417,18 +411,15 @@ export default function BodySilhouetteGraphic({
               <button
                 type="button"
                 onClick={() => onGoalChange && onGoalChange("bulking")}
-                className={`px-1.5 py-2 sm:px-2.5 sm:py-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
+                className={`px-1.5 py-2.5 sm:px-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
                   dietGoal === "bulking"
                     ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 ring-2 ring-emerald-500/40 shadow-sm"
                     : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
                 }`}
               >
-                <div className="flex items-center justify-center gap-0.5 sm:gap-1 w-full min-w-0">
-                  <span className="text-[10.5px] sm:text-xs font-bold block text-slate-200 truncate">
-                    Hipertrofia
-                  </span>
-                  {dietGoal === "bulking" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>}
-                </div>
+                <span className="text-xs sm:text-xs font-bold block text-slate-200">
+                  Hipertrofia
+                </span>
                 <span className="text-sm font-extrabold font-mono text-white block mt-0.5">
                   {waterBulkingL} L
                 </span>
@@ -438,27 +429,33 @@ export default function BodySilhouetteGraphic({
               </button>
             </div>
 
-            {/* Micro-explicação dinâmica conforme a meta selecionada */}
-            <p className="text-xs text-slate-200 leading-relaxed bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80">
+            {/* Micro-explicação dinâmica conforme a meta selecionada (Direta e sem repetições redundantes) */}
+            <div className="text-xs text-slate-200 leading-relaxed bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80 flex items-start gap-2">
               {dietGoal === "cutting" && (
-                <span>
-                  <Flame className="w-3.5 h-3.5 inline text-orange-400 mr-1.5 align-text-bottom" />
-                  <strong>Meta Ativa (Emagrecimento • 42 ml/kg):</strong> Ingerir {waterCuttingL} L/dia acelera a queima de gordura (lipólise), combate a retenção de líquidos e reduz o apetite nas refeições.
-                </span>
+                <>
+                  <Flame className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-white">42 ml/kg:</strong> Ingerir {waterCuttingL} L/dia acelera a queima de gordura (lipólise), combate a retenção de líquidos e reduz o apetite nas refeições.
+                  </div>
+                </>
               )}
               {dietGoal === "maintenance" && (
-                <span>
-                  <Scale className="w-3.5 h-3.5 inline text-blue-400 mr-1.5 align-text-bottom" />
-                  <strong>Meta Ativa (Manutenção • 38 ml/kg):</strong> Ingerir {waterMaintenanceL} L/dia sustenta o equilíbrio metabólico, bom funcionamento renal e hidratação profunda dos tecidos.
-                </span>
+                <>
+                  <Scale className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-white">38 ml/kg:</strong> Ingerir {waterMaintenanceL} L/dia sustenta o equilíbrio metabólico, bom funcionamento renal e hidratação profunda dos tecidos.
+                  </div>
+                </>
               )}
               {dietGoal === "bulking" && (
-                <span>
-                  <BicepsFlexed className="w-3.5 h-3.5 inline text-blue-400 mr-1.5 align-text-bottom" />
-                  <strong>Meta Ativa (Hipertrofia • 48 ml/kg):</strong> Ingerir {waterBulkingL} L/dia é essencial para a volumização celular muscular, transporte de glicogênio e absorção de creatina.
-                </span>
+                <>
+                  <BicepsFlexed className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-white">48 ml/kg:</strong> Ingerir {waterBulkingL} L/dia é essencial para a volumização celular muscular, transporte de glicogênio e absorção de creatina.
+                  </div>
+                </>
               )}
-            </p>
+            </div>
           </div>
         </div>
       </div>
@@ -472,7 +469,7 @@ export default function BodySilhouetteGraphic({
           className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/50 transition-colors cursor-pointer min-h-[48px]"
         >
           <div className="flex items-center gap-3">
-            <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
+            <span className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
               <Info className="w-5 h-5" />
             </span>
             <div>
@@ -492,15 +489,15 @@ export default function BodySilhouetteGraphic({
         {/* Conteúdo Expansível com Navegação em Barra Deslizável sem Truncamento */}
         {isGuideOpen && (
           <div className="p-4 pt-1 border-t border-slate-800/80 space-y-4 animate-fade-in">
-            {/* Navegação entre Abas com Texto 100% Visível e Scroll Suave (Sem truncamento) */}
+            {/* Navegação entre Abas com Design System TechFitness (Lucide Icons + Glassmorphic Pills) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
               <button
                 type="button"
                 onClick={() => setActiveGuideTab("intake")}
                 className={`py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap shrink-0 min-h-[44px] ${
                   activeGuideTab === "intake"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-                    : "bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 border border-blue-500"
+                    : "bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-slate-800"
                 }`}
               >
                 <Droplets className="w-4 h-4 text-cyan-400" />
@@ -512,11 +509,11 @@ export default function BodySilhouetteGraphic({
                 onClick={() => setActiveGuideTab("biotype")}
                 className={`py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap shrink-0 min-h-[44px] ${
                   activeGuideTab === "biotype"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-                    : "bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 border border-blue-500"
+                    : "bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-slate-800"
                 }`}
               >
-                <User className="w-4 h-4 text-amber-400" />
+                <User className="w-4 h-4 text-blue-400" />
                 <span>Biotipo e Silhueta</span>
               </button>
 
@@ -525,8 +522,8 @@ export default function BodySilhouetteGraphic({
                 onClick={() => setActiveGuideTab("composition")}
                 className={`py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap shrink-0 min-h-[44px] ${
                   activeGuideTab === "composition"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-                    : "bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 border border-blue-500"
+                    : "bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-slate-800"
                 }`}
               >
                 <BicepsFlexed className="w-4 h-4 text-blue-400" />
@@ -539,7 +536,7 @@ export default function BodySilhouetteGraphic({
               <div className="space-y-3 animate-fade-in">
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    <Droplets className="w-4 h-4 text-cyan-400 shrink-0" />
                     <h6 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                       Tabela Comparativa de Consumo por Objetivo
                     </h6>
@@ -556,7 +553,10 @@ export default function BodySilhouetteGraphic({
                       }`}
                     >
                       <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <span className="text-sm font-bold text-rose-300">Emagrecimento</span>
+                        <div className="flex items-center gap-1.5">
+                          <Flame className="w-4 h-4 text-rose-400" />
+                          <span className="text-sm font-bold text-rose-300">Emagrecimento</span>
+                        </div>
                         <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">
                           Cutting
                         </span>
@@ -591,7 +591,10 @@ export default function BodySilhouetteGraphic({
                       }`}
                     >
                       <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <span className="text-sm font-bold text-blue-300">Manutenção</span>
+                        <div className="flex items-center gap-1.5">
+                          <Scale className="w-4 h-4 text-blue-400" />
+                          <span className="text-sm font-bold text-blue-300">Manutenção</span>
+                        </div>
                         <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
                           Equilíbrio
                         </span>
@@ -626,7 +629,10 @@ export default function BodySilhouetteGraphic({
                       }`}
                     >
                       <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <span className="text-sm font-bold text-emerald-300">Hipertrofia</span>
+                        <div className="flex items-center gap-1.5">
+                          <BicepsFlexed className="w-4 h-4 text-emerald-400" />
+                          <span className="text-sm font-bold text-emerald-300">Hipertrofia</span>
+                        </div>
                         <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
                           Bulking Limpo
                         </span>
@@ -659,7 +665,7 @@ export default function BodySilhouetteGraphic({
             {activeGuideTab === "biotype" && (
               <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3.5 animate-fade-in">
                 <div className="flex items-start gap-3">
-                  <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0 flex items-center justify-center">
+                  <span className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0 flex items-center justify-center">
                     <User className="w-4 h-4" />
                   </span>
                   <div className="space-y-1.5">
@@ -678,30 +684,30 @@ export default function BodySilhouetteGraphic({
                 <div className="space-y-2 pt-2 border-t border-slate-800">
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                      <Flame className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                       <span className="font-bold text-cyan-300 text-xs">Ectomorfo (Metabolismo Ágil)</span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed pl-4">
+                    <p className="text-xs text-slate-300 leading-relaxed pl-5">
                       Queima calorias com extrema facilidade. Necessita de maior ingestão de calorias e carboidratos para construir e manter massa magra.
                     </p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+                      <BicepsFlexed className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                       <span className="font-bold text-blue-300 text-xs">Mesomorfo (Equilibrado e Atlético)</span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed pl-4">
+                    <p className="text-xs text-slate-300 leading-relaxed pl-5">
                       Excelente resposta ao treinamento de força. Ganha massa muscular com facilidade e responde rapidamente a pequenos ajustes na dieta.
                     </p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                      <Scale className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span className="font-bold text-amber-300 text-xs">Endomorfo (Metabolismo Eficiente)</span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed pl-4">
+                    <p className="text-xs text-slate-300 leading-relaxed pl-5">
                       Metabolismo que poupa energia e estoca gordura com facilidade. Responde de forma espetacular a dietas com controle refinado de carboidratos.
                     </p>
                   </div>
@@ -715,7 +721,7 @@ export default function BodySilhouetteGraphic({
                 {/* Bloco Massa Magra */}
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-2">
                   <div className="flex items-center gap-2 text-blue-300 font-bold text-sm">
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
                       <BicepsFlexed className="w-4 h-4" />
                     </div>
                     <span>Massa Magra: {leanMass} kg ({leanPercent.toFixed(1)}%)</span>
@@ -724,7 +730,7 @@ export default function BodySilhouetteGraphic({
                     Representa toda a massa metabolicamente ativa do seu corpo: <strong>músculos, ossos, órgãos vitais e sangue</strong>.
                   </p>
                   <p className="text-slate-300 text-xs leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex items-start gap-2">
-                    <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                     <span><strong>Impacto no metabolismo:</strong> Cada quilo de massa magra ganho eleva seu gasto calórico diário mesmo em repouso, tornando o emagrecimento definitivo e sustentável.</span>
                   </p>
                 </div>
@@ -732,7 +738,7 @@ export default function BodySilhouetteGraphic({
                 {/* Bloco Água Corporal */}
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-2">
                   <div className="flex items-center gap-2 text-cyan-300 font-bold text-sm">
-                    <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center shrink-0">
                       <Droplets className="w-4 h-4" />
                     </div>
                     <span>Água Corporal: {waterKg} Litros ({waterPercent.toFixed(1)}%)</span>
