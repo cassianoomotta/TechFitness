@@ -29,6 +29,11 @@ import {
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 
+interface ScreenWakeLockSentinel {
+  released: boolean;
+  release: () => Promise<void>;
+  addEventListener?: (type: string, listener: () => void) => void;
+}
 
 interface Exercise {
   id: string;
@@ -94,6 +99,81 @@ export default function WorkoutSessionPlayer() {
 
   // Estado do Som/Apito do Cronômetro (persistido no dispositivo)
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
+
+  // Referências para áudio em segundo plano e tela bloqueada (Keep-Alive e Apito)
+  const keepAliveAudioRef = useRef<HTMLAudioElement | null>(null);
+  const whistleAudioRef = useRef<HTMLAudioElement | null>(null);
+  const wakeLockRef = useRef<ScreenWakeLockSentinel | null>(null);
+  const hasPlayedAlertRef = useRef(false);
+
+  // Inicializar elementos de áudio HTML5 (canal de mídia real para segundo plano)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const silence = new Audio("/sounds/silence.wav");
+      silence.loop = true;
+      silence.volume = 0.01;
+      keepAliveAudioRef.current = silence;
+
+      const whistle = new Audio("/sounds/whistle.wav");
+      whistle.preload = "auto";
+      whistleAudioRef.current = whistle;
+    } catch (e) {
+      console.warn("Erro ao instanciar elementos de áudio:", e);
+    }
+
+    return () => {
+      if (keepAliveAudioRef.current) {
+        keepAliveAudioRef.current.pause();
+        keepAliveAudioRef.current = null;
+      }
+      if (whistleAudioRef.current) {
+        whistleAudioRef.current.pause();
+        whistleAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Screen Wake Lock API: Impede a tela do celular de apagar por inatividade durante a sessão de treino
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if (
+          typeof navigator !== "undefined" &&
+          "wakeLock" in navigator &&
+          document.visibilityState === "visible"
+        ) {
+          const navWithWakeLock = navigator as unknown as {
+            wakeLock: {
+              request: (type: "screen") => Promise<ScreenWakeLockSentinel>;
+            };
+          };
+          wakeLockRef.current = await navWithWakeLock.wakeLock.request("screen");
+        }
+      } catch {
+        // Ignorar em caso de bateria muito baixa ou restrição do OS
+      }
+    };
+
+    requestWakeLock();
+
+    const handleVisibilityChangeWakeLock = () => {
+      if (document.visibilityState === "visible") {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChangeWakeLock);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChangeWakeLock);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+  }, []);
 
   // Restaurar preferência de som do cronômetro do localStorage
   useEffect(() => {
@@ -313,6 +393,9 @@ export default function WorkoutSessionPlayer() {
               setRestTime(0);
               setRestEndTime(null);
               localStorage.removeItem(STORAGE_KEY_REST);
+              if (!hasPlayedAlertRef.current) {
+                playRestAlertSound();
+              }
             }
           }
         } catch {}
@@ -408,7 +491,7 @@ export default function WorkoutSessionPlayer() {
     }
   };
 
-  // Modal de Finalização & Comprovação de Foto
+  // Modal de Finalização e Comprovação de Foto
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
   const [workoutPhoto, setWorkoutPhoto] = useState<string | null>(null);
   const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
@@ -632,17 +715,8 @@ export default function WorkoutSessionPlayer() {
     }
   }, [planId, router, updateSetsData, STORAGE_KEY_PLAN_CACHE, STORAGE_KEY_SETS]);
 
-  const playRestAlertSound = () => {
-    // Alerta tátil: vibração esportiva sincronizada com o novo tempo estendido (350ms, pausa 120ms, 1000ms firme)
-    try {
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate([350, 120, 1000]);
-      }
-    } catch {}
-
-    // Se o som estiver desativado pelo aluno, mantém o cronômetro em silêncio
-    if (!timerSoundEnabled) return;
-
+  // Sintetizador Web Audio API de reforço / fallback
+  const playSynthesizedWhistle = () => {
     try {
       const AudioContextClass =
         typeof window !== "undefined"
@@ -656,26 +730,21 @@ export default function WorkoutSessionPlayer() {
         audioCtx.resume();
       }
 
-      // Função geradora de toque de apito esportivo encorpado e realista
       const playWhistleBurst = (startTime: number, duration: number, peakVolume = 0.28) => {
         const osc1 = audioCtx.createOscillator();
         const osc2 = audioCtx.createOscillator();
         const oscHarmonic = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
 
-        // Frequências ressonantes de apito esportivo profissional (Fox 40 / Árbitro)
-        // 2550 Hz e 2820 Hz criam o batimento acústico característico sem soar estridente
         osc1.type = "sine";
         osc1.frequency.setValueAtTime(2550, startTime);
 
         osc2.type = "sine";
         osc2.frequency.setValueAtTime(2820, startTime);
 
-        // Harmônico sutil (5370 Hz) para dar presença de ar real
         oscHarmonic.type = "sine";
         oscHarmonic.frequency.setValueAtTime(5370, startTime);
 
-        // Oscilador de trinado (vibrato de 28Hz) emulando o vórtice de ar interno do apito
         const flutterOsc = audioCtx.createOscillator();
         const flutterGain = audioCtx.createGain();
         flutterOsc.frequency.setValueAtTime(28, startTime);
@@ -683,7 +752,6 @@ export default function WorkoutSessionPlayer() {
         flutterOsc.connect(osc1.frequency);
         flutterOsc.connect(osc2.frequency);
 
-        // Envelope dinâmico de sopro esportivo profissional
         gain.gain.setValueAtTime(0.001, startTime);
         gain.gain.linearRampToValueAtTime(peakVolume, startTime + 0.05);
         gain.gain.setValueAtTime(peakVolume, startTime + duration - 0.09);
@@ -706,11 +774,6 @@ export default function WorkoutSessionPlayer() {
       };
 
       const now = audioCtx.currentTime;
-      // Apito esportivo estendido (+1.5s):
-      // Toque 1: Alerta curto de 0.35s
-      // Intervalo: 0.12s
-      // Toque 2: Apito decisivo longo e firme de 1.40s
-      // Duração total: ~1.87s
       playWhistleBurst(now, 0.35, 0.26);
       playWhistleBurst(now + 0.47, 1.40, 0.30);
     } catch (e) {
@@ -718,7 +781,75 @@ export default function WorkoutSessionPlayer() {
     }
   };
 
-  // Gerenciamento do Temporizador de Descanso (Timestamp-based)
+  const playRestAlertSound = () => {
+    hasPlayedAlertRef.current = true;
+
+    // Parar áudio de segundo plano keep-alive
+    if (keepAliveAudioRef.current) {
+      try {
+        keepAliveAudioRef.current.pause();
+      } catch {}
+    }
+
+    // 1. Alerta tátil: vibração esportiva sincronizada
+    try {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate([350, 120, 1000]);
+      }
+    } catch {}
+
+    // 2. Disparar notificação nativa do sistema em segundo plano / tela bloqueada
+    try {
+      if (
+        typeof window !== "undefined" &&
+        "Notification" in window &&
+        Notification.permission === "granted" &&
+        document.visibilityState === "hidden"
+      ) {
+        new Notification("TechFitness — Hora do Show! 🏋️‍♂️", {
+          body: "Tempo de descanso encerrado! Bora para a próxima série!",
+          icon: "/logo.png",
+          badge: "/logo.png",
+        });
+      }
+    } catch {}
+
+    // Se o som estiver desativado pelo aluno, mantém em silêncio
+    if (!timerSoundEnabled) return;
+
+    // 3. Tocar o arquivo de áudio real do apito (funciona com tela bloqueada e em segundo plano via canal de mídia)
+    if (whistleAudioRef.current) {
+      try {
+        whistleAudioRef.current.currentTime = 0;
+        const playPromise = whistleAudioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            playSynthesizedWhistle();
+          });
+        }
+      } catch {
+        playSynthesizedWhistle();
+      }
+    } else {
+      playSynthesizedWhistle();
+    }
+  };
+
+  const stopRestTimer = () => {
+    setIsResting(false);
+    setRestTime(0);
+    setRestEndTime(null);
+    try {
+      localStorage.removeItem(STORAGE_KEY_REST);
+    } catch {}
+    if (keepAliveAudioRef.current) {
+      try {
+        keepAliveAudioRef.current.pause();
+      } catch {}
+    }
+  };
+
+  // Gerenciamento do Temporizador de Descanso (Timestamp-based com precisão em segundo plano)
   useEffect(() => {
     if (isResting && restEndTime !== null) {
       const updateRest = () => {
@@ -728,39 +859,90 @@ export default function WorkoutSessionPlayer() {
           setRestTime(0);
           setRestEndTime(null);
           try { localStorage.removeItem(STORAGE_KEY_REST); } catch {}
-          playRestAlertSound();
+          if (!hasPlayedAlertRef.current) {
+            playRestAlertSound();
+          }
         } else {
           setRestTime(remaining);
+          // Atualizar contador na tela de bloqueio via MediaSession
+          try {
+            if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+              navigator.mediaSession.metadata = new MediaMetadata({
+                title: `Descanso: ${remaining}s`,
+                artist: "TechFitness",
+                album: plan?.name || "Treino em Andamento",
+                artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
+              });
+            }
+          } catch {}
         }
       };
 
       updateRest();
       const timer = setInterval(updateRest, 1000);
-      return () => clearInterval(timer);
+
+      // Timeout exato programado para o término do descanso mesmo se setInterval sofrer throttling
+      const msUntilEnd = Math.max(0, restEndTime - Date.now());
+      const exactTimeout = setTimeout(() => {
+        updateRest();
+      }, msUntilEnd);
+
+      return () => {
+        clearInterval(timer);
+        clearTimeout(exactTimeout);
+      };
     }
-  }, [isResting, restEndTime, STORAGE_KEY_REST]);
+  }, [isResting, restEndTime, STORAGE_KEY_REST, plan]);
 
   const startRestTimer = (seconds?: number | null) => {
     const validSeconds = seconds && Number(seconds) > 0 ? Number(seconds) : 60;
     const endTime = Date.now() + validSeconds * 1000;
+    hasPlayedAlertRef.current = false;
     setInitialRestTime(validSeconds);
     setRestTime(validSeconds);
     setRestEndTime(endTime);
     setIsResting(true);
     try {
       localStorage.setItem(STORAGE_KEY_REST, String(endTime));
-    } catch {
-      // Ignorar
+    } catch {}
+
+    // Iniciar áudio silencioso de segundo plano para manter o processo ativo com tela bloqueada / em outro app
+    if (timerSoundEnabled && keepAliveAudioRef.current) {
+      try {
+        keepAliveAudioRef.current.currentTime = 0;
+        keepAliveAudioRef.current.play().catch(() => {});
+      } catch {}
     }
+
+    // Registrar sessão de mídia na tela de bloqueio (iOS / Android)
+    try {
+      if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: `Descanso: ${validSeconds}s`,
+          artist: "TechFitness",
+          album: plan?.name || "Treino em Andamento",
+          artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
+        });
+      }
+    } catch {}
+
+    // Solicitar permissão de notificação se ainda não solicitou
+    try {
+      if (
+        typeof window !== "undefined" &&
+        "Notification" in window &&
+        Notification.permission === "default"
+      ) {
+        Notification.requestPermission().catch(() => {});
+      }
+    } catch {}
   };
 
   const adjustRestTime = (amountSeconds: number) => {
     if (restEndTime === null) return;
     const newEndTime = restEndTime + (amountSeconds * 1000);
     if (newEndTime <= Date.now()) {
-      setIsResting(false);
-      setRestTime(0);
-      setRestEndTime(null);
+      stopRestTimer();
     } else {
       setRestEndTime(newEndTime);
       const newRemaining = Math.round((newEndTime - Date.now()) / 1000);
@@ -1342,7 +1524,7 @@ export default function WorkoutSessionPlayer() {
             </div>
             <button
               type="button"
-              onClick={() => setIsResting(false)}
+              onClick={stopRestTimer}
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
               className="w-6 h-6 rounded-full bg-slate-900/90 hover:bg-slate-800 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center shadow border border-white/10 cursor-pointer transition-colors"
@@ -1357,7 +1539,7 @@ export default function WorkoutSessionPlayer() {
             type="button"
             onClick={() => {
               if (timerDragRef.current.hasMoved) return;
-              setIsResting(false);
+              stopRestTimer();
             }}
             className={`relative w-[76px] h-[76px] rounded-full bg-slate-950/95 backdrop-blur-xl border shadow-2xl flex flex-col items-center justify-center cursor-pointer group active:scale-95 transition-all duration-300 ${
               restTime <= 5

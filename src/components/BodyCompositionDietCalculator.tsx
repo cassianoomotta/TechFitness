@@ -58,19 +58,14 @@ export default function BodyCompositionDietCalculator({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Validação estrita de campos obrigatórios
+  // Validação estrita de campos fundamentais (apenas Idade, Altura e Peso são obrigatórios)
   const missingFields = useMemo(() => {
     const list: { field: string; label: string }[] = [];
     if (!age.trim() || parseFloat(age) <= 0) list.push({ field: "age", label: "Idade" });
     if (!height.trim() || parseFloat(height) <= 0) list.push({ field: "height", label: "Altura" });
     if (!weight.trim() || parseFloat(weight) <= 0) list.push({ field: "weight", label: "Peso" });
-    if (!waist.trim() || parseFloat(waist) <= 0) list.push({ field: "waist", label: "Cintura" });
-    if (!neck.trim() || parseFloat(neck) <= 0) list.push({ field: "neck", label: "Pescoço" });
-    if (sex === "female" && (!hip.trim() || parseFloat(hip) <= 0)) {
-      list.push({ field: "hip", label: "Quadril" });
-    }
     return list;
-  }, [age, height, weight, waist, neck, hip, sex]);
+  }, [age, height, weight]);
 
   const isFormValid = missingFields.length === 0;
 
@@ -98,21 +93,39 @@ export default function BodyCompositionDietCalculator({
     const numNeck = parseFloat(neck) || 0;
     const numHip = parseFloat(hip) || 0;
 
+    // Se o aluno preencher as medidas com fita métrica, o cálculo de % BF fica muito mais assertivo
+    const hasTapeMeasurements =
+      numWaist > 0 &&
+      numNeck > 0 &&
+      (sex === "male" || numHip > 0);
+
     let bf = 0;
 
-    // 1. Cálculo de Percentual de Gordura (% BF) - Fórmula US Navy
-    if (sex === "male") {
-      const waistMinusNeck = numWaist - numNeck;
-      if (waistMinusNeck <= 0) return null;
-      const logDiff = Math.log10(waistMinusNeck);
-      const logHeight = Math.log10(numHeight);
-      bf = 495 / (1.0324 - 0.19077 * logDiff + 0.15456 * logHeight) - 450 + 2;
-    } else {
-      const circSum = numWaist + numHip - numNeck;
-      if (circSum <= 0) return null;
-      const logCirc = Math.log10(circSum);
-      const logHeight = Math.log10(numHeight);
-      bf = 495 / (1.29579 - 0.35004 * logCirc + 0.221 * logHeight) - 450;
+    // 1. Cálculo de Percentual de Gordura (% BF)
+    if (hasTapeMeasurements) {
+      // Fórmula da Marinha dos EUA (alta precisão)
+      if (sex === "male") {
+        const waistMinusNeck = numWaist - numNeck;
+        if (waistMinusNeck > 0) {
+          const logDiff = Math.log10(waistMinusNeck);
+          const logHeight = Math.log10(numHeight);
+          bf = 495 / (1.0324 - 0.19077 * logDiff + 0.15456 * logHeight) - 450 + 2;
+        }
+      } else {
+        const circSum = numWaist + numHip - numNeck;
+        if (circSum > 0) {
+          const logCirc = Math.log10(circSum);
+          const logHeight = Math.log10(numHeight);
+          bf = 495 / (1.29579 - 0.35004 * logCirc + 0.221 * logHeight) - 450;
+        }
+      }
+    }
+
+    // Se não tiver medidas de fita ou se o cálculo logarítmico for inválido, usa estimativa biométrica (Fórmula Deurenberg)
+    if (bf <= 0) {
+      const heightM = numHeight / 100;
+      const bmi = heightM > 0 ? numWeight / (heightM * heightM) : 22;
+      bf = 1.20 * bmi + 0.23 * numAge - (sex === "male" ? 16.2 : 5.4);
     }
 
     // Normalização científica dos limites de BF
@@ -185,6 +198,7 @@ export default function BodyCompositionDietCalculator({
       tmb: Math.round(tmb),
       tdee: Math.round(tdee),
       targetCalories: Math.round(totalCalculatedCalories),
+      isExactNavy: hasTapeMeasurements,
       macros: {
         protein: { grams: proteinGrams, kcal: proteinCalories, perKg: proteinPerKg },
         carbs: { grams: carbsGrams, kcal: carbsCalories },
@@ -207,7 +221,7 @@ export default function BodyCompositionDietCalculator({
         body: JSON.stringify({
           weight: parseFloat(weight),
           bodyFat: calculation.bf,
-          waist: parseFloat(waist),
+          waist: waist && parseFloat(waist) > 0 ? parseFloat(waist) : null,
           date: new Date().toISOString(),
         }),
       });
@@ -246,7 +260,7 @@ export default function BodyCompositionDietCalculator({
             </h3>
           </div>
           <p className="text-xs text-[#64748B] mt-1">
-            Fórmula oficial da Marinha dos Estados Unidos com bloqueio preventivo de campos obrigatórios.
+            Calcule sua taxa metabólica, calorias e macros. Inserindo suas medidas com fita métrica, o cálculo de gordura corporal fica ainda mais assertivo.
           </p>
         </div>
 
@@ -452,15 +466,15 @@ export default function BodyCompositionDietCalculator({
           </div>
         </div>
 
-        {/* Coluna 2: Medidas de Fita Métrica (Iniciam Vazias!) */}
+        {/* Coluna 2: Medidas de Fita Métrica (Opcionais para maior assertividade) */}
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                 Medidas com Fita Métrica
               </label>
-              <span className="text-[10px] text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
-                Obrigatórias para o cálculo
+              <span className="text-[10px] text-blue-700 font-bold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80">
+                Opcional • Torna o cálculo mais assertivo
               </span>
             </div>
 
@@ -468,7 +482,7 @@ export default function BodyCompositionDietCalculator({
               {/* Cintura */}
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
-                  <span>Cintura <span className="text-rose-500">*</span></span>
+                  <span>Cintura</span>
                 </label>
                 <input
                   type="number"
@@ -481,11 +495,7 @@ export default function BodyCompositionDietCalculator({
                     setWaist(e.target.value);
                     setHasCalculated(false);
                   }}
-                  className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
-                    attemptedSubmit && (!waist || parseFloat(waist) <= 0)
-                      ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
-                      : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
-                  }`}
+                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all"
                   placeholder="Ex: 84"
                 />
                 <span className="text-[10px] text-slate-400 block">altura do umbigo</span>
@@ -494,7 +504,7 @@ export default function BodyCompositionDietCalculator({
               {/* Pescoço */}
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
-                  <span>Pescoço <span className="text-rose-500">*</span></span>
+                  <span>Pescoço</span>
                 </label>
                 <input
                   type="number"
@@ -507,11 +517,7 @@ export default function BodyCompositionDietCalculator({
                     setNeck(e.target.value);
                     setHasCalculated(false);
                   }}
-                  className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
-                    attemptedSubmit && (!neck || parseFloat(neck) <= 0)
-                      ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
-                      : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
-                  }`}
+                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all"
                   placeholder="Ex: 38"
                 />
                 <span className="text-[10px] text-slate-400 block">abaixo do pomo</span>
@@ -521,7 +527,7 @@ export default function BodyCompositionDietCalculator({
               {sex === "female" && (
                 <div className="space-y-1 animate-fade-in">
                   <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
-                    <span>Quadril <span className="text-rose-500">*</span></span>
+                    <span>Quadril</span>
                   </label>
                   <input
                     type="number"
@@ -534,11 +540,7 @@ export default function BodyCompositionDietCalculator({
                       setHip(e.target.value);
                       setHasCalculated(false);
                     }}
-                    className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
-                      attemptedSubmit && (!hip || parseFloat(hip) <= 0)
-                        ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
-                        : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
-                    }`}
+                    className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all"
                     placeholder="Ex: 98"
                   />
                   <span className="text-[10px] text-slate-400 block">maior diâmetro</span>
@@ -583,15 +585,15 @@ export default function BodyCompositionDietCalculator({
       {!calculation && (
         <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 animate-fade-in">
           <div className="flex items-center gap-2.5 text-[#0F172A]">
-            <span className="p-2 rounded-xl bg-amber-100 text-amber-800">
+            <span className="p-2 rounded-xl bg-blue-100 text-blue-800">
               <Lock className="w-4 h-4" />
             </span>
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
-                Cálculo Bloqueado — Campos Obrigatórios Pendentes
+                Preencha seus dados para calcular
               </h4>
               <p className="text-[11px] text-[#64748B]">
-                Para que o cálculo seja 100% exato e reflita sua composição real, preencha os campos com (*) e clique no botão de calcular.
+                Informe sua Idade, Altura e Peso para calcular. Adicionar a cintura e o pescoço com fita métrica deixará o cálculo de gordura corporal e calorias ainda mais assertivo!
               </p>
             </div>
           </div>
@@ -600,7 +602,7 @@ export default function BodyCompositionDietCalculator({
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 space-y-2 animate-fade-in">
               <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700">
                 <AlertCircle className="w-4 h-4" />
-                <span>Por favor, preencha os seguintes campos obrigatórios:</span>
+                <span>Preencha os campos obrigatórios para liberar o cálculo:</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {missingFields.map((f) => (
@@ -621,17 +623,31 @@ export default function BodyCompositionDietCalculator({
       {calculation && (
         <div className="space-y-6 pt-2 animate-fade-in">
           {/* Badge do Método de Avaliação Ativo */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-bold text-emerald-900">
-                Fórmula da Marinha dos EUA Calculada com Sucesso!
+          {calculation.isExactNavy ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-xs font-bold text-emerald-900">
+                  Cálculo de Alta Precisão (Fórmula da Marinha dos EUA com Fita Métrica)
+                </span>
+              </div>
+              <span className="text-[11px] text-emerald-700 font-medium">
+                Avaliação de máxima assertividade com base nas suas circunferências corporais reais.
               </span>
             </div>
-            <span className="text-[11px] text-emerald-700 font-medium">
-              Avaliação de alta precisão baseada nas suas medidas reais.
-            </span>
-          </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-blue-50 border border-blue-200/80">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                <span className="text-xs font-bold text-blue-900">
+                  Cálculo Estimado com Sucesso!
+                </span>
+              </div>
+              <span className="text-[11px] text-blue-700 font-medium">
+                Inserindo cintura e pescoço com fita métrica, o cálculo de gordura e calorias fica ainda mais assertivo!
+              </span>
+            </div>
+          )}
 
           {/* Silhueta Corporal Dinâmica (Homem para alunos homens, Mulher para alunas mulheres) */}
           <BodySilhouetteGraphic
