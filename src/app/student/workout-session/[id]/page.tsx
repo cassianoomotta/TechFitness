@@ -24,8 +24,6 @@ import {
   Crown,
   Camera,
   GripHorizontal,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 import {
@@ -34,6 +32,7 @@ import {
   showNativeNotification,
   requestNotificationPermission,
 } from "@/lib/sw-utils";
+import { usePictureInPictureTimer } from "@/hooks/usePictureInPictureTimer";
 
 interface ScreenWakeLockSentinel {
   released: boolean;
@@ -103,8 +102,16 @@ export default function WorkoutSessionPlayer() {
   const [restEndTime, setRestEndTime] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
 
-  // Estado do Som/Apito do Cronômetro (persistido no dispositivo)
-  const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
+  // Mini Janela Flutuante nativa (Picture-in-Picture estilo placar esportivo sobre outros apps)
+  const {
+    isPipActive,
+    isPipSupported,
+    togglePictureInPicture,
+  } = usePictureInPictureTimer({
+    restTime,
+    initialRestTime,
+    isResting,
+  });
 
   // Referências para áudio e apito do cronômetro (modo ambiente para não pausar Spotify/música)
   const whistleAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -137,70 +144,9 @@ export default function WorkoutSessionPlayer() {
     }
   }, []);
 
-  // Inicializar elemento de apito e pré-carregar buffer na memória RAM em modo ambient (compatível com Spotify)
+  // Limpeza de recursos e sessões ao desmontar
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    let isMounted = true;
-
-    // 1. Configurar AudioSession para "ambient" no iOS: NUNCA fecha nem pausa o Spotify, Apple Music ou outros players
-    if (typeof navigator !== "undefined" && "audioSession" in navigator) {
-      try {
-        (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "ambient";
-      } catch {}
-    }
-
-    // 2. Elemento dedicado de apito HTML5 persistente pré-carregado
-    try {
-      const whistle = new Audio("/sounds/beep.mp3");
-      whistle.loop = false;
-      whistle.volume = 1.0;
-      whistle.preload = "auto";
-      whistleAudioRef.current = whistle;
-    } catch (e) {
-      console.warn("Erro ao instanciar elemento dedicado de apito:", e);
-    }
-
-    // 3. Web Audio Context e decodificação do buffer de apito
-    const initAudioContextAndBuffer = async () => {
-      try {
-        const AudioContextClass =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-
-        if (AudioContextClass && !audioCtxRef.current) {
-          audioCtxRef.current = new AudioContextClass();
-        }
-
-        const res = await fetch("/sounds/beep.mp3");
-        if (res.ok && isMounted) {
-          const ab = await res.arrayBuffer();
-          whistleArrayBufferRef.current = ab;
-          if (audioCtxRef.current && isMounted) {
-            try {
-              audioCtxRef.current.decodeAudioData(
-                ab.slice(0),
-                (decoded) => {
-                  if (isMounted) {
-                    whistleBufferRef.current = decoded;
-                  }
-                },
-                (err) => {
-                  console.warn("Erro ao decodificar beep.mp3:", err);
-                }
-              );
-            } catch {}
-          }
-        }
-      } catch (err) {
-        console.warn("Erro ao pré-carregar buffer de áudio:", err);
-      }
-    };
-
-    initAudioContextAndBuffer();
-
     return () => {
-      isMounted = false;
       clearLockScreenMediaSession();
       if (whistleAudioRef.current) {
         whistleAudioRef.current = null;
@@ -257,31 +203,6 @@ export default function WorkoutSessionPlayer() {
   useEffect(() => {
     requestNotificationPermission().catch(() => {});
   }, []);
-
-  // Restaurar preferência de som do cronômetro do localStorage
-  useEffect(() => {
-    try {
-      const savedSound = localStorage.getItem("workout_timer_sound");
-      if (savedSound !== null) {
-        setTimerSoundEnabled(savedSound === "true");
-      }
-    } catch {}
-  }, []);
-
-  const toggleTimerSound = () => {
-    setTimerSoundEnabled((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem("workout_timer_sound", String(next));
-      } catch {}
-      if (next) {
-        setTimeout(() => {
-          playWhistleImmediatelyRef.current();
-        }, 50);
-      }
-      return next;
-    });
-  };
 
   // Posição flutuante móvel do cronômetro de descanso (Draggable)
   const [timerPos, setTimerPos] = useState<{ x: number; y: number } | null>(null);
@@ -821,173 +742,9 @@ export default function WorkoutSessionPlayer() {
     scheduledSourcesRef.current = [];
   }, []);
 
-  // Agendar o apito no relógio de hardware da placa de som (CoreAudio / Web Audio)
-  const scheduleWhistleSequence = useCallback((targetTime: number) => {
-    if (!audioCtxRef.current) return;
-    const ctx = audioCtxRef.current;
-    if (ctx.state !== "running") {
-      ctx.resume().catch(() => {});
-    }
-
-    const safeTargetTime = Math.max(ctx.currentTime, targetTime);
-
-    // 1. Tocar áudio WAV real gravado decodificado na memória
-    if (whistleBufferRef.current) {
-      try {
-        const bufferSource = ctx.createBufferSource();
-        bufferSource.buffer = whistleBufferRef.current;
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(1.0, safeTargetTime);
-        bufferSource.connect(gain);
-        gain.connect(ctx.destination);
-        bufferSource.start(safeTargetTime);
-
-        scheduledSourcesRef.current.push({
-          stop: () => {
-            try {
-              bufferSource.stop();
-            } catch {}
-          },
-        });
-      } catch (err) {
-        console.warn("Erro ao agendar buffer do apito:", err);
-      }
-    }
-
-    // 2. Reforço sintetizado com 2 trinados esportivos de alta frequência (Fox 40)
-    const scheduleBurst = (startTime: number, duration: number, peakVolume = 0.32) => {
-      try {
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const oscHarmonic = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc1.type = "sine";
-        osc1.frequency.setValueAtTime(2550, startTime);
-
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(2820, startTime);
-
-        oscHarmonic.type = "sine";
-        oscHarmonic.frequency.setValueAtTime(5370, startTime);
-
-        const flutterOsc = ctx.createOscillator();
-        const flutterGain = ctx.createGain();
-        flutterOsc.frequency.setValueAtTime(28, startTime);
-        flutterGain.gain.setValueAtTime(75, startTime);
-        flutterOsc.connect(osc1.frequency);
-        flutterOsc.connect(osc2.frequency);
-
-        gain.gain.setValueAtTime(0.001, startTime);
-        gain.gain.linearRampToValueAtTime(peakVolume, startTime + 0.04);
-        gain.gain.setValueAtTime(peakVolume, startTime + duration - 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        oscHarmonic.connect(gain);
-        gain.connect(ctx.destination);
-
-        flutterOsc.start(startTime);
-        osc1.start(startTime);
-        osc2.start(startTime);
-        oscHarmonic.start(startTime);
-
-        const stopTime = startTime + duration + 0.05;
-        flutterOsc.stop(stopTime);
-        osc1.stop(stopTime);
-        osc2.stop(stopTime);
-        oscHarmonic.stop(stopTime);
-
-        scheduledSourcesRef.current.push({
-          stop: () => {
-            try { flutterOsc.stop(); } catch {}
-            try { osc1.stop(); } catch {}
-            try { osc2.stop(); } catch {}
-            try { oscHarmonic.stop(); } catch {}
-          },
-        });
-      } catch (err) {
-        console.warn("Erro ao agendar trinado do apito:", err);
-      }
-    };
-
-    scheduleBurst(safeTargetTime, 0.35, 0.28);
-    scheduleBurst(safeTargetTime + 0.45, 1.40, 0.32);
-  }, []);
-
-  // Tocar o apito imediatamente via canais redundantes em modo ambient (sem interromper Spotify/música)
-  const playWhistleImmediately = useCallback(() => {
-    // Garantir modo ambient para não interromper outros players
-    if (typeof navigator !== "undefined" && "audioSession" in navigator) {
-      try {
-        (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "ambient";
-      } catch {}
-    }
-
-    // Canal 1: Elemento HTML5 de apito dedicado (pré-desbloqueado no gesto do clique)
-    if (whistleAudioRef.current) {
-      try {
-        const whistleEl = whistleAudioRef.current;
-        whistleEl.currentTime = 0;
-        whistleEl.volume = 1.0;
-        whistleEl.play().catch(() => {});
-      } catch {}
-    }
-
-    // Canal 2: Web Audio API (Hardware audio synthesizer + buffer decodificado)
-    try {
-      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
-        const AudioContextClass =
-          typeof window !== "undefined"
-            ? window.AudioContext ||
-              (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-            : undefined;
-        if (AudioContextClass) {
-          audioCtxRef.current = new AudioContextClass();
-        }
-      }
-
-      if (audioCtxRef.current) {
-        const ctx = audioCtxRef.current;
-        if (ctx.state !== "running") {
-          ctx.resume().catch(() => {});
-        }
-        // Se o buffer estiver nulo mas tivermos o ArrayBuffer original, decodifica
-        if (!whistleBufferRef.current && whistleArrayBufferRef.current) {
-          try {
-            ctx.decodeAudioData(whistleArrayBufferRef.current.slice(0), (decoded) => {
-              whistleBufferRef.current = decoded;
-            });
-          } catch {}
-        }
-        scheduleWhistleSequence(ctx.currentTime);
-      }
-    } catch (err) {
-      console.warn("Erro ao reproduzir apito via Web Audio:", err);
-    }
-
-    // Canal 3: Redundância extra via novo elemento de áudio
-    try {
-      if (directAudioRef.current) {
-        directAudioRef.current.pause();
-        directAudioRef.current.currentTime = 0;
-      }
-      const directAudio = new Audio("/sounds/beep.mp3");
-      directAudio.volume = 1.0;
-      directAudioRef.current = directAudio;
-      directAudio.onended = () => {
-        try {
-          directAudio.pause();
-          directAudio.currentTime = 0;
-        } catch {}
-        if (directAudioRef.current === directAudio) {
-          directAudioRef.current = null;
-        }
-      };
-      directAudio.play().catch(() => {});
-    } catch {}
-  }, [scheduleWhistleSequence]);
+  // Funções de áudio silenciadas a pedido do usuário (apenas vibração e notificação ativas)
+  const scheduleWhistleSequence = useCallback((_targetTime: number) => {}, []);
+  const playWhistleImmediately = useCallback(() => {}, []);
 
   useEffect(() => {
     playWhistleImmediatelyRef.current = playWhistleImmediately;
@@ -999,7 +756,7 @@ export default function WorkoutSessionPlayer() {
     // 1. Alerta tátil: vibração esportiva sincronizada
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate([350, 120, 1000]);
+        navigator.vibrate([400, 150, 400, 150, 800]);
       }
     } catch {}
 
@@ -1009,15 +766,7 @@ export default function WorkoutSessionPlayer() {
         body: "Tempo de descanso encerrado! Bora para a próxima série!",
       });
     } catch {}
-
-    // Se o som estiver desativado pelo aluno, encerra
-    if (!timerSoundEnabled) {
-      return;
-    }
-
-    // 3. Tocar o apito imediatamente via canais redundantes em modo ambiente (sem interromper Spotify)
-    playWhistleImmediately();
-  }, [playWhistleImmediately, timerSoundEnabled]);
+  }, []);
 
   // Manter ref sincronizada para chamadas em callbacks assíncronos e eventos de ciclo de vida
   useEffect(() => {
@@ -1096,57 +845,6 @@ export default function WorkoutSessionPlayer() {
       typeof window !== "undefined" ? window.location.pathname : "/student/workout-session"
     );
 
-    // Configurar áudio em modo ambiente e agendar o apito no relógio de hardware
-    if (timerSoundEnabled) {
-      // 1. Despertar / retomar AudioContext sob o clique do usuário
-      try {
-        if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
-          const AudioContextClass =
-            typeof window !== "undefined"
-              ? window.AudioContext ||
-                (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-              : undefined;
-          if (AudioContextClass) {
-            audioCtxRef.current = new AudioContextClass();
-          }
-        }
-        if (audioCtxRef.current && audioCtxRef.current.state !== "running") {
-          audioCtxRef.current.resume().catch(() => {});
-        }
-      } catch {}
-
-      // 2. Definir modo Ambient para NUNCA pausar ou fechar o Spotify ou outros players de música
-      if (typeof navigator !== "undefined" && "audioSession" in navigator) {
-        try {
-          (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "ambient";
-        } catch {}
-      }
-
-      // 3. Pré-desbloquear (warm up) o elemento HTML5 de apito sob o clique do usuário no iOS Safari
-      if (whistleAudioRef.current) {
-        try {
-          whistleAudioRef.current.volume = 0.001;
-          whistleAudioRef.current.currentTime = 0;
-          const p = whistleAudioRef.current.play();
-          if (p !== undefined) {
-            p.then(() => {
-              if (whistleAudioRef.current) {
-                whistleAudioRef.current.pause();
-                whistleAudioRef.current.currentTime = 0;
-                whistleAudioRef.current.volume = 1.0;
-              }
-            }).catch(() => {});
-          }
-        } catch {}
-      }
-
-      // 4. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds
-      if (audioCtxRef.current) {
-        const targetTime = audioCtxRef.current.currentTime + validSeconds;
-        scheduleWhistleSequence(targetTime);
-      }
-    }
-
     // Solicitar permissão de notificação se ainda não solicitou
     requestNotificationPermission().catch(() => {});
   };
@@ -1170,16 +868,6 @@ export default function WorkoutSessionPlayer() {
         "Tempo de descanso encerrado! Bora para a próxima série!",
         typeof window !== "undefined" ? window.location.pathname : "/student/workout-session"
       );
-
-      // Reagendar apito no relógio de hardware para o novo tempo restante
-      if (timerSoundEnabled && audioCtxRef.current) {
-        cancelScheduledWhistles();
-        if (audioCtxRef.current.state !== "running") {
-          audioCtxRef.current.resume().catch(() => {});
-        }
-        const targetTime = audioCtxRef.current.currentTime + newRemaining;
-        scheduleWhistleSequence(targetTime);
-      }
     }
   };
 
@@ -1730,28 +1418,26 @@ export default function WorkoutSessionPlayer() {
             >
               <span>+30s</span>
             </button>
-            <button
-              type="button"
-              onClick={toggleTimerSound}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              className={`w-6 h-6 rounded-full flex items-center justify-center shadow border transition-all cursor-pointer active:scale-90 ${
-                timerSoundEnabled
-                  ? "bg-blue-600/90 hover:bg-blue-500 text-white border-blue-400/40 shadow-blue-500/30"
-                  : "bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-white border-white/10"
-              }`}
-              title={
-                timerSoundEnabled
-                  ? "Apito ativado (Toque para silenciar)"
-                  : "Apito silenciado (Toque para ativar som)"
-              }
-            >
-              {timerSoundEnabled ? (
-                <Volume2 className="w-3.5 h-3.5" />
-              ) : (
-                <VolumeX className="w-3.5 h-3.5" />
-              )}
-            </button>
+            {isPipSupported && (
+              <button
+                type="button"
+                onClick={togglePictureInPicture}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className={`w-6 h-6 rounded-full flex items-center justify-center shadow border transition-all cursor-pointer active:scale-90 ${
+                  isPipActive
+                    ? "bg-[#00C2FF] text-slate-950 border-[#00C2FF] shadow-cyan-500/30 font-bold"
+                    : "bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-[#00C2FF] border-white/10"
+                }`}
+                title={
+                  isPipActive
+                    ? "Fechar janela flutuante"
+                    : "Mini Janela Flutuante (estilo placar de futebol sobre outros apps)"
+                }
+              >
+                <Tv className="w-3.5 h-3.5" />
+              </button>
+            )}
             <div
               className="w-5 h-5 flex items-center justify-center text-slate-400 opacity-60 hover:opacity-100 cursor-grab active:cursor-grabbing"
               title="Arraste para mover pela tela"
@@ -1764,27 +1450,22 @@ export default function WorkoutSessionPlayer() {
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
               className="w-6 h-6 rounded-full bg-slate-900/90 hover:bg-slate-800 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center shadow border border-white/10 cursor-pointer transition-colors"
-              title="Pular descanso"
+              title="Fechar / Pular descanso"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Círculo do Cronômetro com Anel SVG (Levemente maior: 76px x 76px) */}
-          <button
-            type="button"
-            onClick={() => {
-              if (timerDragRef.current.hasMoved) return;
-              stopRestTimer();
-            }}
-            className={`relative w-[76px] h-[76px] rounded-full bg-slate-950/95 backdrop-blur-xl border shadow-2xl flex flex-col items-center justify-center cursor-pointer group active:scale-95 transition-all duration-300 ${
+          {/* Círculo do Cronômetro com Anel SVG (Permanece fixo na tela e não fecha ao clicar) */}
+          <div
+            className={`relative w-[76px] h-[76px] rounded-full bg-slate-950/95 backdrop-blur-xl border shadow-2xl flex flex-col items-center justify-center select-none transition-all duration-300 ${
               restTime <= 5
                 ? "border-amber-400/80 shadow-amber-500/25 animate-pulse ring-2 ring-amber-400/40"
                 : isDraggingTimer
                 ? "border-[#00C2FF] ring-2 ring-[#00C2FF]/40 shadow-blue-500/30"
                 : "border-white/15 hover:border-[#00C2FF]/60 hover:shadow-blue-500/20"
             }`}
-            title="Toque para pular o descanso ou arraste para mover"
+            title="Arraste para mover pela tela"
           >
             {/* Anel de Progresso SVG */}
             <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 76 76">
@@ -1823,12 +1504,9 @@ export default function WorkoutSessionPlayer() {
             </svg>
 
             {/* Tempo Digital no Centro */}
-            <div className="relative z-10 flex flex-col items-center justify-center leading-none text-center">
-              <span className="text-[9px] font-bold tracking-wider uppercase text-slate-400 mb-0.5 group-hover:hidden">
+            <div className="relative z-10 flex flex-col items-center justify-center leading-none text-center pointer-events-none">
+              <span className="text-[9px] font-bold tracking-wider uppercase text-slate-400 mb-0.5">
                 Tempo
-              </span>
-              <span className="text-[9px] font-bold tracking-wider uppercase text-red-400 mb-0.5 hidden group-hover:inline">
-                Pular
               </span>
               <span
                 className={`font-mono font-black text-base tracking-tight transition-colors ${
@@ -1838,7 +1516,7 @@ export default function WorkoutSessionPlayer() {
                 {formatRestDisplay(restTime)}
               </span>
             </div>
-          </button>
+          </div>
         </div>
       )}
 
