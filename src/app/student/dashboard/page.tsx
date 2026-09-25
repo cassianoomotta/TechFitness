@@ -1521,6 +1521,7 @@ export default function StudentDashboard() {
             expandedMeasurementId={expandedMeasurementId}
             setExpandedMeasurementId={setExpandedMeasurementId}
             setSelectedPhotoForZoom={setSelectedPhotoForZoom}
+            onRefreshMeasurements={fetchMeasurements}
           />
         )}
 

@@ -24,6 +24,8 @@ import {
   Crown,
   Camera,
   GripHorizontal,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 
@@ -89,6 +91,29 @@ export default function WorkoutSessionPlayer() {
   const [isResting, setIsResting] = useState(false);
   const [restEndTime, setRestEndTime] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
+
+  // Estado do Som/Apito do Cronômetro (persistido no dispositivo)
+  const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
+
+  // Restaurar preferência de som do cronômetro do localStorage
+  useEffect(() => {
+    try {
+      const savedSound = localStorage.getItem("workout_timer_sound");
+      if (savedSound !== null) {
+        setTimerSoundEnabled(savedSound === "true");
+      }
+    } catch {}
+  }, []);
+
+  const toggleTimerSound = () => {
+    setTimerSoundEnabled((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("workout_timer_sound", String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // Posição flutuante móvel do cronômetro de descanso (Draggable)
   const [timerPos, setTimerPos] = useState<{ x: number; y: number } | null>(null);
@@ -608,40 +633,73 @@ export default function WorkoutSessionPlayer() {
   }, [planId, router, updateSetsData, STORAGE_KEY_PLAN_CACHE, STORAGE_KEY_SETS]);
 
   const playRestAlertSound = () => {
+    // Alerta tátil: vibração esportiva sincronizada (dois pulsos: 150ms toque, 80ms pausa, 350ms chamada)
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate([100, 60, 200]);
+        navigator.vibrate([150, 80, 350]);
       }
     } catch {}
 
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      const osc1 = audioCtx.createOscillator();
-      const gain1 = audioCtx.createGain();
-      osc1.type = "sine";
-      osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-      gain1.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-      
-      osc1.connect(gain1);
-      gain1.connect(audioCtx.destination);
-      osc1.start();
-      osc1.stop(audioCtx.currentTime + 0.15);
+    // Se o som estiver desativado pelo aluno, mantém o cronômetro em silêncio
+    if (!timerSoundEnabled) return;
 
-      setTimeout(() => {
+    try {
+      const AudioContextClass =
+        typeof window !== "undefined"
+          ? window.AudioContext ||
+            (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+          : undefined;
+
+      if (!AudioContextClass) return;
+      const audioCtx = new AudioContextClass();
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+
+      // Função geradora de toque de apito esportivo (dual tone com trinado característico)
+      const playWhistleBurst = (startTime: number, duration: number) => {
+        const osc1 = audioCtx.createOscillator();
         const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
+        const gain = audioCtx.createGain();
+
+        // Frequências ressonantes de apito esportivo / árbitro
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(2850, startTime);
+
         osc2.type = "sine";
-        osc2.frequency.setValueAtTime(1046.5, audioCtx.currentTime); // C6
-        gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + 0.25);
-      }, 150);
+        osc2.frequency.setValueAtTime(3120, startTime);
+
+        // Modulador rápido de frequência (32Hz) que emula o vibrato da bolinha interna do apito
+        const flutterOsc = audioCtx.createOscillator();
+        const flutterGain = audioCtx.createGain();
+        flutterOsc.frequency.setValueAtTime(32, startTime);
+        flutterGain.gain.setValueAtTime(90, startTime);
+        flutterOsc.connect(osc1.frequency);
+        flutterOsc.connect(osc2.frequency);
+
+        // Envelope com ataque rápido e decaimento acústico natural
+        gain.gain.setValueAtTime(0.001, startTime);
+        gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+        gain.gain.setValueAtTime(0.25, startTime + duration - 0.04);
+        gain.gain.linearRampToValueAtTime(0.001, startTime + duration);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        flutterOsc.start(startTime);
+        osc1.start(startTime);
+        osc2.start(startTime);
+
+        flutterOsc.stop(startTime + duration);
+        osc1.stop(startTime + duration);
+        osc2.stop(startTime + duration);
+      };
+
+      const now = audioCtx.currentTime;
+      // Padrão de apito duplo esportivo clássico ("Pi - Piii!")
+      playWhistleBurst(now, 0.15); // Primeiro toque rápido
+      playWhistleBurst(now + 0.23, 0.42); // Segundo toque firme de reinício
     } catch (e) {
       console.warn("AudioContext não suportado ou bloqueado:", e);
     }
@@ -1229,7 +1287,7 @@ export default function WorkoutSessionPlayer() {
             }
           }}
         >
-          {/* Botões Satélites (+30s, Alça de arrasto e Pular) */}
+          {/* Botões Satélites (+30s, Som/Mudo, Alça de arrasto e Pular) */}
           <div className="flex items-center gap-1.5 mb-1.5 animate-fade-in">
             <button
               type="button"
@@ -1240,6 +1298,28 @@ export default function WorkoutSessionPlayer() {
               title="Adicionar 30 segundos de descanso"
             >
               <span>+30s</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleTimerSound}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              className={`w-6 h-6 rounded-full flex items-center justify-center shadow border transition-all cursor-pointer active:scale-90 ${
+                timerSoundEnabled
+                  ? "bg-blue-600/90 hover:bg-blue-500 text-white border-blue-400/40 shadow-blue-500/30"
+                  : "bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-white border-white/10"
+              }`}
+              title={
+                timerSoundEnabled
+                  ? "Apito ativado (Toque para silenciar)"
+                  : "Apito silenciado (Toque para ativar som)"
+              }
+            >
+              {timerSoundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5" />
+              )}
             </button>
             <div
               className="w-5 h-5 flex items-center justify-center text-slate-400 opacity-60 hover:opacity-100 cursor-grab active:cursor-grabbing"

@@ -7,6 +7,15 @@ import { z } from "zod";
 const weightMeasurementSchema = z.object({
   weight: z.number().positive("O peso deve ser um número positivo"),
   date: z.string().transform((val) => new Date(val)),
+  bodyFat: z.number().min(1).max(70).optional().nullable(),
+  waist: z.number().positive().optional().nullable(),
+  chest: z.number().positive().optional().nullable(),
+  armLeft: z.number().positive().optional().nullable(),
+  armRight: z.number().positive().optional().nullable(),
+  thighLeft: z.number().positive().optional().nullable(),
+  thighRight: z.number().positive().optional().nullable(),
+  calfLeft: z.number().positive().optional().nullable(),
+  calfRight: z.number().positive().optional().nullable(),
 });
 
 // GET: Buscar histórico de peso/medidas do aluno logado
@@ -88,13 +97,34 @@ export async function POST(request: Request) {
       );
     }
 
-    const { weight, date } = validation.data;
+    const {
+      weight,
+      date,
+      bodyFat,
+      waist,
+      chest,
+      armLeft,
+      armRight,
+      thighLeft,
+      thighRight,
+      calfLeft,
+      calfRight,
+    } = validation.data;
 
     const newMeasurement = await prisma.bodyMeasurement.create({
       data: {
         studentId: studentProfile.id,
         weight,
         date,
+        bodyFat: bodyFat !== undefined ? bodyFat : null,
+        waist: waist !== undefined ? waist : null,
+        chest: chest !== undefined ? chest : null,
+        armLeft: armLeft !== undefined ? armLeft : null,
+        armRight: armRight !== undefined ? armRight : null,
+        thighLeft: thighLeft !== undefined ? thighLeft : null,
+        thighRight: thighRight !== undefined ? thighRight : null,
+        calfLeft: calfLeft !== undefined ? calfLeft : null,
+        calfRight: calfRight !== undefined ? calfRight : null,
       },
     });
 

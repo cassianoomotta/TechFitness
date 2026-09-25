@@ -101,4 +101,12 @@ Para testes de interface, validações E2E, logins no navegador ou chamadas aute
 
 ---
 
+## 11. Regra de Design e Copywriting: Proibição Estrita do Ampersand (&)
+- **Zero Ampersand no Design System:** É expressamente proibido o uso do caractere `&` em qualquer texto de interface gráfica, rótulos de botões, títulos de abas, cabeçalhos de seções, modais, tooltips ou mensagens de feedback ao usuário.
+- **Conjunção em Português:** Utilize obrigatoriamente a conjunção aditiva por extenso `"e"` (exemplos corretos: *"Peso e Medidas"*, *"Composição Corporal e TMB"*, *"Treinos e Exercícios"*, *"Massa Magra e Gordura"*). 
+- **Exceções Técnicas:** O caractere `&` é permitido exclusivamente em sintaxe interna de linguagens de programação (ex: operadores booleanos `&&`, query strings HTTP `?foo=1&bar=2` ou entidades XML/HTML quando estritamente indispensáveis).
+
+---
+
 *Seguindo rigorosamente este arquivo, garantimos que o TechFitness permaneça escalável, elegante, seguro, com código 100% tipado e total conformidade com a privacidade de seus usuários.*
+

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Loader2, TrendingUp, ChevronRight, Scale } from 'lucide-react';
+import { Loader2, TrendingUp, ChevronRight, Scale, Compass, ChevronDown } from 'lucide-react';
 import BodyMetricsChart from '@/components/BodyMetricsChart';
+import BodyCompositionDietCalculator from '@/components/BodyCompositionDietCalculator';
 
 interface WeightMeasurement {
   id: string;
@@ -33,6 +34,7 @@ interface WeightTabProps {
   expandedMeasurementId: string | null;
   setExpandedMeasurementId: (id: string | null) => void;
   setSelectedPhotoForZoom: (url: string) => void;
+  onRefreshMeasurements?: () => void;
 }
 
 export default function WeightTab({
@@ -50,8 +52,10 @@ export default function WeightTab({
   expandedMeasurementId,
   setExpandedMeasurementId,
   setSelectedPhotoForZoom,
+  onRefreshMeasurements,
 }: WeightTabProps) {
   const [viewMode, setViewMode] = useState<"chart" | "history" | "all">("all");
+  const [showCalculator, setShowCalculator] = useState(false);
 
   return (
     <>
@@ -89,6 +93,56 @@ export default function WeightTab({
             </button>
           </div>
         </div>
+
+        {/* Card de Destaque: Calculadora de Gordura Corporal e Dieta */}
+        <div className="glass-card rounded-2xl p-5 border border-blue-200/70 bg-gradient-to-br from-blue-50/60 via-white to-indigo-50/30 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+              <Compass className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-extrabold text-[#0F172A] tracking-tight">
+                  Calculadora de Gordura Corporal e Dieta
+                </h4>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white">
+                  Método Marinha
+                </span>
+              </div>
+              <p className="text-xs text-[#64748B] mt-0.5">
+                Estime seu % BF, massa magra, gasto calórico e divisão de macronutrientes para sua meta.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowCalculator((prev) => !prev)}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[#0F172A] font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+          >
+            <span>{showCalculator ? "Ocultar Calculadora" : "Abrir Calculadora"}</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                showCalculator ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Componente da Calculadora */}
+        {showCalculator && (
+          <div className="animate-fade-in">
+            <BodyCompositionDietCalculator
+              initialWeight={
+                parseFloat(newWeight) || (measurements[0]?.weight ?? 75)
+              }
+              onSaved={() => {
+                if (onRefreshMeasurements) onRefreshMeasurements();
+              }}
+              onClose={() => setShowCalculator(false)}
+            />
+          </div>
+        )}
 
         {/* Card Registrar Peso */}
         <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] shadow-sm space-y-4">
@@ -144,7 +198,7 @@ export default function WeightTab({
           )}
         </div>
 
-        {/* Seletor de Visão & Monitoramento */}
+        {/* Seletor de Visão e Monitoramento */}
         {measurements.length > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-2">
@@ -153,7 +207,7 @@ export default function WeightTab({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
-                  Painel de Monitoramento & Evolução
+                  Painel de Monitoramento e Evolução
                 </h3>
                 <p className="text-[11px] text-[#64748B]">
                   {measurements.length} {measurements.length === 1 ? "medição registrada" : "medições registradas"}
