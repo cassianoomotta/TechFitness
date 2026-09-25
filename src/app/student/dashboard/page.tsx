@@ -36,7 +36,7 @@ const GroupsTab = dynamic(() => import("./components/GroupsTab"), {
 });
 
 const WeightTab = dynamic(() => import("./components/WeightTab"), {
-  loading: () => <TabLoadingSkeleton title="Evolução de Peso e Medidas" />,
+  loading: () => <TabLoadingSkeleton title="Peso e Dieta" />,
 });
 
 const AchievementsTab = dynamic(() => import("./components/AchievementsTab"), {
@@ -1152,7 +1152,7 @@ export default function StudentDashboard() {
             }`}
           >
             <TrendingUp className="w-4 h-4" />
-            <span>Peso</span>
+            <span>Peso e Dieta</span>
           </button>
 
           <button
@@ -2186,7 +2186,7 @@ export default function StudentDashboard() {
             <div className={`relative p-1 rounded-xl transition-colors ${activeTab === "peso" ? "bg-blue-50 text-[#2563EB]" : ""}`}>
               <TrendingUp className="w-5 h-5" />
             </div>
-            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Peso</span>
+            <span className="text-[10px] sm:text-[11px] tracking-tight leading-none">Peso e Dieta</span>
           </button>
 
           {/* Aba 5: Conquistas */}

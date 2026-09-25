@@ -16,6 +16,8 @@ import {
   TrendingDown,
   TrendingUp,
   Compass,
+  Lock,
+  AlertCircle,
 } from "lucide-react";
 import BodySilhouetteGraphic from "@/components/BodySilhouetteGraphic";
 
@@ -35,25 +37,60 @@ export default function BodyCompositionDietCalculator({
   onSaved,
   onClose,
 }: BodyCompositionDietCalculatorProps) {
-  // Entradas do formulário
+  // Entradas do formulário — Iniciam vazias para evitar cálculos com dados fictícios
   const [sex, setSex] = useState<SexType>("male");
   const [biotype, setBiotype] = useState<BiotypeType>("meso");
-  const [age, setAge] = useState<string>("28");
-  const [height, setHeight] = useState<string>("175");
-  const [weight, setWeight] = useState<string>(initialWeight ? String(initialWeight) : "76");
-  const [waist, setWaist] = useState<string>("84");
-  const [neck, setNeck] = useState<string>("38");
-  const [hip, setHip] = useState<string>("98"); // Apenas para mulheres
+  const [age, setAge] = useState<string>("");
+  const [height, setHeight] = useState<string>("");
+  const [weight, setWeight] = useState<string>(initialWeight ? String(initialWeight) : "");
+  const [waist, setWaist] = useState<string>("");
+  const [neck, setNeck] = useState<string>("");
+  const [hip, setHip] = useState<string>(""); // Obrigatório para mulheres
   const [activity, setActivity] = useState<ActivityLevel>("moderate");
   const [dietGoal, setDietGoal] = useState<DietGoal>("cutting");
 
-  // Estado de salvamento
+  // Controle de validação e bloqueio de cálculo
+  const [hasCalculated, setHasCalculated] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Estado de salvamento no banco de dados
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Cálculos reativos (Fórmulas Gorgonoid / Marinha dos EUA e Harris-Benedict com suporte a modo estimado)
+  // Validação estrita de campos obrigatórios
+  const missingFields = useMemo(() => {
+    const list: { field: string; label: string }[] = [];
+    if (!age.trim() || parseFloat(age) <= 0) list.push({ field: "age", label: "Idade" });
+    if (!height.trim() || parseFloat(height) <= 0) list.push({ field: "height", label: "Altura" });
+    if (!weight.trim() || parseFloat(weight) <= 0) list.push({ field: "weight", label: "Peso" });
+    if (!waist.trim() || parseFloat(waist) <= 0) list.push({ field: "waist", label: "Cintura" });
+    if (!neck.trim() || parseFloat(neck) <= 0) list.push({ field: "neck", label: "Pescoço" });
+    if (sex === "female" && (!hip.trim() || parseFloat(hip) <= 0)) {
+      list.push({ field: "hip", label: "Quadril" });
+    }
+    return list;
+  }, [age, height, weight, waist, neck, hip, sex]);
+
+  const isFormValid = missingFields.length === 0;
+
+  // Executar validação e autorizar cálculo
+  const handleCalculate = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setAttemptedSubmit(true);
+    if (!isFormValid) {
+      setHasCalculated(false);
+      return;
+    }
+    setHasCalculated(true);
+  };
+
+  // Cálculos oficiais da Fórmula da Marinha dos EUA (bloqueado se faltar campo obrigatório)
   const calculation = useMemo(() => {
+    if (!hasCalculated || !isFormValid) {
+      return null;
+    }
+
     const numAge = parseFloat(age) || 0;
     const numHeight = parseFloat(height) || 0;
     const numWeight = parseFloat(weight) || 0;
@@ -61,49 +98,21 @@ export default function BodyCompositionDietCalculator({
     const numNeck = parseFloat(neck) || 0;
     const numHip = parseFloat(hip) || 0;
 
-    // Altura, Peso e Idade são os requisitos mínimos universais
-    if (numHeight <= 0 || numWeight <= 0 || numAge <= 0) {
-      return null;
-    }
-
     let bf = 0;
-    let calculationMode: "navy" | "estimated" = "estimated";
 
-    // 1. Verificar se possui dados de fita métrica suficientes para a fórmula oficial Gorgonoid (Marinha dos EUA)
-    const hasTapeMeasurements =
-      numWaist > 0 && numNeck > 0 && (sex === "male" || numHip > 0);
-
-    if (hasTapeMeasurements) {
-      if (sex === "male") {
-        const waistMinusNeck = numWaist - numNeck;
-        if (waistMinusNeck > 0) {
-          const logDiff = Math.log10(waistMinusNeck);
-          const logHeight = Math.log10(numHeight);
-          bf = 495 / (1.0324 - 0.19077 * logDiff + 0.15456 * logHeight) - 450 + 2;
-          calculationMode = "navy";
-        }
-      } else {
-        const circSum = numWaist + numHip - numNeck;
-        if (circSum > 0) {
-          const logCirc = Math.log10(circSum);
-          const logHeight = Math.log10(numHeight);
-          bf = 495 / (1.29579 - 0.35004 * logCirc + 0.221 * logHeight) - 450;
-          calculationMode = "navy";
-        }
-      }
-    }
-
-    // Se não tiver fita ou medidas derem valor incoerente, ativa o cálculo estimado por IMC e Biotipo
-    if (calculationMode === "estimated" || bf <= 0) {
-      const heightInMeters = numHeight / 100;
-      const imc = numWeight / (heightInMeters * heightInMeters);
-      const sexFactor = sex === "male" ? 1 : 0;
-      // Fórmula de Deurenberg: %BF = 1.20 * IMC + 0.23 * idade - 10.8 * sexo - 5.4
-      let baseBf = 1.2 * imc + 0.23 * numAge - 10.8 * sexFactor - 5.4;
-      if (biotype === "endo") baseBf *= 1.1;
-      else if (biotype === "ecto") baseBf *= 0.9;
-      bf = baseBf;
-      calculationMode = "estimated";
+    // 1. Cálculo de Percentual de Gordura (% BF) - Fórmula US Navy
+    if (sex === "male") {
+      const waistMinusNeck = numWaist - numNeck;
+      if (waistMinusNeck <= 0) return null;
+      const logDiff = Math.log10(waistMinusNeck);
+      const logHeight = Math.log10(numHeight);
+      bf = 495 / (1.0324 - 0.19077 * logDiff + 0.15456 * logHeight) - 450 + 2;
+    } else {
+      const circSum = numWaist + numHip - numNeck;
+      if (circSum <= 0) return null;
+      const logCirc = Math.log10(circSum);
+      const logHeight = Math.log10(numHeight);
+      bf = 495 / (1.29579 - 0.35004 * logCirc + 0.221 * logHeight) - 450;
     }
 
     // Normalização científica dos limites de BF
@@ -144,16 +153,14 @@ export default function BodyCompositionDietCalculator({
     let fatPerKg = 0.9;
 
     if (dietGoal === "cutting") {
-      // Déficit para queima de gordura preservando massa magra
       targetCalories = Math.max(tmb, tdee - 450);
-      proteinPerKg = 2.2; // Maior aporte de proteína para evitar catabolismo
+      proteinPerKg = 2.2;
       fatPerKg = 0.8;
     } else if (dietGoal === "maintenance") {
       targetCalories = tdee;
       proteinPerKg = 2.0;
       fatPerKg = 0.9;
     } else if (dietGoal === "bulking") {
-      // Superávit moderado para ganho de massa limpa
       targetCalories = tdee + 350;
       proteinPerKg = 2.0;
       fatPerKg = 1.0;
@@ -178,14 +185,13 @@ export default function BodyCompositionDietCalculator({
       tmb: Math.round(tmb),
       tdee: Math.round(tdee),
       targetCalories: Math.round(totalCalculatedCalories),
-      calculationMode,
       macros: {
         protein: { grams: proteinGrams, kcal: proteinCalories, perKg: proteinPerKg },
         carbs: { grams: carbsGrams, kcal: carbsCalories },
         fat: { grams: fatGrams, kcal: fatCalories, perKg: fatPerKg },
       },
     };
-  }, [sex, biotype, age, height, weight, waist, neck, hip, activity, dietGoal]);
+  }, [hasCalculated, isFormValid, age, height, weight, waist, neck, hip, sex, biotype, activity, dietGoal]);
 
   // Salvar medição no banco de dados
   const handleSaveToHistory = async () => {
@@ -240,7 +246,7 @@ export default function BodyCompositionDietCalculator({
             </h3>
           </div>
           <p className="text-xs text-[#64748B] mt-1">
-            Método da Marinha dos Estados Unidos e Taxa Metabólica Basal com divisão de macronutrientes.
+            Fórmula oficial da Marinha dos Estados Unidos com bloqueio preventivo de campos obrigatórios.
           </p>
         </div>
 
@@ -255,19 +261,22 @@ export default function BodyCompositionDietCalculator({
         )}
       </div>
 
-      {/* Formulário de Entradas */}
+      {/* Formulário de Entradas com Validação Visual */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Coluna 1: Dados Pessoais e Biotipo */}
         <div className="space-y-4">
           {/* Seletor de Sexo */}
           <div>
             <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block mb-2">
-              Sexo Biológico
+              Sexo Biológico <span className="text-rose-500">*</span>
             </label>
             <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
               <button
                 type="button"
-                onClick={() => setSex("male")}
+                onClick={() => {
+                  setSex("male");
+                  setHasCalculated(false);
+                }}
                 className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px] ${
                   sex === "male"
                     ? "bg-[#2563EB] text-white shadow-sm"
@@ -278,7 +287,10 @@ export default function BodyCompositionDietCalculator({
               </button>
               <button
                 type="button"
-                onClick={() => setSex("female")}
+                onClick={() => {
+                  setSex("female");
+                  setHasCalculated(false);
+                }}
                 className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px] ${
                   sex === "female"
                     ? "bg-[#2563EB] text-white shadow-sm"
@@ -293,12 +305,15 @@ export default function BodyCompositionDietCalculator({
           {/* Seletor de Biotipo */}
           <div>
             <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block mb-2">
-              Biotipo Predominante
+              Biotipo Predominante <span className="text-rose-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
               <button
                 type="button"
-                onClick={() => setBiotype("ecto")}
+                onClick={() => {
+                  setBiotype("ecto");
+                  setHasCalculated(false);
+                }}
                 className={`py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center min-h-[44px] ${
                   biotype === "ecto"
                     ? "bg-white text-[#2563EB] shadow-xs"
@@ -310,7 +325,10 @@ export default function BodyCompositionDietCalculator({
               </button>
               <button
                 type="button"
-                onClick={() => setBiotype("meso")}
+                onClick={() => {
+                  setBiotype("meso");
+                  setHasCalculated(false);
+                }}
                 className={`py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center min-h-[44px] ${
                   biotype === "meso"
                     ? "bg-white text-[#2563EB] shadow-xs"
@@ -322,7 +340,10 @@ export default function BodyCompositionDietCalculator({
               </button>
               <button
                 type="button"
-                onClick={() => setBiotype("endo")}
+                onClick={() => {
+                  setBiotype("endo");
+                  setHasCalculated(false);
+                }}
                 className={`py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center min-h-[44px] ${
                   biotype === "endo"
                     ? "bg-white text-[#2563EB] shadow-xs"
@@ -338,26 +359,41 @@ export default function BodyCompositionDietCalculator({
           {/* Idade, Altura e Peso */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
-                Idade
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                  Idade <span className="text-rose-500">*</span>
+                </label>
+              </div>
               <input
                 type="number"
                 min="14"
                 max="100"
                 inputMode="numeric"
                 value={age}
-                onChange={(e) => setAge(e.target.value)}
-                className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
-                placeholder="28"
+                onChange={(e) => {
+                  setAge(e.target.value);
+                  setHasCalculated(false);
+                }}
+                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                  attemptedSubmit && (!age || parseFloat(age) <= 0)
+                    ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
+                    : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                }`}
+                placeholder="Ex: 28"
               />
-              <span className="text-[10px] text-slate-400">anos</span>
+              {attemptedSubmit && (!age || parseFloat(age) <= 0) ? (
+                <span className="text-[10px] text-rose-500 font-bold block">Obrigatório</span>
+              ) : (
+                <span className="text-[10px] text-slate-400 block">anos</span>
+              )}
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
-                Altura
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                  Altura <span className="text-rose-500">*</span>
+                </label>
+              </div>
               <input
                 type="number"
                 step="0.1"
@@ -365,17 +401,30 @@ export default function BodyCompositionDietCalculator({
                 max="240"
                 inputMode="decimal"
                 value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
-                placeholder="175"
+                onChange={(e) => {
+                  setHeight(e.target.value);
+                  setHasCalculated(false);
+                }}
+                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                  attemptedSubmit && (!height || parseFloat(height) <= 0)
+                    ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
+                    : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                }`}
+                placeholder="Ex: 175"
               />
-              <span className="text-[10px] text-slate-400">cm</span>
+              {attemptedSubmit && (!height || parseFloat(height) <= 0) ? (
+                <span className="text-[10px] text-rose-500 font-bold block">Obrigatório</span>
+              ) : (
+                <span className="text-[10px] text-slate-400 block">cm</span>
+              )}
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
-                Peso
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                  Peso <span className="text-rose-500">*</span>
+                </label>
+              </div>
               <input
                 type="number"
                 step="0.1"
@@ -383,24 +432,44 @@ export default function BodyCompositionDietCalculator({
                 max="250"
                 inputMode="decimal"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
-                placeholder="76"
+                onChange={(e) => {
+                  setWeight(e.target.value);
+                  setHasCalculated(false);
+                }}
+                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                  attemptedSubmit && (!weight || parseFloat(weight) <= 0)
+                    ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
+                    : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                }`}
+                placeholder="Ex: 75.5"
               />
-              <span className="text-[10px] text-slate-400">kg</span>
+              {attemptedSubmit && (!weight || parseFloat(weight) <= 0) ? (
+                <span className="text-[10px] text-rose-500 font-bold block">Obrigatório</span>
+              ) : (
+                <span className="text-[10px] text-slate-400 block">kg</span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Coluna 2: Medidas de Fita e Nível de Atividade */}
+        {/* Coluna 2: Medidas de Fita Métrica (Iniciam Vazias!) */}
         <div className="space-y-4">
           <div>
-            <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block mb-2">
-              Medidas com Fita Métrica
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                Medidas com Fita Métrica
+              </label>
+              <span className="text-[10px] text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
+                Obrigatórias para o cálculo
+              </span>
+            </div>
+
             <div className={`grid ${sex === "female" ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
+              {/* Cintura */}
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500">Cintura</label>
+                <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                  <span>Cintura <span className="text-rose-500">*</span></span>
+                </label>
                 <input
                   type="number"
                   step="0.1"
@@ -408,15 +477,25 @@ export default function BodyCompositionDietCalculator({
                   max="180"
                   inputMode="decimal"
                   value={waist}
-                  onChange={(e) => setWaist(e.target.value)}
-                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                  onChange={(e) => {
+                    setWaist(e.target.value);
+                    setHasCalculated(false);
+                  }}
+                  className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                    attemptedSubmit && (!waist || parseFloat(waist) <= 0)
+                      ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
+                      : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                  }`}
                   placeholder="Ex: 84"
                 />
-                <span className="text-[10px] text-slate-400">altura do umbigo</span>
+                <span className="text-[10px] text-slate-400 block">altura do umbigo</span>
               </div>
 
+              {/* Pescoço */}
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500">Pescoço</label>
+                <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                  <span>Pescoço <span className="text-rose-500">*</span></span>
+                </label>
                 <input
                   type="number"
                   step="0.1"
@@ -424,16 +503,26 @@ export default function BodyCompositionDietCalculator({
                   max="60"
                   inputMode="decimal"
                   value={neck}
-                  onChange={(e) => setNeck(e.target.value)}
-                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                  onChange={(e) => {
+                    setNeck(e.target.value);
+                    setHasCalculated(false);
+                  }}
+                  className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                    attemptedSubmit && (!neck || parseFloat(neck) <= 0)
+                      ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
+                      : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                  }`}
                   placeholder="Ex: 38"
                 />
-                <span className="text-[10px] text-slate-400">abaixo do pomo</span>
+                <span className="text-[10px] text-slate-400 block">abaixo do pomo</span>
               </div>
 
+              {/* Quadril (apenas feminino) */}
               {sex === "female" && (
                 <div className="space-y-1 animate-fade-in">
-                  <label className="text-[10px] font-bold text-slate-500">Quadril</label>
+                  <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                    <span>Quadril <span className="text-rose-500">*</span></span>
+                  </label>
                   <input
                     type="number"
                     step="0.1"
@@ -441,11 +530,18 @@ export default function BodyCompositionDietCalculator({
                     max="180"
                     inputMode="decimal"
                     value={hip}
-                    onChange={(e) => setHip(e.target.value)}
-                    className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                    onChange={(e) => {
+                      setHip(e.target.value);
+                      setHasCalculated(false);
+                    }}
+                    className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                      attemptedSubmit && (!hip || parseFloat(hip) <= 0)
+                        ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
+                        : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                    }`}
                     placeholder="Ex: 98"
                   />
-                  <span className="text-[10px] text-slate-400">maior diâmetro</span>
+                  <span className="text-[10px] text-slate-400 block">maior diâmetro</span>
                 </div>
               )}
             </div>
@@ -465,35 +561,75 @@ export default function BodyCompositionDietCalculator({
               <option value="light">Levemente ativo (Treino leve 1 a 3 dias por semana)</option>
               <option value="moderate">Moderadamente ativo (Musculação ou cardio 3 a 5 dias)</option>
               <option value="intense">Muito ativo (Treino intenso 6 a 7 dias por semana)</option>
-              <option value="athlete">Atleta de elite (Treinos pesados duas vezes ao dia)</option>
+              <option value="athlete">Atleta (Treinos pesados duas vezes ao dia)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Resultados e Gráficos da Composição Corporal */}
-      {calculation ? (
-        <div className="space-y-6 pt-2">
+      {/* Botão de Ação Primária: Calcular Avaliação Corporal */}
+      <div>
+        <button
+          type="button"
+          onClick={handleCalculate}
+          className="w-full py-3.5 px-4 min-h-[48px] rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.99] text-white text-sm font-extrabold transition-all shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
+        >
+          <Sparkles className="w-4 h-4 text-cyan-300" />
+          <span>Calcular Avaliação Corporal e Dieta</span>
+        </button>
+      </div>
+
+      {/* Estado Bloqueado: Exibir orientações e campos pendentes */}
+      {!calculation && (
+        <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 animate-fade-in">
+          <div className="flex items-center gap-2.5 text-[#0F172A]">
+            <span className="p-2 rounded-xl bg-amber-100 text-amber-800">
+              <Lock className="w-4 h-4" />
+            </span>
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
+                Cálculo Bloqueado — Campos Obrigatórios Pendentes
+              </h4>
+              <p className="text-[11px] text-[#64748B]">
+                Para que o cálculo seja 100% exato e reflita sua composição real, preencha os campos com (*) e clique no botão de calcular.
+              </p>
+            </div>
+          </div>
+
+          {attemptedSubmit && missingFields.length > 0 && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 space-y-2 animate-fade-in">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700">
+                <AlertCircle className="w-4 h-4" />
+                <span>Por favor, preencha os seguintes campos obrigatórios:</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {missingFields.map((f) => (
+                  <span
+                    key={f.field}
+                    className="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold"
+                  >
+                    {f.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Resultados e Gráficos da Composição Corporal (Desbloqueado após cálculo válido) */}
+      {calculation && (
+        <div className="space-y-6 pt-2 animate-fade-in">
           {/* Badge do Método de Avaliação Ativo */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80">
             <div className="flex items-center gap-2">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  calculation.calculationMode === "navy"
-                    ? "bg-emerald-500 animate-pulse"
-                    : "bg-blue-500"
-                }`}
-              ></span>
-              <span className="text-xs font-bold text-slate-800">
-                {calculation.calculationMode === "navy"
-                  ? "Método Oficial Gorgonoid (Fórmula Marinha dos EUA) Ativo"
-                  : "Estimativa Rápida por Peso, Altura e Biotipo Ativa"}
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs font-bold text-emerald-900">
+                Fórmula da Marinha dos EUA Calculada com Sucesso!
               </span>
             </div>
-            <span className="text-[11px] text-slate-500 font-medium">
-              {calculation.calculationMode === "navy"
-                ? "Máxima precisão calculada com base na fita métrica."
-                : "Preencha cintura e pescoço para ativar o método exato de fita do Gorgonoid."}
+            <span className="text-[11px] text-emerald-700 font-medium">
+              Avaliação de alta precisão baseada nas suas medidas reais.
             </span>
           </div>
 
@@ -601,7 +737,7 @@ export default function BodyCompositionDietCalculator({
           </div>
 
           {/* Planejamento de Dieta e Macronutrientes */}
-          <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
@@ -613,12 +749,12 @@ export default function BodyCompositionDietCalculator({
                 </p>
               </div>
 
-              {/* Seletor de Meta de Dieta */}
-              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+              {/* Seletor de Meta de Dieta (responsivo, nunca sai para fora da moldura) */}
+              <div className="grid grid-cols-3 w-full sm:w-auto bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
                 <button
                   type="button"
                   onClick={() => setDietGoal("cutting")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-1.5 sm:px-3 py-2 sm:py-1.5 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                     dietGoal === "cutting"
                       ? "bg-rose-500 text-white shadow-xs"
                       : "text-slate-600 hover:text-slate-900"
@@ -629,7 +765,7 @@ export default function BodyCompositionDietCalculator({
                 <button
                   type="button"
                   onClick={() => setDietGoal("maintenance")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-1.5 sm:px-3 py-2 sm:py-1.5 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                     dietGoal === "maintenance"
                       ? "bg-blue-600 text-white shadow-xs"
                       : "text-slate-600 hover:text-slate-900"
@@ -640,7 +776,7 @@ export default function BodyCompositionDietCalculator({
                 <button
                   type="button"
                   onClick={() => setDietGoal("bulking")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-1.5 sm:px-3 py-2 sm:py-1.5 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                     dietGoal === "bulking"
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-600 hover:text-slate-900"
@@ -771,12 +907,6 @@ export default function BodyCompositionDietCalculator({
               </p>
             )}
           </div>
-        </div>
-      ) : (
-        <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/60 text-center">
-          <p className="text-xs text-amber-800 font-medium">
-            Preencha todos os campos obrigatórios (altura, peso, cintura e pescoço) para calcular sua composição corporal e dieta.
-          </p>
         </div>
       )}
     </div>

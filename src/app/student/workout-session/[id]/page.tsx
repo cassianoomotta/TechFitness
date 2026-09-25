@@ -633,10 +633,10 @@ export default function WorkoutSessionPlayer() {
   }, [planId, router, updateSetsData, STORAGE_KEY_PLAN_CACHE, STORAGE_KEY_SETS]);
 
   const playRestAlertSound = () => {
-    // Alerta tátil: vibração esportiva sincronizada (dois pulsos: 150ms toque, 80ms pausa, 350ms chamada)
+    // Alerta tátil: vibração esportiva sincronizada com o novo tempo estendido (350ms, pausa 120ms, 1000ms firme)
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate([150, 80, 350]);
+        navigator.vibrate([350, 120, 1000]);
       }
     } catch {}
 
@@ -656,50 +656,63 @@ export default function WorkoutSessionPlayer() {
         audioCtx.resume();
       }
 
-      // Função geradora de toque de apito esportivo (dual tone com trinado característico)
-      const playWhistleBurst = (startTime: number, duration: number) => {
+      // Função geradora de toque de apito esportivo encorpado e realista
+      const playWhistleBurst = (startTime: number, duration: number, peakVolume = 0.28) => {
         const osc1 = audioCtx.createOscillator();
         const osc2 = audioCtx.createOscillator();
+        const oscHarmonic = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
 
-        // Frequências ressonantes de apito esportivo / árbitro
+        // Frequências ressonantes de apito esportivo profissional (Fox 40 / Árbitro)
+        // 2550 Hz e 2820 Hz criam o batimento acústico característico sem soar estridente
         osc1.type = "sine";
-        osc1.frequency.setValueAtTime(2850, startTime);
+        osc1.frequency.setValueAtTime(2550, startTime);
 
         osc2.type = "sine";
-        osc2.frequency.setValueAtTime(3120, startTime);
+        osc2.frequency.setValueAtTime(2820, startTime);
 
-        // Modulador rápido de frequência (32Hz) que emula o vibrato da bolinha interna do apito
+        // Harmônico sutil (5370 Hz) para dar presença de ar real
+        oscHarmonic.type = "sine";
+        oscHarmonic.frequency.setValueAtTime(5370, startTime);
+
+        // Oscilador de trinado (vibrato de 28Hz) emulando o vórtice de ar interno do apito
         const flutterOsc = audioCtx.createOscillator();
         const flutterGain = audioCtx.createGain();
-        flutterOsc.frequency.setValueAtTime(32, startTime);
-        flutterGain.gain.setValueAtTime(90, startTime);
+        flutterOsc.frequency.setValueAtTime(28, startTime);
+        flutterGain.gain.setValueAtTime(75, startTime);
         flutterOsc.connect(osc1.frequency);
         flutterOsc.connect(osc2.frequency);
 
-        // Envelope com ataque rápido e decaimento acústico natural
+        // Envelope dinâmico de sopro esportivo profissional
         gain.gain.setValueAtTime(0.001, startTime);
-        gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
-        gain.gain.setValueAtTime(0.25, startTime + duration - 0.04);
-        gain.gain.linearRampToValueAtTime(0.001, startTime + duration);
+        gain.gain.linearRampToValueAtTime(peakVolume, startTime + 0.05);
+        gain.gain.setValueAtTime(peakVolume, startTime + duration - 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
         osc1.connect(gain);
         osc2.connect(gain);
+        oscHarmonic.connect(gain);
         gain.connect(audioCtx.destination);
 
         flutterOsc.start(startTime);
         osc1.start(startTime);
         osc2.start(startTime);
+        oscHarmonic.start(startTime);
 
         flutterOsc.stop(startTime + duration);
         osc1.stop(startTime + duration);
         osc2.stop(startTime + duration);
+        oscHarmonic.stop(startTime + duration);
       };
 
       const now = audioCtx.currentTime;
-      // Padrão de apito duplo esportivo clássico ("Pi - Piii!")
-      playWhistleBurst(now, 0.15); // Primeiro toque rápido
-      playWhistleBurst(now + 0.23, 0.42); // Segundo toque firme de reinício
+      // Apito esportivo estendido (+1.5s):
+      // Toque 1: Alerta curto de 0.35s
+      // Intervalo: 0.12s
+      // Toque 2: Apito decisivo longo e firme de 1.40s
+      // Duração total: ~1.87s
+      playWhistleBurst(now, 0.35, 0.26);
+      playWhistleBurst(now + 0.47, 1.40, 0.30);
     } catch (e) {
       console.warn("AudioContext não suportado ou bloqueado:", e);
     }

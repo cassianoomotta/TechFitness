@@ -60,6 +60,21 @@ export default function WeightTab({
   return (
     <>
       <div className="space-y-6 animate-fade-in">
+        {/* Cabeçalho da Página: Peso e Dieta */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
+              <span className="p-2 rounded-2xl bg-blue-50 text-[#2563EB]">
+                <TrendingUp className="w-6 h-6" />
+              </span>
+              Peso e Dieta
+            </h2>
+            <p className="text-xs text-[#64748B] mt-1">
+              Acompanhe sua pesagem, composição corporal, percentual de gordura e planejamento nutricional.
+            </p>
+          </div>
+        </div>
+
         {/* Card Objetivo de Peso */}
         <div className="glass-card rounded-2xl p-5 border border-[#E2E8F0] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
