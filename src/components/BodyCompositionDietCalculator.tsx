@@ -15,7 +15,6 @@ import {
   Loader2,
   TrendingDown,
   TrendingUp,
-  Compass,
   Lock,
   AlertCircle,
   Droplets,
@@ -274,7 +273,7 @@ export default function BodyCompositionDietCalculator({
         <div>
           <div className="flex items-center gap-2">
             <span className="p-2 rounded-xl bg-blue-50 text-[#2563EB]">
-              <Compass className="w-5 h-5" />
+              <Scale className="w-5 h-5" />
             </span>
             <h3 className="text-lg font-extrabold text-[#0F172A] tracking-tight">
               Calculadora de Composição Corporal e Dieta

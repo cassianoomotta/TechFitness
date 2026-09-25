@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Loader2, TrendingUp, ChevronRight, Scale, Compass, ChevronDown } from 'lucide-react';
+import { Loader2, TrendingUp, ChevronRight, Scale, ChevronDown } from 'lucide-react';
 import BodyMetricsChart from '@/components/BodyMetricsChart';
 import BodyCompositionDietCalculator from '@/components/BodyCompositionDietCalculator';
 
@@ -113,7 +113,7 @@ export default function WeightTab({
         <div className="glass-card rounded-2xl p-5 border border-blue-200/70 bg-gradient-to-br from-blue-50/60 via-white to-indigo-50/30 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
-              <Compass className="w-6 h-6" />
+              <Scale className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">

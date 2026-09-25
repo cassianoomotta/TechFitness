@@ -28,6 +28,12 @@ import {
   VolumeX,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
+import {
+  scheduleRestNotification,
+  cancelRestNotification,
+  showNativeNotification,
+  requestNotificationPermission,
+} from "@/lib/sw-utils";
 
 interface ScreenWakeLockSentinel {
   released: boolean;
@@ -245,6 +251,11 @@ export default function WorkoutSessionPlayer() {
         wakeLockRef.current = null;
       }
     };
+  }, []);
+
+  // Solicitar permissão oficial de notificações nativas para a sessão de treino
+  useEffect(() => {
+    requestNotificationPermission().catch(() => {});
   }, []);
 
   // Restaurar preferência de som do cronômetro do localStorage
@@ -470,6 +481,7 @@ export default function WorkoutSessionPlayer() {
               setRestTime(0);
               setRestEndTime(null);
               localStorage.removeItem(STORAGE_KEY_REST);
+              cancelRestNotification();
               if (!hasPlayedAlertRef.current) {
                 hasPlayedAlertRef.current = true;
                 playRestAlertSoundRef.current();
@@ -991,23 +1003,11 @@ export default function WorkoutSessionPlayer() {
       }
     } catch {}
 
-    // 2. Disparar notificação nativa do sistema em segundo plano / tela bloqueada com auto-close
+    // 2. Disparar notificação nativa do sistema em segundo plano / tela bloqueada via Service Worker
     try {
-      if (
-        typeof window !== "undefined" &&
-        "Notification" in window &&
-        Notification.permission === "granted" &&
-        document.visibilityState === "hidden"
-      ) {
-        const notif = new Notification("TechFitness — Hora do Show! 🏋️‍♂️", {
-          body: "Tempo de descanso encerrado! Bora para a próxima série!",
-          icon: "/logo.png",
-          badge: "/logo.png",
-        });
-        setTimeout(() => {
-          try { notif.close(); } catch {}
-        }, 5000);
-      }
+      showNativeNotification("TechFitness — Hora do Show! 🏋️‍♂️", {
+        body: "Tempo de descanso encerrado! Bora para a próxima série!",
+      });
     } catch {}
 
     // Se o som estiver desativado pelo aluno, encerra
@@ -1029,6 +1029,7 @@ export default function WorkoutSessionPlayer() {
     setRestTime(0);
     setRestEndTime(null);
     cancelScheduledWhistles();
+    cancelRestNotification();
     try {
       localStorage.removeItem(STORAGE_KEY_REST);
     } catch {}
@@ -1044,6 +1045,7 @@ export default function WorkoutSessionPlayer() {
           setIsResting(false);
           setRestTime(0);
           setRestEndTime(null);
+          cancelRestNotification();
           try { localStorage.removeItem(STORAGE_KEY_REST); } catch {}
           if (!hasPlayedAlertRef.current) {
             hasPlayedAlertRef.current = true;
@@ -1084,6 +1086,15 @@ export default function WorkoutSessionPlayer() {
 
     // Cancelar qualquer agendamento anterior
     cancelScheduledWhistles();
+    cancelRestNotification();
+
+    // Agendar notificação oficial de término no Service Worker (funciona na tela bloqueada)
+    scheduleRestNotification(
+      validSeconds,
+      "TechFitness — Hora do Show! 🏋️‍♂️",
+      "Tempo de descanso encerrado! Bora para a próxima série!",
+      typeof window !== "undefined" ? window.location.pathname : "/student/workout-session"
+    );
 
     // Configurar áudio em modo ambiente e agendar o apito no relógio de hardware
     if (timerSoundEnabled) {
@@ -1137,15 +1148,7 @@ export default function WorkoutSessionPlayer() {
     }
 
     // Solicitar permissão de notificação se ainda não solicitou
-    try {
-      if (
-        typeof window !== "undefined" &&
-        "Notification" in window &&
-        Notification.permission === "default"
-      ) {
-        Notification.requestPermission().catch(() => {});
-      }
-    } catch {}
+    requestNotificationPermission().catch(() => {});
   };
 
   const adjustRestTime = (amountSeconds: number) => {
@@ -1159,6 +1162,14 @@ export default function WorkoutSessionPlayer() {
       const newRemaining = Math.round((newEndTime - Date.now()) / 1000);
       setInitialRestTime((prev) => Math.max(prev, newRemaining));
       setRestTime(newRemaining);
+
+      // Reagendar notificação no Service Worker para o novo tempo
+      scheduleRestNotification(
+        newRemaining,
+        "TechFitness — Hora do Show! 🏋️‍♂️",
+        "Tempo de descanso encerrado! Bora para a próxima série!",
+        typeof window !== "undefined" ? window.location.pathname : "/student/workout-session"
+      );
 
       // Reagendar apito no relógio de hardware para o novo tempo restante
       if (timerSoundEnabled && audioCtxRef.current) {

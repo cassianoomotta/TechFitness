@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TechFitness | Treino Inteligente & Progressão de Carga",
+  title: "TechFitness | Treino Inteligente e Progressão de Carga",
   description: "Plataforma premium para personal trainers prescreverem treinos focados em progressão de carga e alunos evoluírem de forma acompanhada e gamificada.",
   appleWebApp: {
     title: "TechFitness",
