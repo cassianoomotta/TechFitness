@@ -100,8 +100,7 @@ export default function WorkoutSessionPlayer() {
   // Estado do Som/Apito do Cronômetro (persistido no dispositivo)
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
 
-  // Referências para áudio em segundo plano e tela bloqueada (Keep-Alive e Apito de Hardware)
-  const keepAliveAudioRef = useRef<HTMLAudioElement | null>(null);
+  // Referências para áudio e apito do cronômetro (modo ambiente para não pausar Spotify/música)
   const whistleAudioRef = useRef<HTMLAudioElement | null>(null);
   const directAudioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<ScreenWakeLockSentinel | null>(null);
@@ -109,48 +108,14 @@ export default function WorkoutSessionPlayer() {
   const playRestAlertSoundRef = useRef<() => void>(() => {});
   const playWhistleImmediatelyRef = useRef<() => void>(() => {});
 
-  // Web Audio API para agendamento de hardware do apito (garante som em tela bloqueada no iOS)
+  // Web Audio API para agendamento de hardware do apito (garante som misturado em segundo plano no iOS)
   const audioCtxRef = useRef<AudioContext | null>(null);
   const whistleBufferRef = useRef<AudioBuffer | null>(null);
   const whistleArrayBufferRef = useRef<ArrayBuffer | null>(null);
   const scheduledSourcesRef = useRef<{ stop: () => void }[]>([]);
 
-  // Limpar e desmontar a sessão de mídia da tela de bloqueio (iOS / Android)
+  // Limpar e desmontar sons de apito
   const clearLockScreenMediaSession = useCallback(() => {
-    try {
-      if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "none";
-        navigator.mediaSession.metadata = null;
-        try {
-          const actions: MediaSessionAction[] = [
-            "play",
-            "pause",
-            "stop",
-            "seekbackward",
-            "seekforward",
-            "previoustrack",
-            "nexttrack",
-          ];
-          actions.forEach((act) => {
-            try {
-              navigator.mediaSession.setActionHandler(act, null);
-            } catch {}
-          });
-        } catch {}
-      }
-    } catch {}
-
-    if (keepAliveAudioRef.current) {
-      try {
-        keepAliveAudioRef.current.pause();
-        keepAliveAudioRef.current.currentTime = 0;
-        // Restaurar estado do keep-alive para silêncio em loop para a próxima série
-        keepAliveAudioRef.current.src = "/sounds/silence.wav";
-        keepAliveAudioRef.current.loop = true;
-        keepAliveAudioRef.current.volume = 0.05;
-      } catch {}
-    }
-
     if (whistleAudioRef.current) {
       try {
         whistleAudioRef.current.pause();
@@ -166,21 +131,17 @@ export default function WorkoutSessionPlayer() {
     }
   }, []);
 
-  // Inicializar elemento de áudio silencioso e pré-carregar buffer de apito na memória RAM
+  // Inicializar elemento de apito e pré-carregar buffer na memória RAM em modo ambient (compatível com Spotify)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     let isMounted = true;
 
-    // 1. Áudio silencioso em loop para manter canal ativo no iOS/Android
-    try {
-      const silence = new Audio("/sounds/silence.wav");
-      silence.loop = true;
-      silence.volume = 0.05;
-      silence.preload = "auto";
-      keepAliveAudioRef.current = silence;
-    } catch (e) {
-      console.warn("Erro ao instanciar elemento de áudio silencioso:", e);
+    // 1. Configurar AudioSession para "ambient" no iOS: NUNCA fecha nem pausa o Spotify, Apple Music ou outros players
+    if (typeof navigator !== "undefined" && "audioSession" in navigator) {
+      try {
+        (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "ambient";
+      } catch {}
     }
 
     // 2. Elemento dedicado de apito HTML5 persistente pré-carregado
@@ -203,12 +164,6 @@ export default function WorkoutSessionPlayer() {
 
         if (AudioContextClass && !audioCtxRef.current) {
           audioCtxRef.current = new AudioContextClass();
-        }
-
-        if (typeof navigator !== "undefined" && "audioSession" in navigator) {
-          try {
-            (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
-          } catch {}
         }
 
         const res = await fetch("/sounds/whistle.wav");
@@ -241,9 +196,6 @@ export default function WorkoutSessionPlayer() {
     return () => {
       isMounted = false;
       clearLockScreenMediaSession();
-      if (keepAliveAudioRef.current) {
-        keepAliveAudioRef.current = null;
-      }
       if (whistleAudioRef.current) {
         whistleAudioRef.current = null;
       }
@@ -952,8 +904,15 @@ export default function WorkoutSessionPlayer() {
     scheduleBurst(safeTargetTime + 0.45, 1.40, 0.32);
   }, []);
 
-  // Tocar o apito imediatamente via canais redundantes (SEMPRE que o temporizador zerar)
+  // Tocar o apito imediatamente via canais redundantes em modo ambient (sem interromper Spotify/música)
   const playWhistleImmediately = useCallback(() => {
+    // Garantir modo ambient para não interromper outros players
+    if (typeof navigator !== "undefined" && "audioSession" in navigator) {
+      try {
+        (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "ambient";
+      } catch {}
+    }
+
     // Canal 1: Elemento HTML5 de apito dedicado (pré-desbloqueado no gesto do clique)
     if (whistleAudioRef.current) {
       try {
@@ -964,20 +923,7 @@ export default function WorkoutSessionPlayer() {
       } catch {}
     }
 
-    // Canal 2: Canal ativo keepAlive (reutiliza o canal de áudio que já está tocando em segundo plano)
-    if (keepAliveAudioRef.current) {
-      try {
-        const keepAudio = keepAliveAudioRef.current;
-        keepAudio.pause();
-        keepAudio.loop = false;
-        keepAudio.volume = 1.0;
-        keepAudio.src = "/sounds/whistle.wav";
-        keepAudio.currentTime = 0;
-        keepAudio.play().catch(() => {});
-      } catch {}
-    }
-
-    // Canal 3: Web Audio API (Hardware audio synthesizer + buffer decodificado)
+    // Canal 2: Web Audio API (Hardware audio synthesizer + buffer decodificado)
     try {
       if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
         const AudioContextClass =
@@ -1009,7 +955,7 @@ export default function WorkoutSessionPlayer() {
       console.warn("Erro ao reproduzir apito via Web Audio:", err);
     }
 
-    // Canal 4: Redundância extra via novo elemento de áudio
+    // Canal 3: Redundância extra via novo elemento de áudio
     try {
       if (directAudioRef.current) {
         directAudioRef.current.pause();
@@ -1066,31 +1012,12 @@ export default function WorkoutSessionPlayer() {
 
     // Se o som estiver desativado pelo aluno, encerra
     if (!timerSoundEnabled) {
-      clearLockScreenMediaSession();
       return;
     }
 
-    // 3. Atualiza o banner da tela de bloqueio para o momento do alarme
-    try {
-      if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: "Descanso Finalizado! 🏋️‍♂️",
-          artist: "TechFitness",
-          album: "Hora da Próxima Série",
-          artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
-        });
-        navigator.mediaSession.playbackState = "playing";
-      }
-    } catch {}
-
-    // 4. Tocar o apito imediatamente via canais redundantes
+    // 3. Tocar o apito imediatamente via canais redundantes em modo ambiente (sem interromper Spotify)
     playWhistleImmediately();
-
-    // 5. Encerrar sessão de mídia e som silencioso após a duração do apito (~2.8s)
-    setTimeout(() => {
-      clearLockScreenMediaSession();
-    }, 2800);
-  }, [clearLockScreenMediaSession, playWhistleImmediately, timerSoundEnabled]);
+  }, [playWhistleImmediately, timerSoundEnabled]);
 
   // Manter ref sincronizada para chamadas em callbacks assíncronos e eventos de ciclo de vida
   useEffect(() => {
@@ -1121,25 +1048,9 @@ export default function WorkoutSessionPlayer() {
           if (!hasPlayedAlertRef.current) {
             hasPlayedAlertRef.current = true;
             playRestAlertSound();
-          } else {
-            clearLockScreenMediaSession();
           }
         } else {
           setRestTime(remaining);
-          // Atualizar contador na tela de bloqueio via MediaSession de forma suave
-          try {
-            if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-              if (remaining % 5 === 0 || remaining <= 10) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                  title: `Descanso: ${remaining}s`,
-                  artist: "TechFitness",
-                  album: plan?.name || "Treino em Andamento",
-                  artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
-                });
-                navigator.mediaSession.playbackState = "playing";
-              }
-            }
-          } catch {}
         }
       };
 
@@ -1157,7 +1068,7 @@ export default function WorkoutSessionPlayer() {
         clearTimeout(exactTimeout);
       };
     }
-  }, [isResting, restEndTime, STORAGE_KEY_REST, plan, playRestAlertSound, clearLockScreenMediaSession]);
+  }, [isResting, restEndTime, STORAGE_KEY_REST, plan, playRestAlertSound]);
 
   const startRestTimer = (seconds?: number | null) => {
     const validSeconds = seconds && Number(seconds) > 0 ? Number(seconds) : 60;
@@ -1174,7 +1085,7 @@ export default function WorkoutSessionPlayer() {
     // Cancelar qualquer agendamento anterior
     cancelScheduledWhistles();
 
-    // Iniciar áudio silencioso de segundo plano e agendar o apito no relógio de hardware
+    // Configurar áudio em modo ambiente e agendar o apito no relógio de hardware
     if (timerSoundEnabled) {
       // 1. Despertar / retomar AudioContext sob o clique do usuário
       try {
@@ -1193,10 +1104,10 @@ export default function WorkoutSessionPlayer() {
         }
       } catch {}
 
-      // 2. Definir modo Playback para ignorar chave de mudo no iOS 16.4+
+      // 2. Definir modo Ambient para NUNCA pausar ou fechar o Spotify ou outros players de música
       if (typeof navigator !== "undefined" && "audioSession" in navigator) {
         try {
-          (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
+          (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "ambient";
         } catch {}
       }
 
@@ -1218,44 +1129,12 @@ export default function WorkoutSessionPlayer() {
         } catch {}
       }
 
-      // 4. Iniciar áudio silencioso de segundo plano para manter o processo e CoreAudio acordados
-      if (keepAliveAudioRef.current) {
-        try {
-          keepAliveAudioRef.current.src = "/sounds/silence.wav";
-          keepAliveAudioRef.current.loop = true;
-          keepAliveAudioRef.current.volume = 0.05;
-          keepAliveAudioRef.current.currentTime = 0;
-          keepAliveAudioRef.current.play().catch(() => {});
-        } catch {}
-      }
-
-      // 5. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds
+      // 4. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds
       if (audioCtxRef.current) {
         const targetTime = audioCtxRef.current.currentTime + validSeconds;
         scheduleWhistleSequence(targetTime);
       }
     }
-
-    // Registrar sessão de mídia na tela de bloqueio com controles nativos de parar/pausar
-    try {
-      if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: `Descanso: ${validSeconds}s`,
-          artist: "TechFitness",
-          album: plan?.name || "Treino em Andamento",
-          artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
-        });
-        navigator.mediaSession.playbackState = "playing";
-
-        // Ações para o aluno pausar ou parar direto da tela de bloqueio do iOS / Android
-        navigator.mediaSession.setActionHandler("pause", () => {
-          stopRestTimer();
-        });
-        navigator.mediaSession.setActionHandler("stop", () => {
-          stopRestTimer();
-        });
-      }
-    } catch {}
 
     // Solicitar permissão de notificação se ainda não solicitou
     try {
