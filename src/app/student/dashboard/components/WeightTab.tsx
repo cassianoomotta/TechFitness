@@ -80,7 +80,7 @@ export default function WeightTab({
           <div className="text-center sm:text-left">
             <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Foco do seu Objetivo</h4>
             <p className="text-[11px] text-[#94A3B8] mt-1">
-              Define se o ganho (Hipertrofia) ou a perda (Emagrecimento) de peso será destacado em verde.
+              Define se o ganho (Hipertrofia) ou a perda (Emagrecer) de peso será destacado em verde.
             </p>
           </div>
           <div className="flex bg-zinc-100 p-1 rounded-xl border border-[#E2E8F0] w-full sm:w-auto">
@@ -93,7 +93,7 @@ export default function WeightTab({
                   : "text-[#94A3B8] hover:text-[#0F172A]"
               }`}
             >
-              Emagrecimento
+              Emagrecer
             </button>
             <button
               type="button"

@@ -138,39 +138,36 @@ export default function WorkoutSessionPlayer() {
       }
     } catch {}
 
-    // Descarregar completamente o áudio de silêncio (essencial para o iOS fechar o card Now Playing da tela de bloqueio)
     if (keepAliveAudioRef.current) {
       try {
         keepAliveAudioRef.current.pause();
-        keepAliveAudioRef.current.removeAttribute("src");
-        keepAliveAudioRef.current.load();
+        keepAliveAudioRef.current.currentTime = 0;
       } catch {}
-      keepAliveAudioRef.current = null;
     }
 
-    // Descarregar áudio direto do apito
     if (directAudioRef.current) {
       try {
         directAudioRef.current.pause();
-        directAudioRef.current.removeAttribute("src");
-        directAudioRef.current.load();
-      } catch {}
-      directAudioRef.current = null;
-    }
-
-    // Suspender AudioContext para liberar o hardware de som no iOS Safari
-    if (audioCtxRef.current && audioCtxRef.current.state === "running") {
-      try {
-        audioCtxRef.current.suspend().catch(() => {});
+        directAudioRef.current.currentTime = 0;
       } catch {}
     }
   }, []);
 
-  // Pré-carregar buffer de apito na memória RAM para resposta instantânea
+  // Inicializar elemento de áudio silencioso e pré-carregar buffer de apito na memória RAM
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     let isMounted = true;
+
+    try {
+      const silence = new Audio("/sounds/silence.wav");
+      silence.loop = true;
+      silence.volume = 0.05;
+      silence.preload = "auto";
+      keepAliveAudioRef.current = silence;
+    } catch (e) {
+      console.warn("Erro ao instanciar elemento de áudio silencioso:", e);
+    }
 
     const initAudioContextAndBuffer = async () => {
       try {
@@ -946,9 +943,7 @@ export default function WorkoutSessionPlayer() {
       try {
         if (directAudioRef.current) {
           directAudioRef.current.pause();
-          directAudioRef.current.removeAttribute("src");
-          directAudioRef.current.load();
-          directAudioRef.current = null;
+          directAudioRef.current.currentTime = 0;
         }
         const directAudio = new Audio("/sounds/whistle.wav");
         directAudio.volume = 1.0;
@@ -956,20 +951,18 @@ export default function WorkoutSessionPlayer() {
         directAudio.onended = () => {
           try {
             directAudio.pause();
-            directAudio.removeAttribute("src");
-            directAudio.load();
+            directAudio.currentTime = 0;
           } catch {}
           if (directAudioRef.current === directAudio) {
             directAudioRef.current = null;
           }
-          clearLockScreenMediaSession();
         };
         directAudio.play().catch(() => {});
       } catch {}
     } catch (err) {
       console.warn("Erro ao reproduzir apito imediato:", err);
     }
-  }, [clearLockScreenMediaSession, scheduleWhistleSequence]);
+  }, [scheduleWhistleSequence]);
 
   useEffect(() => {
     playWhistleImmediatelyRef.current = playWhistleImmediately;
@@ -985,7 +978,7 @@ export default function WorkoutSessionPlayer() {
       }
     } catch {}
 
-    // 2. Disparar notificação nativa do sistema em segundo plano / tela bloqueada
+    // 2. Disparar notificação nativa do sistema em segundo plano / tela bloqueada com auto-close
     try {
       if (
         typeof window !== "undefined" &&
@@ -993,11 +986,14 @@ export default function WorkoutSessionPlayer() {
         Notification.permission === "granted" &&
         document.visibilityState === "hidden"
       ) {
-        new Notification("TechFitness — Hora do Show! 🏋️‍♂️", {
+        const notif = new Notification("TechFitness — Hora do Show! 🏋️‍♂️", {
           body: "Tempo de descanso encerrado! Bora para a próxima série!",
           icon: "/logo.png",
           badge: "/logo.png",
         });
+        setTimeout(() => {
+          try { notif.close(); } catch {}
+        }, 5000);
       }
     } catch {}
 
@@ -1137,20 +1133,11 @@ export default function WorkoutSessionPlayer() {
       }
 
       // 3. Iniciar áudio silencioso de segundo plano para manter o processo e CoreAudio acordados
-      try {
-        if (keepAliveAudioRef.current) {
-          keepAliveAudioRef.current.pause();
-          keepAliveAudioRef.current.removeAttribute("src");
-          keepAliveAudioRef.current.load();
-          keepAliveAudioRef.current = null;
-        }
-        const silence = new Audio("/sounds/silence.wav");
-        silence.loop = true;
-        silence.volume = 0.05;
-        keepAliveAudioRef.current = silence;
-        silence.play().catch(() => {});
-      } catch (err) {
-        console.warn("Erro ao iniciar áudio silencioso:", err);
+      if (keepAliveAudioRef.current) {
+        try {
+          keepAliveAudioRef.current.currentTime = 0;
+          keepAliveAudioRef.current.play().catch(() => {});
+        } catch {}
       }
 
       // 4. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds

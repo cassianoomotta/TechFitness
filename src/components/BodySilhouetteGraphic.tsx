@@ -555,7 +555,7 @@ export default function BodySilhouetteGraphic({
                       <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                         <div className="flex items-center gap-1.5">
                           <Flame className="w-4 h-4 text-rose-400" />
-                          <span className="text-sm font-bold text-rose-300">Emagrecimento</span>
+                          <span className="text-sm font-bold text-rose-300">Emagrecer</span>
                         </div>
                         <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">
                           Cutting
