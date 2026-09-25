@@ -42,8 +42,8 @@ self.addEventListener("message", (event) => {
               badge: "/logo.png",
               vibrate: [350, 120, 1000],
               tag: "techfitness-rest-timer",
-              renotify: true,
-              requireInteraction: true,
+              renotify: false,
+              requireInteraction: false,
               data: { url },
             });
           } catch (err) {
@@ -74,8 +74,8 @@ self.addEventListener("message", (event) => {
         badge: "/logo.png",
         vibrate: [350, 120, 1000],
         tag: "techfitness-rest-timer",
-        renotify: true,
-        requireInteraction: true,
+        renotify: false,
+        requireInteraction: false,
         data: { url },
       })
     );

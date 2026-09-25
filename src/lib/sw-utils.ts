@@ -121,8 +121,8 @@ export async function showNativeNotification(
           badge: "/logo.png",
           vibrate: [350, 120, 1000],
           tag: "techfitness-rest-timer",
-          renotify: true,
-          requireInteraction: true,
+          renotify: false,
+          requireInteraction: false,
           ...options,
         };
         await registration.showNotification(title, swOptions as NotificationOptions);

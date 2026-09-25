@@ -152,7 +152,7 @@ export default function WorkoutSessionPlayer() {
 
     // 2. Elemento dedicado de apito HTML5 persistente pré-carregado
     try {
-      const whistle = new Audio("/sounds/whistle.wav");
+      const whistle = new Audio("/sounds/beep.mp3");
       whistle.loop = false;
       whistle.volume = 1.0;
       whistle.preload = "auto";
@@ -172,7 +172,7 @@ export default function WorkoutSessionPlayer() {
           audioCtxRef.current = new AudioContextClass();
         }
 
-        const res = await fetch("/sounds/whistle.wav");
+        const res = await fetch("/sounds/beep.mp3");
         if (res.ok && isMounted) {
           const ab = await res.arrayBuffer();
           whistleArrayBufferRef.current = ab;
@@ -186,7 +186,7 @@ export default function WorkoutSessionPlayer() {
                   }
                 },
                 (err) => {
-                  console.warn("Erro ao decodificar whistle.wav:", err);
+                  console.warn("Erro ao decodificar beep.mp3:", err);
                 }
               );
             } catch {}
@@ -973,7 +973,7 @@ export default function WorkoutSessionPlayer() {
         directAudioRef.current.pause();
         directAudioRef.current.currentTime = 0;
       }
-      const directAudio = new Audio("/sounds/whistle.wav");
+      const directAudio = new Audio("/sounds/beep.mp3");
       directAudio.volume = 1.0;
       directAudioRef.current = directAudio;
       directAudio.onended = () => {
