@@ -100,12 +100,17 @@ export default function WorkoutSessionPlayer() {
   // Estado do Som/Apito do Cronômetro (persistido no dispositivo)
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
 
-  // Referências para áudio em segundo plano e tela bloqueada (Keep-Alive e Apito)
+  // Referências para áudio em segundo plano e tela bloqueada (Keep-Alive e Apito de Hardware)
   const keepAliveAudioRef = useRef<HTMLAudioElement | null>(null);
-  const whistleAudioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<ScreenWakeLockSentinel | null>(null);
   const hasPlayedAlertRef = useRef(false);
   const playRestAlertSoundRef = useRef<() => void>(() => {});
+  const playWhistleImmediatelyRef = useRef<() => void>(() => {});
+
+  // Web Audio API para agendamento de hardware do apito (garante som em tela bloqueada no iOS)
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const whistleBufferRef = useRef<AudioBuffer | null>(null);
+  const scheduledSourcesRef = useRef<{ stop: () => void }[]>([]);
 
   // Limpar e desmontar a sessão de mídia da tela de bloqueio (iOS / Android)
   const clearLockScreenMediaSession = useCallback(() => {
@@ -129,43 +134,75 @@ export default function WorkoutSessionPlayer() {
       try {
         keepAliveAudioRef.current.pause();
         keepAliveAudioRef.current.currentTime = 0;
-        keepAliveAudioRef.current.removeAttribute("src");
-        keepAliveAudioRef.current.load();
-      } catch {}
-    }
-
-    if (whistleAudioRef.current) {
-      try {
-        whistleAudioRef.current.pause();
-        whistleAudioRef.current.currentTime = 0;
       } catch {}
     }
   }, []);
 
-  // Inicializar elementos de áudio HTML5 (canal de mídia real para segundo plano)
+  // Inicializar elemento de áudio silencioso e pré-carregar buffer de apito na memória RAM
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    let isMounted = true;
 
     try {
       const silence = new Audio("/sounds/silence.wav");
       silence.loop = true;
       silence.volume = 0.05;
       keepAliveAudioRef.current = silence;
-
-      const whistle = new Audio("/sounds/whistle.wav");
-      whistle.preload = "auto";
-      whistleAudioRef.current = whistle;
     } catch (e) {
-      console.warn("Erro ao instanciar elementos de áudio:", e);
+      console.warn("Erro ao instanciar elemento de áudio silencioso:", e);
     }
 
+    const initAudioContextAndBuffer = async () => {
+      try {
+        const AudioContextClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+        if (AudioContextClass && !audioCtxRef.current) {
+          audioCtxRef.current = new AudioContextClass();
+        }
+
+        if (typeof navigator !== "undefined" && "audioSession" in navigator) {
+          try {
+            (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
+          } catch {}
+        }
+
+        const res = await fetch("/sounds/whistle.wav");
+        if (res.ok && isMounted) {
+          const ab = await res.arrayBuffer();
+          if (audioCtxRef.current && isMounted) {
+            audioCtxRef.current.decodeAudioData(
+              ab.slice(0),
+              (decoded) => {
+                if (isMounted) {
+                  whistleBufferRef.current = decoded;
+                }
+              },
+              (err) => {
+                console.warn("Erro ao decodificar whistle.wav:", err);
+              }
+            );
+          }
+        }
+      } catch (err) {
+        console.warn("Erro ao pré-carregar buffer de áudio:", err);
+      }
+    };
+
+    initAudioContextAndBuffer();
+
     return () => {
+      isMounted = false;
       clearLockScreenMediaSession();
       if (keepAliveAudioRef.current) {
         keepAliveAudioRef.current = null;
       }
-      if (whistleAudioRef.current) {
-        whistleAudioRef.current = null;
+      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+        try {
+          audioCtxRef.current.close().catch(() => {});
+        } catch {}
       }
     };
   }, [clearLockScreenMediaSession]);
@@ -226,6 +263,11 @@ export default function WorkoutSessionPlayer() {
       try {
         localStorage.setItem("workout_timer_sound", String(next));
       } catch {}
+      if (next) {
+        setTimeout(() => {
+          playWhistleImmediatelyRef.current();
+        }, 50);
+      }
       return next;
     });
   };
@@ -756,26 +798,54 @@ export default function WorkoutSessionPlayer() {
     }
   }, [planId, router, updateSetsData, STORAGE_KEY_PLAN_CACHE, STORAGE_KEY_SETS]);
 
-  // Sintetizador Web Audio API de reforço / fallback
-  const playSynthesizedWhistle = () => {
-    try {
-      const AudioContextClass =
-        typeof window !== "undefined"
-          ? window.AudioContext ||
-            (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-          : undefined;
+  // Cancelar todos os osciladores e fontes de som de apito previamente agendadas
+  const cancelScheduledWhistles = useCallback(() => {
+    scheduledSourcesRef.current.forEach((item) => {
+      try {
+        item.stop();
+      } catch {}
+    });
+    scheduledSourcesRef.current = [];
+  }, []);
 
-      if (!AudioContextClass) return;
-      const audioCtx = new AudioContextClass();
-      if (audioCtx.state === "suspended") {
-        audioCtx.resume();
+  // Agendar o apito no relógio de hardware da placa de som (CoreAudio / Web Audio)
+  const scheduleWhistleSequence = useCallback((targetTime: number) => {
+    if (!audioCtxRef.current) return;
+    const ctx = audioCtxRef.current;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
+    // 1. Tocar áudio WAV real gravado decodificado na memória
+    if (whistleBufferRef.current) {
+      try {
+        const bufferSource = ctx.createBufferSource();
+        bufferSource.buffer = whistleBufferRef.current;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(1.0, targetTime);
+        bufferSource.connect(gain);
+        gain.connect(ctx.destination);
+        bufferSource.start(targetTime);
+
+        scheduledSourcesRef.current.push({
+          stop: () => {
+            try {
+              bufferSource.stop();
+            } catch {}
+          },
+        });
+      } catch (err) {
+        console.warn("Erro ao agendar buffer do apito:", err);
       }
+    }
 
-      const playWhistleBurst = (startTime: number, duration: number, peakVolume = 0.28) => {
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        const oscHarmonic = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+    // 2. Reforço sintetizado com 2 trinados esportivos de alta frequência (Fox 40)
+    const scheduleBurst = (startTime: number, duration: number, peakVolume = 0.32) => {
+      try {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const oscHarmonic = ctx.createOscillator();
+        const gain = ctx.createGain();
 
         osc1.type = "sine";
         osc1.frequency.setValueAtTime(2550, startTime);
@@ -786,70 +856,87 @@ export default function WorkoutSessionPlayer() {
         oscHarmonic.type = "sine";
         oscHarmonic.frequency.setValueAtTime(5370, startTime);
 
-        const flutterOsc = audioCtx.createOscillator();
-        const flutterGain = audioCtx.createGain();
+        const flutterOsc = ctx.createOscillator();
+        const flutterGain = ctx.createGain();
         flutterOsc.frequency.setValueAtTime(28, startTime);
         flutterGain.gain.setValueAtTime(75, startTime);
         flutterOsc.connect(osc1.frequency);
         flutterOsc.connect(osc2.frequency);
 
         gain.gain.setValueAtTime(0.001, startTime);
-        gain.gain.linearRampToValueAtTime(peakVolume, startTime + 0.05);
-        gain.gain.setValueAtTime(peakVolume, startTime + duration - 0.09);
+        gain.gain.linearRampToValueAtTime(peakVolume, startTime + 0.04);
+        gain.gain.setValueAtTime(peakVolume, startTime + duration - 0.08);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
         osc1.connect(gain);
         osc2.connect(gain);
         oscHarmonic.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(ctx.destination);
 
         flutterOsc.start(startTime);
         osc1.start(startTime);
         osc2.start(startTime);
         oscHarmonic.start(startTime);
 
-        flutterOsc.stop(startTime + duration);
-        osc1.stop(startTime + duration);
-        osc2.stop(startTime + duration);
-        oscHarmonic.stop(startTime + duration);
-      };
+        const stopTime = startTime + duration + 0.05;
+        flutterOsc.stop(stopTime);
+        osc1.stop(stopTime);
+        osc2.stop(stopTime);
+        oscHarmonic.stop(stopTime);
 
-      const now = audioCtx.currentTime;
-      playWhistleBurst(now, 0.35, 0.26);
-      playWhistleBurst(now + 0.47, 1.40, 0.30);
-    } catch (e) {
-      console.warn("AudioContext não suportado ou bloqueado:", e);
-    }
-  };
+        scheduledSourcesRef.current.push({
+          stop: () => {
+            try { flutterOsc.stop(); } catch {}
+            try { osc1.stop(); } catch {}
+            try { osc2.stop(); } catch {}
+            try { oscHarmonic.stop(); } catch {}
+          },
+        });
+      } catch (err) {
+        console.warn("Erro ao agendar trinado do apito:", err);
+      }
+    };
 
-  // Tocar o apito pelo canal keepAlive ativo para contornar restrições de novo elemento em segundo plano no iOS
-  const playWhistleViaActiveChannel = useCallback((onFinished?: () => void) => {
-    if (keepAliveAudioRef.current) {
-      try {
-        const audio = keepAliveAudioRef.current;
-        audio.pause();
-        audio.loop = false;
-        audio.volume = 1.0;
-        audio.src = "/sounds/whistle.wav";
-        audio.currentTime = 0;
-        if (onFinished) {
-          audio.onended = () => {
-            onFinished();
-          };
-        }
-        const p = audio.play();
-        if (p !== undefined) {
-          p.catch(() => {
-            playSynthesizedWhistle();
-            if (onFinished) onFinished();
-          });
-          return;
-        }
-      } catch {}
-    }
-    playSynthesizedWhistle();
-    if (onFinished) onFinished();
+    scheduleBurst(targetTime, 0.35, 0.28);
+    scheduleBurst(targetTime + 0.45, 1.40, 0.32);
   }, []);
+
+  // Tocar o apito imediatamente (para testes de som e reforço em primeiro plano)
+  const playWhistleImmediately = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        const AudioContextClass =
+          typeof window !== "undefined"
+            ? window.AudioContext ||
+              (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+            : undefined;
+        if (AudioContextClass) {
+          audioCtxRef.current = new AudioContextClass();
+        }
+      }
+
+      if (audioCtxRef.current) {
+        const ctx = audioCtxRef.current;
+        if (ctx.state === "suspended") {
+          ctx.resume().catch(() => {});
+        }
+        scheduleWhistleSequence(ctx.currentTime);
+      }
+
+      // Redundância extra via HTML5 Audio para primeiro plano
+      try {
+        const directAudio = new Audio("/sounds/whistle.wav");
+        directAudio.volume = 1.0;
+        directAudio.play().catch(() => {});
+      } catch {}
+    } catch (err) {
+      console.warn("Erro ao reproduzir apito imediato:", err);
+    }
+  }, [scheduleWhistleSequence]);
+
+  useEffect(() => {
+    playWhistleImmediatelyRef.current = playWhistleImmediately;
+  }, [playWhistleImmediately]);
 
   const playRestAlertSound = useCallback(() => {
     hasPlayedAlertRef.current = true;
@@ -877,21 +964,13 @@ export default function WorkoutSessionPlayer() {
       }
     } catch {}
 
-    // Se o som estiver desativado pelo aluno, desmonta o widget de tela de bloqueio e encerra
+    // Se o som estiver desativado pelo aluno, encerra
     if (!timerSoundEnabled) {
       clearLockScreenMediaSession();
       return;
     }
 
-    // 3. Tocar o apito esportivo com volume total e desmontar a tela de bloqueio após o som
-    let isFinishedCalled = false;
-    const handleWhistleFinished = () => {
-      if (isFinishedCalled) return;
-      isFinishedCalled = true;
-      clearLockScreenMediaSession();
-    };
-
-    // Atualiza o banner da tela de bloqueio para o momento do alarme
+    // 3. Atualiza o banner da tela de bloqueio para o momento do alarme
     try {
       if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -904,39 +983,14 @@ export default function WorkoutSessionPlayer() {
       }
     } catch {}
 
-    // Tentar tocar no elemento dedicado whistleAudio
-    if (whistleAudioRef.current) {
-      try {
-        const whistleEl = whistleAudioRef.current;
-        whistleEl.currentTime = 0;
-        whistleEl.volume = 1.0;
-        whistleEl.onended = handleWhistleFinished;
-        const playPromise = whistleEl.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              // Parar o keepAlive pois o apito começou com sucesso
-              if (keepAliveAudioRef.current) {
-                try { keepAliveAudioRef.current.pause(); } catch {}
-              }
-            })
-            .catch(() => {
-              // Fallback para o canal ativo
-              playWhistleViaActiveChannel(handleWhistleFinished);
-            });
-        }
-      } catch {
-        playWhistleViaActiveChannel(handleWhistleFinished);
-      }
-    } else {
-      playWhistleViaActiveChannel(handleWhistleFinished);
-    }
+    // 4. Tocar o apito imediatamente (se estiver em primeiro plano ou ao acordar)
+    playWhistleImmediately();
 
-    // Timer de segurança para garantir a remoção do card da tela de bloqueio após 3.5 segundos
+    // 5. Encerrar sessão de mídia e som silencioso após a duração do apito (~2.8s)
     setTimeout(() => {
-      handleWhistleFinished();
-    }, 3500);
-  }, [clearLockScreenMediaSession, playWhistleViaActiveChannel, timerSoundEnabled]);
+      clearLockScreenMediaSession();
+    }, 2800);
+  }, [clearLockScreenMediaSession, playWhistleImmediately, timerSoundEnabled]);
 
   // Manter ref sincronizada para chamadas em callbacks assíncronos e eventos de ciclo de vida
   useEffect(() => {
@@ -947,11 +1001,12 @@ export default function WorkoutSessionPlayer() {
     setIsResting(false);
     setRestTime(0);
     setRestEndTime(null);
+    cancelScheduledWhistles();
     try {
       localStorage.removeItem(STORAGE_KEY_REST);
     } catch {}
     clearLockScreenMediaSession();
-  }, [STORAGE_KEY_REST, clearLockScreenMediaSession]);
+  }, [STORAGE_KEY_REST, cancelScheduledWhistles, clearLockScreenMediaSession]);
 
   // Gerenciamento do Temporizador de Descanso (Timestamp-based com precisão em segundo plano)
   useEffect(() => {
@@ -970,16 +1025,18 @@ export default function WorkoutSessionPlayer() {
           }
         } else {
           setRestTime(remaining);
-          // Atualizar contador na tela de bloqueio via MediaSession
+          // Atualizar contador na tela de bloqueio via MediaSession de forma suave
           try {
             if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
-              navigator.mediaSession.metadata = new MediaMetadata({
-                title: `Descanso: ${remaining}s`,
-                artist: "TechFitness",
-                album: plan?.name || "Treino em Andamento",
-                artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
-              });
-              navigator.mediaSession.playbackState = "playing";
+              if (remaining % 5 === 0 || remaining <= 10) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                  title: `Descanso: ${remaining}s`,
+                  artist: "TechFitness",
+                  album: plan?.name || "Treino em Andamento",
+                  artwork: [{ src: "/logo.png", sizes: "512x512", type: "image/png" }],
+                });
+                navigator.mediaSession.playbackState = "playing";
+              }
             }
           } catch {}
         }
@@ -1013,34 +1070,47 @@ export default function WorkoutSessionPlayer() {
       localStorage.setItem(STORAGE_KEY_REST, String(endTime));
     } catch {}
 
-    // Iniciar áudio silencioso de segundo plano para manter o processo ativo com tela bloqueada / em outro app
+    // Cancelar qualquer agendamento anterior
+    cancelScheduledWhistles();
+
+    // Iniciar áudio silencioso de segundo plano e agendar o apito no relógio de hardware
     if (timerSoundEnabled) {
+      // 1. Despertar / retomar AudioContext sob o clique do usuário
+      try {
+        if (!audioCtxRef.current) {
+          const AudioContextClass =
+            typeof window !== "undefined"
+              ? window.AudioContext ||
+                (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+              : undefined;
+          if (AudioContextClass) {
+            audioCtxRef.current = new AudioContextClass();
+          }
+        }
+        if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+      } catch {}
+
+      // 2. Definir modo Playback para ignorar chave de mudo no iOS 16.4+
+      if (typeof navigator !== "undefined" && "audioSession" in navigator) {
+        try {
+          (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
+        } catch {}
+      }
+
+      // 3. Iniciar áudio silencioso de segundo plano para manter o processo e CoreAudio acordados
       if (keepAliveAudioRef.current) {
         try {
-          keepAliveAudioRef.current.src = "/sounds/silence.wav";
-          keepAliveAudioRef.current.loop = true;
-          keepAliveAudioRef.current.volume = 0.05;
           keepAliveAudioRef.current.currentTime = 0;
           keepAliveAudioRef.current.play().catch(() => {});
         } catch {}
       }
 
-      // Pré-desbloqueio do elemento de apito no iOS Safari sob o gesto do clique
-      if (whistleAudioRef.current) {
-        try {
-          whistleAudioRef.current.volume = 0.001;
-          whistleAudioRef.current.currentTime = 0;
-          const p = whistleAudioRef.current.play();
-          if (p !== undefined) {
-            p.then(() => {
-              if (whistleAudioRef.current) {
-                whistleAudioRef.current.pause();
-                whistleAudioRef.current.currentTime = 0;
-                whistleAudioRef.current.volume = 1.0;
-              }
-            }).catch(() => {});
-          }
-        } catch {}
+      // 4. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds
+      if (audioCtxRef.current) {
+        const targetTime = audioCtxRef.current.currentTime + validSeconds;
+        scheduleWhistleSequence(targetTime);
       }
     }
 
@@ -1087,6 +1157,13 @@ export default function WorkoutSessionPlayer() {
       const newRemaining = Math.round((newEndTime - Date.now()) / 1000);
       setInitialRestTime((prev) => Math.max(prev, newRemaining));
       setRestTime(newRemaining);
+
+      // Reagendar apito no relógio de hardware para o novo tempo restante
+      if (timerSoundEnabled && audioCtxRef.current) {
+        cancelScheduledWhistles();
+        const targetTime = audioCtxRef.current.currentTime + newRemaining;
+        scheduleWhistleSequence(targetTime);
+      }
     }
   };
 
