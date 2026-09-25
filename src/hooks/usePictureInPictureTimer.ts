@@ -21,12 +21,12 @@ export function usePictureInPictureTimer({
   const streamRef = useRef<MediaStream | null>(null);
   const isPipActiveRef = useRef(false);
 
-  // Verificar se o navegador suporta Picture-in-Picture
+  // Verificar se o navegador suporta Picture-in-Picture (Android Chrome ou iOS WebKit)
   useEffect(() => {
     if (typeof document !== "undefined") {
       const supported = Boolean(
-        "pictureInPictureEnabled" in document &&
-        document.pictureInPictureEnabled
+        ("pictureInPictureEnabled" in document && document.pictureInPictureEnabled) ||
+        (typeof HTMLVideoElement !== "undefined" && "webkitSupportsPresentationMode" in HTMLVideoElement.prototype)
       );
       setIsPipSupported(supported);
     }
@@ -40,8 +40,10 @@ export function usePictureInPictureTimer({
     if (!ctx) return;
 
     const size = 512;
-    canvas.width = size;
-    canvas.height = size;
+    if (canvas.width !== size || canvas.height !== size) {
+      canvas.width = size;
+      canvas.height = size;
+    }
 
     // Fundo escuro premium
     ctx.fillStyle = "#090D16";
@@ -112,11 +114,12 @@ export function usePictureInPictureTimer({
     }
   }, [restTime, initialRestTime, isPipActive, drawTimerOnCanvas]);
 
-  // Ativar ou desativar o Picture-in-Picture nativo
+  // Ativar ou desativar o Picture-in-Picture nativo (Mobile Android & Desktop)
   const togglePictureInPicture = useCallback(async () => {
     if (typeof document === "undefined") return;
 
     try {
+      // Se já estiver em PiP no padrão W3C, encerra
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
         setIsPipActive(false);
@@ -124,6 +127,7 @@ export function usePictureInPictureTimer({
         return;
       }
 
+      // Preparar canvas se necessário
       if (!canvasRef.current) {
         const canvas = document.createElement("canvas");
         canvas.width = 512;
@@ -133,18 +137,30 @@ export function usePictureInPictureTimer({
 
       drawTimerOnCanvas(restTime, initialRestTime);
 
+      // No Android Chrome, o vídeo DEVE estar anexado ao DOM e ter dimensões não-nulas
       if (!videoRef.current) {
         const video = document.createElement("video");
         video.muted = true;
         video.playsInline = true;
         video.autoplay = true;
 
+        // Inserir no DOM com tamanho mínimo e invisível (exigência estrita do Android Chrome)
+        video.style.position = "fixed";
+        video.style.bottom = "-200px";
+        video.style.right = "-200px";
+        video.style.width = "40px";
+        video.style.height = "40px";
+        video.style.opacity = "0.01";
+        video.style.pointerEvents = "none";
+        video.style.zIndex = "-9999";
+        document.body.appendChild(video);
+
         const canvasWithCapture = canvasRef.current as HTMLCanvasElement & {
           captureStream?: (fps?: number) => MediaStream;
         };
 
         if (typeof canvasWithCapture.captureStream === "function") {
-          const stream = canvasWithCapture.captureStream(15);
+          const stream = canvasWithCapture.captureStream(24);
           streamRef.current = stream;
           video.srcObject = stream;
         }
@@ -163,10 +179,45 @@ export function usePictureInPictureTimer({
       }
 
       const video = videoRef.current;
-      await video.play();
-      await video.requestPictureInPicture();
+      await video.play().catch(() => {});
+
+      // Aguardar o primeiro frame ser renderizado no stream de vídeo (essencial no mobile)
+      if (video.readyState < 2) {
+        await new Promise<void>((resolve) => {
+          const onLoaded = () => {
+            video.removeEventListener("loadeddata", onLoaded);
+            resolve();
+          };
+          video.addEventListener("loadeddata", onLoaded);
+          setTimeout(resolve, 250);
+        });
+      }
+
+      // 1. Tentar API padrão W3C (Chrome Android, Edge, Desktop)
+      if ("requestPictureInPicture" in video && typeof video.requestPictureInPicture === "function") {
+        await video.requestPictureInPicture();
+        setIsPipActive(true);
+        isPipActiveRef.current = true;
+        return;
+      }
+
+      // 2. Tentar API WebKit legada (iOS Safari)
+      const webkitVideo = video as unknown as {
+        webkitSupportsPresentationMode?: (mode: string) => boolean;
+        webkitSetPresentationMode?: (mode: string) => void;
+      };
+
+      if (
+        typeof webkitVideo.webkitSupportsPresentationMode === "function" &&
+        webkitVideo.webkitSupportsPresentationMode("picture-in-picture") &&
+        typeof webkitVideo.webkitSetPresentationMode === "function"
+      ) {
+        webkitVideo.webkitSetPresentationMode("picture-in-picture");
+        setIsPipActive(true);
+        isPipActiveRef.current = true;
+      }
     } catch (err) {
-      console.warn("Não foi possível iniciar Janela Flutuante (PiP):", err);
+      console.warn("Aviso ao inicializar Janela Flutuante (PiP) no dispositivo móvel:", err);
     }
   }, [drawTimerOnCanvas, restTime, initialRestTime]);
 
@@ -180,6 +231,17 @@ export function usePictureInPictureTimer({
       isPipActiveRef.current = false;
     }
   }, [isResting, isPipActive]);
+
+  // Limpeza ao desmontar
+  useEffect(() => {
+    return () => {
+      if (videoRef.current && videoRef.current.parentNode) {
+        try {
+          videoRef.current.parentNode.removeChild(videoRef.current);
+        } catch {}
+      }
+    };
+  }, []);
 
   return {
     isPipActive,
