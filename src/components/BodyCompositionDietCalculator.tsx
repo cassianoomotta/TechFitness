@@ -19,6 +19,7 @@ import {
   Lock,
   AlertCircle,
   Droplets,
+  BicepsFlexed,
 } from "lucide-react";
 import BodySilhouetteGraphic from "@/components/BodySilhouetteGraphic";
 
@@ -705,8 +706,8 @@ export default function BodyCompositionDietCalculator({
             </div>
 
             <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/60 flex flex-col items-center justify-center text-center">
-              <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1">
-                <span className="text-xs">💪🏻</span>
+              <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <BicepsFlexed className="w-3.5 h-3.5 text-blue-600" />
                 <span>Massa Magra</span>
               </span>
               <div className="text-2xl sm:text-3xl font-black text-[#2563EB] mt-1">
@@ -771,8 +772,8 @@ export default function BodyCompositionDietCalculator({
 
               {/* Legenda visual da barra */}
               <div className="flex items-center justify-between text-xs pt-1 px-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">💪🏻</span>
+                <div className="flex items-center gap-1.5">
+                  <BicepsFlexed className="w-3.5 h-3.5 text-blue-600" />
                   <span className="font-semibold text-slate-700">
                     Massa Magra: <strong className="text-blue-600">{calculation.leanMass} kg</strong>
                   </span>

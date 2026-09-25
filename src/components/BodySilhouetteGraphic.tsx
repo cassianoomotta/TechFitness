@@ -12,6 +12,8 @@ import {
   Apple,
   Dumbbell,
   ShieldCheck,
+  BicepsFlexed,
+  Flame,
 } from "lucide-react";
 
 import {
@@ -130,7 +132,7 @@ export default function BodySilhouetteGraphic({
                 : "text-slate-300 hover:text-white"
             }`}
           >
-            <span className="text-sm">💪🏻</span>
+            <BicepsFlexed className="w-3.5 h-3.5" />
             <span>Massa Magra ({leanPercent.toFixed(0)}%)</span>
           </button>
           <button
@@ -330,7 +332,7 @@ export default function BodySilhouetteGraphic({
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/70 space-y-1">
               <div className="flex items-center gap-1.5 text-xs text-blue-300 font-bold">
-                <span className="text-sm">💪🏻</span>
+                <BicepsFlexed className="w-3.5 h-3.5 text-blue-400" />
                 <span>Massa Magra</span>
               </div>
               <div className="text-lg font-black text-white font-mono">
@@ -434,17 +436,20 @@ export default function BodySilhouetteGraphic({
             <p className="text-xs text-slate-200 leading-relaxed bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80">
               {dietGoal === "cutting" && (
                 <span>
-                  🔥 <strong>Meta Ativa (Emagrecimento • 42 ml/kg):</strong> Ingerir {waterCuttingL} L/dia acelera a queima de gordura (lipólise), combate a retenção de líquidos e reduz o apetite nas refeições.
+                  <Flame className="w-3.5 h-3.5 inline text-orange-400 mr-1.5 align-text-bottom" />
+                  <strong>Meta Ativa (Emagrecimento • 42 ml/kg):</strong> Ingerir {waterCuttingL} L/dia acelera a queima de gordura (lipólise), combate a retenção de líquidos e reduz o apetite nas refeições.
                 </span>
               )}
               {dietGoal === "maintenance" && (
                 <span>
-                  ⚖️ <strong>Meta Ativa (Manutenção • 38 ml/kg):</strong> Ingerir {waterMaintenanceL} L/dia sustenta o equilíbrio metabólico, bom funcionamento renal e hidratação profunda dos tecidos.
+                  <Scale className="w-3.5 h-3.5 inline text-blue-400 mr-1.5 align-text-bottom" />
+                  <strong>Meta Ativa (Manutenção • 38 ml/kg):</strong> Ingerir {waterMaintenanceL} L/dia sustenta o equilíbrio metabólico, bom funcionamento renal e hidratação profunda dos tecidos.
                 </span>
               )}
               {dietGoal === "bulking" && (
                 <span>
-                  💪🏻 <strong>Meta Ativa (Hipertrofia • 48 ml/kg):</strong> Ingerir {waterBulkingL} L/dia é essencial para a volumização celular muscular, transporte de glicogênio e absorção de creatina.
+                  <BicepsFlexed className="w-3.5 h-3.5 inline text-blue-400 mr-1.5 align-text-bottom" />
+                  <strong>Meta Ativa (Hipertrofia • 48 ml/kg):</strong> Ingerir {waterBulkingL} L/dia é essencial para a volumização celular muscular, transporte de glicogênio e absorção de creatina.
                 </span>
               )}
             </p>
@@ -493,7 +498,7 @@ export default function BodySilhouetteGraphic({
                 }`}
               >
                 <Droplets className="w-4 h-4 text-cyan-400" />
-                <span>💧 Consumo Diário</span>
+                <span>Consumo Diário</span>
               </button>
 
               <button
@@ -506,7 +511,7 @@ export default function BodySilhouetteGraphic({
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>✨ Biotipo e Silhueta</span>
+                <span>Biotipo e Silhueta</span>
               </button>
 
               <button
@@ -518,7 +523,7 @@ export default function BodySilhouetteGraphic({
                     : "bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
                 }`}
               >
-                <span className="text-sm">💪🏻</span>
+                <BicepsFlexed className="w-4 h-4 text-blue-400" />
                 <span>Massa Magra e Água</span>
               </button>
             </div>
@@ -648,8 +653,8 @@ export default function BodySilhouetteGraphic({
             {activeGuideTab === "biotype" && (
               <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3.5 animate-fade-in">
                 <div className="flex items-start gap-3">
-                  <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0 text-base">
-                    ✨
+                  <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
                   </span>
                   <div className="space-y-1.5">
                     <h6 className="text-sm font-bold text-white">
@@ -698,34 +703,40 @@ export default function BodySilhouetteGraphic({
               </div>
             )}
 
-            {/* Aba 3: Massa Magra e Água Corporal (Fisiologia e Cálculos) com ícone de braço forte 💪🏻 */}
+            {/* Aba 3: Massa Magra e Água Corporal (Fisiologia e Cálculos) */}
             {activeGuideTab === "composition" && (
               <div className="space-y-3 animate-fade-in">
                 {/* Bloco Massa Magra */}
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-2">
                   <div className="flex items-center gap-2 text-blue-300 font-bold text-sm">
-                    <span className="text-lg">💪🏻</span>
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                      <BicepsFlexed className="w-4 h-4" />
+                    </div>
                     <span>Massa Magra: {leanMass} kg ({leanPercent.toFixed(1)}%)</span>
                   </div>
                   <p className="text-slate-200 text-xs leading-relaxed">
                     Representa toda a massa metabolicamente ativa do seu corpo: <strong>músculos, ossos, órgãos vitais e sangue</strong>.
                   </p>
-                  <p className="text-slate-300 text-xs leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-                    💡 <strong>Impacto no metabolismo:</strong> Cada quilo de massa magra ganho eleva seu gasto calórico diário mesmo em repouso, tornando o emagrecimento definitivo e sustentável.
+                  <p className="text-slate-300 text-xs leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex items-start gap-2">
+                    <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <span><strong>Impacto no metabolismo:</strong> Cada quilo de massa magra ganho eleva seu gasto calórico diário mesmo em repouso, tornando o emagrecimento definitivo e sustentável.</span>
                   </p>
                 </div>
 
                 {/* Bloco Água Corporal */}
                 <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-2">
                   <div className="flex items-center gap-2 text-cyan-300 font-bold text-sm">
-                    <span className="text-lg">💧</span>
+                    <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                      <Droplets className="w-4 h-4" />
+                    </div>
                     <span>Água Corporal: {waterKg} Litros ({waterPercent.toFixed(1)}%)</span>
                   </div>
                   <p className="text-slate-200 text-xs leading-relaxed">
                     Calculada pela <strong>Fórmula Científica de Watson</strong>: cerca de <strong>73,2% de toda a sua massa magra é composta por água celular</strong>.
                   </p>
-                  <p className="text-slate-300 text-xs leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
-                    💧 <strong>Por que manter alta:</strong> A água dentro das células musculares garante força máxima, transporte de glicogênio e recuperação celular acelerada após o treino.
+                  <p className="text-slate-300 text-xs leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 flex items-start gap-2">
+                    <Droplets className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span><strong>Por que manter alta:</strong> A água dentro das células musculares garante força máxima, transporte de glicogênio e recuperação celular acelerada após o treino.</span>
                   </p>
                 </div>
               </div>
