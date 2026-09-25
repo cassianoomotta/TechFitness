@@ -12,6 +12,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     const registration = await navigator.serviceWorker.register("/sw.js", {
       scope: "/",
     });
+    // Forçar verificação de atualização do arquivo sw.js no servidor
+    registration.update().catch(() => {});
     return registration;
   } catch (error) {
     console.warn("Aviso ao registrar Service Worker do TechFitness:", error);

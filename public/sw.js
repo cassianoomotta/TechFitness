@@ -1,15 +1,26 @@
 // TechFitness Service Worker - Notificações Oficiais de Sistema e Temporizador de Descanso
-const SW_VERSION = "techfitness-sw-v1";
+const SW_VERSION = "techfitness-sw-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((keys) => {
+        return Promise.all(
+          keys.filter((key) => key !== SW_VERSION).map((key) => caches.delete(key))
+        );
+      }),
+    ])
+  );
 });
 
 let restTimerTimeoutId = null;
+let restTimerTargetTimestamp = 0;
+let activeResolve = null;
 
 self.addEventListener("message", (event) => {
   if (!event.data) return;
@@ -24,23 +35,38 @@ self.addEventListener("message", (event) => {
       url = "/student/workout-session",
     } = event.data;
 
+    // Cancela imediatamente qualquer agendamento pendente anterior
     if (restTimerTimeoutId) {
       clearTimeout(restTimerTimeoutId);
       restTimerTimeoutId = null;
     }
+    if (activeResolve) {
+      activeResolve();
+      activeResolve = null;
+    }
 
-    const delayMs = Math.max(1, Number(seconds)) * 1000;
+    const durationSeconds = Math.max(1, Number(seconds));
+    const targetTimestamp = Date.now() + durationSeconds * 1000;
+    restTimerTargetTimestamp = targetTimestamp;
 
-    // event.waitUntil mantém o Service Worker ativo pelo tempo de contagem
+    // Mantém o Service Worker ativo pelo tempo necessário do temporizador
     event.waitUntil(
       new Promise((resolve) => {
+        activeResolve = resolve;
+
         restTimerTimeoutId = setTimeout(async () => {
+          // Se o temporizador foi cancelado ou substituído, aborta a notificação
+          if (restTimerTargetTimestamp !== targetTimestamp) {
+            resolve();
+            return;
+          }
+
           try {
             await self.registration.showNotification(title, {
               body,
-              icon: "/logo.png",
-              badge: "/logo.png",
-              vibrate: [350, 120, 1000],
+              icon: "/icons/icon-192.png",
+              badge: "/icons/icon-192.png",
+              vibrate: [400, 150, 400, 150, 800],
               tag: "techfitness-rest-timer",
               renotify: false,
               requireInteraction: false,
@@ -50,15 +76,22 @@ self.addEventListener("message", (event) => {
             console.error("Erro ao disparar notificação via Service Worker:", err);
           } finally {
             restTimerTimeoutId = null;
+            restTimerTargetTimestamp = 0;
+            activeResolve = null;
             resolve();
           }
-        }, delayMs);
+        }, durationSeconds * 1000);
       })
     );
   } else if (type === "CANCEL_REST_TIMER") {
     if (restTimerTimeoutId) {
       clearTimeout(restTimerTimeoutId);
       restTimerTimeoutId = null;
+    }
+    restTimerTargetTimestamp = 0;
+    if (activeResolve) {
+      activeResolve();
+      activeResolve = null;
     }
   } else if (type === "TRIGGER_NOTIFICATION_NOW") {
     const {
@@ -70,9 +103,9 @@ self.addEventListener("message", (event) => {
     event.waitUntil(
       self.registration.showNotification(title, {
         body,
-        icon: "/logo.png",
-        badge: "/logo.png",
-        vibrate: [350, 120, 1000],
+        icon: "/icons/icon-192.png",
+        badge: "/icons/icon-192.png",
+        vibrate: [400, 150, 400, 150, 800],
         tag: "techfitness-rest-timer",
         renotify: false,
         requireInteraction: false,

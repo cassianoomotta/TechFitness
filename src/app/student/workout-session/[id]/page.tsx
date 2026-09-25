@@ -29,7 +29,6 @@ import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
 import {
   scheduleRestNotification,
   cancelRestNotification,
-  showNativeNotification,
   requestNotificationPermission,
 } from "@/lib/sw-utils";
 import { usePictureInPictureTimer } from "@/hooks/usePictureInPictureTimer";
@@ -753,18 +752,11 @@ export default function WorkoutSessionPlayer() {
   const playRestAlertSound = useCallback(() => {
     hasPlayedAlertRef.current = true;
 
-    // 1. Alerta tátil: vibração esportiva sincronizada
+    // Alerta tátil: vibração esportiva sincronizada
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate([400, 150, 400, 150, 800]);
       }
-    } catch {}
-
-    // 2. Disparar notificação nativa do sistema em segundo plano / tela bloqueada via Service Worker
-    try {
-      showNativeNotification("TechFitness — Hora do Show! 🏋️‍♂️", {
-        body: "Tempo de descanso encerrado! Bora para a próxima série!",
-      });
     } catch {}
   }, []);
 
@@ -835,9 +827,8 @@ export default function WorkoutSessionPlayer() {
 
     // Cancelar qualquer agendamento anterior
     cancelScheduledWhistles();
-    cancelRestNotification();
 
-    // Agendar notificação oficial de término no Service Worker (funciona na tela bloqueada)
+    // Agendar notificação oficial de término exclusivamente no Service Worker (único emissor)
     scheduleRestNotification(
       validSeconds,
       "TechFitness — Hora do Show! 🏋️‍♂️",
