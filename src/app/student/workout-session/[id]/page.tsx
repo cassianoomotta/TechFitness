@@ -102,6 +102,7 @@ export default function WorkoutSessionPlayer() {
 
   // Referências para áudio em segundo plano e tela bloqueada (Keep-Alive e Apito de Hardware)
   const keepAliveAudioRef = useRef<HTMLAudioElement | null>(null);
+  const whistleAudioRef = useRef<HTMLAudioElement | null>(null);
   const directAudioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<ScreenWakeLockSentinel | null>(null);
   const hasPlayedAlertRef = useRef(false);
@@ -111,6 +112,7 @@ export default function WorkoutSessionPlayer() {
   // Web Audio API para agendamento de hardware do apito (garante som em tela bloqueada no iOS)
   const audioCtxRef = useRef<AudioContext | null>(null);
   const whistleBufferRef = useRef<AudioBuffer | null>(null);
+  const whistleArrayBufferRef = useRef<ArrayBuffer | null>(null);
   const scheduledSourcesRef = useRef<{ stop: () => void }[]>([]);
 
   // Limpar e desmontar a sessão de mídia da tela de bloqueio (iOS / Android)
@@ -142,6 +144,17 @@ export default function WorkoutSessionPlayer() {
       try {
         keepAliveAudioRef.current.pause();
         keepAliveAudioRef.current.currentTime = 0;
+        // Restaurar estado do keep-alive para silêncio em loop para a próxima série
+        keepAliveAudioRef.current.src = "/sounds/silence.wav";
+        keepAliveAudioRef.current.loop = true;
+        keepAliveAudioRef.current.volume = 0.05;
+      } catch {}
+    }
+
+    if (whistleAudioRef.current) {
+      try {
+        whistleAudioRef.current.pause();
+        whistleAudioRef.current.currentTime = 0;
       } catch {}
     }
 
@@ -159,6 +172,7 @@ export default function WorkoutSessionPlayer() {
 
     let isMounted = true;
 
+    // 1. Áudio silencioso em loop para manter canal ativo no iOS/Android
     try {
       const silence = new Audio("/sounds/silence.wav");
       silence.loop = true;
@@ -169,6 +183,18 @@ export default function WorkoutSessionPlayer() {
       console.warn("Erro ao instanciar elemento de áudio silencioso:", e);
     }
 
+    // 2. Elemento dedicado de apito HTML5 persistente pré-carregado
+    try {
+      const whistle = new Audio("/sounds/whistle.wav");
+      whistle.loop = false;
+      whistle.volume = 1.0;
+      whistle.preload = "auto";
+      whistleAudioRef.current = whistle;
+    } catch (e) {
+      console.warn("Erro ao instanciar elemento dedicado de apito:", e);
+    }
+
+    // 3. Web Audio Context e decodificação do buffer de apito
     const initAudioContextAndBuffer = async () => {
       try {
         const AudioContextClass =
@@ -188,18 +214,21 @@ export default function WorkoutSessionPlayer() {
         const res = await fetch("/sounds/whistle.wav");
         if (res.ok && isMounted) {
           const ab = await res.arrayBuffer();
+          whistleArrayBufferRef.current = ab;
           if (audioCtxRef.current && isMounted) {
-            audioCtxRef.current.decodeAudioData(
-              ab.slice(0),
-              (decoded) => {
-                if (isMounted) {
-                  whistleBufferRef.current = decoded;
+            try {
+              audioCtxRef.current.decodeAudioData(
+                ab.slice(0),
+                (decoded) => {
+                  if (isMounted) {
+                    whistleBufferRef.current = decoded;
+                  }
+                },
+                (err) => {
+                  console.warn("Erro ao decodificar whistle.wav:", err);
                 }
-              },
-              (err) => {
-                console.warn("Erro ao decodificar whistle.wav:", err);
-              }
-            );
+              );
+            } catch {}
           }
         }
       } catch (err) {
@@ -214,6 +243,9 @@ export default function WorkoutSessionPlayer() {
       clearLockScreenMediaSession();
       if (keepAliveAudioRef.current) {
         keepAliveAudioRef.current = null;
+      }
+      if (whistleAudioRef.current) {
+        whistleAudioRef.current = null;
       }
       if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
         try {
@@ -487,6 +519,7 @@ export default function WorkoutSessionPlayer() {
               setRestEndTime(null);
               localStorage.removeItem(STORAGE_KEY_REST);
               if (!hasPlayedAlertRef.current) {
+                hasPlayedAlertRef.current = true;
                 playRestAlertSoundRef.current();
               } else {
                 clearLockScreenMediaSession();
@@ -828,9 +861,11 @@ export default function WorkoutSessionPlayer() {
   const scheduleWhistleSequence = useCallback((targetTime: number) => {
     if (!audioCtxRef.current) return;
     const ctx = audioCtxRef.current;
-    if (ctx.state === "suspended") {
+    if (ctx.state !== "running") {
       ctx.resume().catch(() => {});
     }
+
+    const safeTargetTime = Math.max(ctx.currentTime, targetTime);
 
     // 1. Tocar áudio WAV real gravado decodificado na memória
     if (whistleBufferRef.current) {
@@ -838,10 +873,10 @@ export default function WorkoutSessionPlayer() {
         const bufferSource = ctx.createBufferSource();
         bufferSource.buffer = whistleBufferRef.current;
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(1.0, targetTime);
+        gain.gain.setValueAtTime(1.0, safeTargetTime);
         bufferSource.connect(gain);
         gain.connect(ctx.destination);
-        bufferSource.start(targetTime);
+        bufferSource.start(safeTargetTime);
 
         scheduledSourcesRef.current.push({
           stop: () => {
@@ -913,14 +948,38 @@ export default function WorkoutSessionPlayer() {
       }
     };
 
-    scheduleBurst(targetTime, 0.35, 0.28);
-    scheduleBurst(targetTime + 0.45, 1.40, 0.32);
+    scheduleBurst(safeTargetTime, 0.35, 0.28);
+    scheduleBurst(safeTargetTime + 0.45, 1.40, 0.32);
   }, []);
 
-  // Tocar o apito imediatamente (para testes de som e reforço em primeiro plano)
+  // Tocar o apito imediatamente via canais redundantes (SEMPRE que o temporizador zerar)
   const playWhistleImmediately = useCallback(() => {
+    // Canal 1: Elemento HTML5 de apito dedicado (pré-desbloqueado no gesto do clique)
+    if (whistleAudioRef.current) {
+      try {
+        const whistleEl = whistleAudioRef.current;
+        whistleEl.currentTime = 0;
+        whistleEl.volume = 1.0;
+        whistleEl.play().catch(() => {});
+      } catch {}
+    }
+
+    // Canal 2: Canal ativo keepAlive (reutiliza o canal de áudio que já está tocando em segundo plano)
+    if (keepAliveAudioRef.current) {
+      try {
+        const keepAudio = keepAliveAudioRef.current;
+        keepAudio.pause();
+        keepAudio.loop = false;
+        keepAudio.volume = 1.0;
+        keepAudio.src = "/sounds/whistle.wav";
+        keepAudio.currentTime = 0;
+        keepAudio.play().catch(() => {});
+      } catch {}
+    }
+
+    // Canal 3: Web Audio API (Hardware audio synthesizer + buffer decodificado)
     try {
-      if (!audioCtxRef.current) {
+      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
         const AudioContextClass =
           typeof window !== "undefined"
             ? window.AudioContext ||
@@ -933,35 +992,43 @@ export default function WorkoutSessionPlayer() {
 
       if (audioCtxRef.current) {
         const ctx = audioCtxRef.current;
-        if (ctx.state === "suspended") {
+        if (ctx.state !== "running") {
           ctx.resume().catch(() => {});
+        }
+        // Se o buffer estiver nulo mas tivermos o ArrayBuffer original, decodifica
+        if (!whistleBufferRef.current && whistleArrayBufferRef.current) {
+          try {
+            ctx.decodeAudioData(whistleArrayBufferRef.current.slice(0), (decoded) => {
+              whistleBufferRef.current = decoded;
+            });
+          } catch {}
         }
         scheduleWhistleSequence(ctx.currentTime);
       }
-
-      // Redundância extra via HTML5 Audio para primeiro plano com descarte automático ao término
-      try {
-        if (directAudioRef.current) {
-          directAudioRef.current.pause();
-          directAudioRef.current.currentTime = 0;
-        }
-        const directAudio = new Audio("/sounds/whistle.wav");
-        directAudio.volume = 1.0;
-        directAudioRef.current = directAudio;
-        directAudio.onended = () => {
-          try {
-            directAudio.pause();
-            directAudio.currentTime = 0;
-          } catch {}
-          if (directAudioRef.current === directAudio) {
-            directAudioRef.current = null;
-          }
-        };
-        directAudio.play().catch(() => {});
-      } catch {}
     } catch (err) {
-      console.warn("Erro ao reproduzir apito imediato:", err);
+      console.warn("Erro ao reproduzir apito via Web Audio:", err);
     }
+
+    // Canal 4: Redundância extra via novo elemento de áudio
+    try {
+      if (directAudioRef.current) {
+        directAudioRef.current.pause();
+        directAudioRef.current.currentTime = 0;
+      }
+      const directAudio = new Audio("/sounds/whistle.wav");
+      directAudio.volume = 1.0;
+      directAudioRef.current = directAudio;
+      directAudio.onended = () => {
+        try {
+          directAudio.pause();
+          directAudio.currentTime = 0;
+        } catch {}
+        if (directAudioRef.current === directAudio) {
+          directAudioRef.current = null;
+        }
+      };
+      directAudio.play().catch(() => {});
+    } catch {}
   }, [scheduleWhistleSequence]);
 
   useEffect(() => {
@@ -1016,7 +1083,7 @@ export default function WorkoutSessionPlayer() {
       }
     } catch {}
 
-    // 4. Tocar o apito imediatamente (se estiver em primeiro plano ou ao acordar)
+    // 4. Tocar o apito imediatamente via canais redundantes
     playWhistleImmediately();
 
     // 5. Encerrar sessão de mídia e som silencioso após a duração do apito (~2.8s)
@@ -1052,6 +1119,7 @@ export default function WorkoutSessionPlayer() {
           setRestEndTime(null);
           try { localStorage.removeItem(STORAGE_KEY_REST); } catch {}
           if (!hasPlayedAlertRef.current) {
+            hasPlayedAlertRef.current = true;
             playRestAlertSound();
           } else {
             clearLockScreenMediaSession();
@@ -1110,7 +1178,7 @@ export default function WorkoutSessionPlayer() {
     if (timerSoundEnabled) {
       // 1. Despertar / retomar AudioContext sob o clique do usuário
       try {
-        if (!audioCtxRef.current) {
+        if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
           const AudioContextClass =
             typeof window !== "undefined"
               ? window.AudioContext ||
@@ -1120,7 +1188,7 @@ export default function WorkoutSessionPlayer() {
             audioCtxRef.current = new AudioContextClass();
           }
         }
-        if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        if (audioCtxRef.current && audioCtxRef.current.state !== "running") {
           audioCtxRef.current.resume().catch(() => {});
         }
       } catch {}
@@ -1132,15 +1200,36 @@ export default function WorkoutSessionPlayer() {
         } catch {}
       }
 
-      // 3. Iniciar áudio silencioso de segundo plano para manter o processo e CoreAudio acordados
+      // 3. Pré-desbloquear (warm up) o elemento HTML5 de apito sob o clique do usuário no iOS Safari
+      if (whistleAudioRef.current) {
+        try {
+          whistleAudioRef.current.volume = 0.001;
+          whistleAudioRef.current.currentTime = 0;
+          const p = whistleAudioRef.current.play();
+          if (p !== undefined) {
+            p.then(() => {
+              if (whistleAudioRef.current) {
+                whistleAudioRef.current.pause();
+                whistleAudioRef.current.currentTime = 0;
+                whistleAudioRef.current.volume = 1.0;
+              }
+            }).catch(() => {});
+          }
+        } catch {}
+      }
+
+      // 4. Iniciar áudio silencioso de segundo plano para manter o processo e CoreAudio acordados
       if (keepAliveAudioRef.current) {
         try {
+          keepAliveAudioRef.current.src = "/sounds/silence.wav";
+          keepAliveAudioRef.current.loop = true;
+          keepAliveAudioRef.current.volume = 0.05;
           keepAliveAudioRef.current.currentTime = 0;
           keepAliveAudioRef.current.play().catch(() => {});
         } catch {}
       }
 
-      // 4. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds
+      // 5. Agendar o apito no relógio de hardware da placa de som exatamente para daqui a validSeconds
       if (audioCtxRef.current) {
         const targetTime = audioCtxRef.current.currentTime + validSeconds;
         scheduleWhistleSequence(targetTime);
@@ -1186,6 +1275,7 @@ export default function WorkoutSessionPlayer() {
     if (newEndTime <= Date.now()) {
       stopRestTimer();
     } else {
+      hasPlayedAlertRef.current = false;
       setRestEndTime(newEndTime);
       const newRemaining = Math.round((newEndTime - Date.now()) / 1000);
       setInitialRestTime((prev) => Math.max(prev, newRemaining));
@@ -1194,6 +1284,9 @@ export default function WorkoutSessionPlayer() {
       // Reagendar apito no relógio de hardware para o novo tempo restante
       if (timerSoundEnabled && audioCtxRef.current) {
         cancelScheduledWhistles();
+        if (audioCtxRef.current.state !== "running") {
+          audioCtxRef.current.resume().catch(() => {});
+        }
         const targetTime = audioCtxRef.current.currentTime + newRemaining;
         scheduleWhistleSequence(targetTime);
       }
@@ -1218,13 +1311,17 @@ export default function WorkoutSessionPlayer() {
       };
     });
 
-    // Se marcou como completo, inicia o descanso do exercício imediatamente
+    // Se marcou como completo, inicia o descanso do exercício imediatamente com desbloqueio síncrono
     if (nextCompleted) {
+      hasPlayedAlertRef.current = false;
+      if (audioCtxRef.current && audioCtxRef.current.state !== "running") {
+        try { audioCtxRef.current.resume().catch(() => {}); } catch {}
+      }
       startRestTimer(restSeconds || 60);
     }
   };
 
-  const handleUpdateSetField = (exIndex: number, setIndex: number, field: keyof SetState, value: any) => {
+  const handleUpdateSetField = (exIndex: number, setIndex: number, field: keyof SetState, value: string | boolean) => {
     updateSetsData((prev) => {
       const currentSets = [...(prev[exIndex] || [])];
       if (!currentSets[setIndex]) return prev;
