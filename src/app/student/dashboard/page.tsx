@@ -1100,7 +1100,7 @@ export default function StudentDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 sm:pb-12">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-44 sm:pb-16">
         {/* Abas no Desktop (Design System TechFitness: Segmented Control Glassmorphic) */}
         <div className="hidden sm:flex items-center gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80 mb-8 backdrop-blur-sm shadow-xs">
           <button
@@ -2124,7 +2124,7 @@ export default function StudentDashboard() {
           ========================================================================= */}
       <nav
         aria-label="Navegação Principal do Aplicativo"
-        className={`sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-slate-200/80 shadow-2xl transition-all duration-300 bottom-nav-safe ${
+        className={`sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 shadow-2xl transition-all duration-300 bottom-nav-safe ${
           isImportModalOpen ? "hidden" : ""
         }`}
       >

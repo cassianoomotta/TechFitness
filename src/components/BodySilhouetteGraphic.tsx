@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import {
   Droplets,
   Activity,
-  Sparkles,
+  User,
   Info,
   ChevronDown,
   ChevronUp,
@@ -359,32 +359,34 @@ export default function BodySilhouetteGraphic({
 
           {/* Consumo Diário de Água Recomendado (por Objetivo) — Clicável e Interativo */}
           <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400">
-                <Droplets className="w-3.5 h-3.5" />
-                <span>Consumo Hídrico Diário Recomendado</span>
+                <Droplets className="w-3.5 h-3.5 shrink-0" />
+                <span>Consumo Hídrico Diário</span>
               </div>
-              <span className="text-xs text-slate-400 font-medium">Toque para selecionar</span>
+              <span className="text-[10px] sm:text-xs text-slate-400 font-medium">Toque para selecionar</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => onGoalChange && onGoalChange("cutting")}
-                className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] ${
+                className={`px-1.5 py-2 sm:px-2.5 sm:py-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
                   dietGoal === "cutting"
                     ? "bg-rose-950/60 border-rose-500 text-rose-300 ring-2 ring-rose-500/40 shadow-sm"
                     : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
                 }`}
               >
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-bold block text-slate-200">Emagrecimento</span>
-                  {dietGoal === "cutting" && <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>}
+                <div className="flex items-center justify-center gap-0.5 sm:gap-1 w-full min-w-0">
+                  <span className="text-[10.5px] sm:text-xs font-bold block text-slate-200 truncate">
+                    Emagrecimento
+                  </span>
+                  {dietGoal === "cutting" && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>}
                 </div>
                 <span className="text-sm font-extrabold font-mono text-white block mt-0.5">
                   {waterCuttingL} L
                 </span>
-                <span className="text-xs text-slate-400 block mt-0.5">
+                <span className="text-[10px] sm:text-xs text-slate-400 block mt-0.5 truncate">
                   ~{waterCuttingGlasses} copos
                 </span>
               </button>
@@ -392,20 +394,22 @@ export default function BodySilhouetteGraphic({
               <button
                 type="button"
                 onClick={() => onGoalChange && onGoalChange("maintenance")}
-                className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] ${
+                className={`px-1.5 py-2 sm:px-2.5 sm:py-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
                   dietGoal === "maintenance"
                     ? "bg-blue-950/60 border-blue-500 text-blue-300 ring-2 ring-blue-500/40 shadow-sm"
                     : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
                 }`}
               >
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-bold block text-slate-200">Manutenção</span>
-                  {dietGoal === "maintenance" && <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>}
+                <div className="flex items-center justify-center gap-0.5 sm:gap-1 w-full min-w-0">
+                  <span className="text-[10.5px] sm:text-xs font-bold block text-slate-200 truncate">
+                    Manutenção
+                  </span>
+                  {dietGoal === "maintenance" && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>}
                 </div>
                 <span className="text-sm font-extrabold font-mono text-white block mt-0.5">
                   {waterMaintenanceL} L
                 </span>
-                <span className="text-xs text-slate-400 block mt-0.5">
+                <span className="text-[10px] sm:text-xs text-slate-400 block mt-0.5 truncate">
                   ~{waterMaintenanceGlasses} copos
                 </span>
               </button>
@@ -413,20 +417,22 @@ export default function BodySilhouetteGraphic({
               <button
                 type="button"
                 onClick={() => onGoalChange && onGoalChange("bulking")}
-                className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] ${
+                className={`px-1.5 py-2 sm:px-2.5 sm:py-2.5 rounded-xl border text-center transition-all cursor-pointer min-h-[48px] overflow-hidden ${
                   dietGoal === "bulking"
                     ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 ring-2 ring-emerald-500/40 shadow-sm"
                     : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
                 }`}
               >
-                <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs font-bold block text-slate-200">Hipertrofia</span>
-                  {dietGoal === "bulking" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
+                <div className="flex items-center justify-center gap-0.5 sm:gap-1 w-full min-w-0">
+                  <span className="text-[10.5px] sm:text-xs font-bold block text-slate-200 truncate">
+                    Hipertrofia
+                  </span>
+                  {dietGoal === "bulking" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>}
                 </div>
                 <span className="text-sm font-extrabold font-mono text-white block mt-0.5">
                   {waterBulkingL} L
                 </span>
-                <span className="text-xs text-slate-400 block mt-0.5">
+                <span className="text-[10px] sm:text-xs text-slate-400 block mt-0.5 truncate">
                   ~{waterBulkingGlasses} copos
                 </span>
               </button>
@@ -458,7 +464,7 @@ export default function BodySilhouetteGraphic({
       </div>
 
       {/* Seção Disruptiva UX: Guia Explicativo dos Resultados e Consumo Recomendado */}
-      <div className="border border-slate-800 rounded-2xl bg-slate-950/80 overflow-hidden shadow-lg">
+      <div className="border border-slate-800 rounded-2xl bg-slate-950/80 overflow-hidden shadow-lg mb-6 sm:mb-2">
         {/* Cabeçalho do Acordeão */}
         <button
           type="button"
@@ -510,7 +516,7 @@ export default function BodySilhouetteGraphic({
                     : "bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
                 }`}
               >
-                <Sparkles className="w-4 h-4 text-amber-400" />
+                <User className="w-4 h-4 text-amber-400" />
                 <span>Biotipo e Silhueta</span>
               </button>
 
@@ -654,7 +660,7 @@ export default function BodySilhouetteGraphic({
               <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3.5 animate-fade-in">
                 <div className="flex items-start gap-3">
                   <span className="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4" />
+                    <User className="w-4 h-4" />
                   </span>
                   <div className="space-y-1.5">
                     <h6 className="text-sm font-bold text-white">
