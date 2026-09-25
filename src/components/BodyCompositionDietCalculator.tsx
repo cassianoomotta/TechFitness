@@ -705,8 +705,9 @@ export default function BodyCompositionDietCalculator({
             </div>
 
             <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/60 flex flex-col items-center justify-center text-center">
-              <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider">
-                Massa Magra
+              <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1">
+                <span className="text-xs">💪🏻</span>
+                <span>Massa Magra</span>
               </span>
               <div className="text-2xl sm:text-3xl font-black text-[#2563EB] mt-1">
                 {calculation.leanMass} <span className="text-xs font-bold text-blue-600">kg</span>
@@ -771,7 +772,7 @@ export default function BodyCompositionDietCalculator({
               {/* Legenda visual da barra */}
               <div className="flex items-center justify-between text-xs pt-1 px-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-blue-600"></span>
+                  <span className="text-xs">💪🏻</span>
                   <span className="font-semibold text-slate-700">
                     Massa Magra: <strong className="text-blue-600">{calculation.leanMass} kg</strong>
                   </span>
