@@ -18,6 +18,7 @@ import {
   Compass,
   Lock,
   AlertCircle,
+  Droplets,
 } from "lucide-react";
 import BodySilhouetteGraphic from "@/components/BodySilhouetteGraphic";
 
@@ -191,6 +192,18 @@ export default function BodyCompositionDietCalculator({
 
     const totalCalculatedCalories = proteinCalories + fatCalories + carbsCalories;
 
+    // 6. Consumo Hídrico Recomendado (Água Diária em Litros) por Meta
+    const waterCutting = parseFloat((numWeight * 0.042).toFixed(1));
+    const waterMaintenance = parseFloat((numWeight * 0.038).toFixed(1));
+    const waterBulking = parseFloat((numWeight * 0.048).toFixed(1));
+    const activeWater =
+      dietGoal === "cutting"
+        ? waterCutting
+        : dietGoal === "bulking"
+        ? waterBulking
+        : waterMaintenance;
+    const activeWaterGlasses = Math.round((activeWater * 1000) / 250);
+
     return {
       bf: parseFloat(bf.toFixed(1)),
       fatMass: parseFloat(fatMass.toFixed(1)),
@@ -199,6 +212,13 @@ export default function BodyCompositionDietCalculator({
       tdee: Math.round(tdee),
       targetCalories: Math.round(totalCalculatedCalories),
       isExactNavy: hasTapeMeasurements,
+      waterRecommendations: {
+        active: activeWater,
+        glasses: activeWaterGlasses,
+        cutting: waterCutting,
+        maintenance: waterMaintenance,
+        bulking: waterBulking,
+      },
       macros: {
         protein: { grams: proteinGrams, kcal: proteinCalories, perKg: proteinPerKg },
         carbs: { grams: carbsGrams, kcal: carbsCalories },
@@ -368,6 +388,14 @@ export default function BodyCompositionDietCalculator({
                 <span className="text-[9px] text-slate-400 font-normal">Ganha fácil</span>
               </button>
             </div>
+
+            {/* Legenda explicativa de como o biotipo atua */}
+            <p className="text-[11px] text-slate-500 mt-2 flex items-start gap-1.5 leading-relaxed bg-blue-50/60 p-2.5 rounded-xl border border-blue-100/70">
+              <Info className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>Como o biotipo atua:</strong> ele ajusta a sua queima metabólica (TMB) e as calorias da sua dieta. Já a silhueta corporal reflete a gordura física calculada pelas medidas da fita métrica.
+              </span>
+            </p>
           </div>
 
           {/* Idade, Altura e Peso */}
@@ -656,6 +684,12 @@ export default function BodyCompositionDietCalculator({
             leanMass={calculation.leanMass}
             fatMass={calculation.fatMass}
             totalWeight={parseFloat(weight) || 76}
+            dietGoal={dietGoal}
+            biotype={biotype}
+            onGoalChange={(goal) => setDietGoal(goal)}
+            tmb={calculation.tmb}
+            tdee={calculation.tdee}
+            targetCalories={calculation.targetCalories}
           />
 
           {/* Cartões de Indicadores Chave */}
@@ -885,6 +919,41 @@ export default function BodyCompositionDietCalculator({
                     {calculation.macros.fat.kcal} kcal (
                     {Math.round((calculation.macros.fat.kcal / calculation.targetCalories) * 100)}%)
                   </div>
+                </div>
+              </div>
+
+              {/* Meta Hídrica Diária Recomendada (Consumo de Água por Objetivo) */}
+              <div className="p-3.5 rounded-xl bg-cyan-50/80 border border-cyan-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-2 rounded-lg bg-cyan-500/20 text-cyan-600 shrink-0">
+                    <Droplets className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-cyan-950">
+                        Consumo Hídrico Diário Recomendado
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800">
+                        {dietGoal === "cutting" ? "Emagrecimento (42 ml/kg)" : dietGoal === "bulking" ? "Hipertrofia (48 ml/kg)" : "Manutenção (38 ml/kg)"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-cyan-800/80 mt-0.5">
+                      {dietGoal === "cutting"
+                        ? "Acelera a eliminação de toxinas, controla a saciedade e diminui a retenção líquida."
+                        : dietGoal === "bulking"
+                        ? "Essencial para volumização celular muscular, transporte de glicogênio e absorção de creatina."
+                        : "Mantém a homeostase celular, função renal e hidratação dos tecidos."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right shrink-0">
+                  <div className="text-lg font-black text-cyan-700 font-mono">
+                    {calculation.waterRecommendations.active} <span className="text-xs font-bold text-cyan-900">L/dia</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-cyan-600">
+                    ~{calculation.waterRecommendations.glasses} copos de 250ml
+                  </span>
                 </div>
               </div>
             </div>
