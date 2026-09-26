@@ -33,11 +33,7 @@ import {
 } from "@/lib/sw-utils";
 import { usePictureInPictureTimer } from "@/hooks/usePictureInPictureTimer";
 
-interface ScreenWakeLockSentinel {
-  released: boolean;
-  release: () => Promise<void>;
-  addEventListener?: (type: string, listener: () => void) => void;
-}
+
 
 interface Exercise {
   id: string;
@@ -115,7 +111,6 @@ export default function WorkoutSessionPlayer() {
   // Referências para áudio e apito do cronômetro (modo ambiente para não pausar Spotify/música)
   const whistleAudioRef = useRef<HTMLAudioElement | null>(null);
   const directAudioRef = useRef<HTMLAudioElement | null>(null);
-  const wakeLockRef = useRef<ScreenWakeLockSentinel | null>(null);
   const hasPlayedAlertRef = useRef(false);
   const playRestAlertSoundRef = useRef<() => void>(() => {});
   const playWhistleImmediatelyRef = useRef<() => void>(() => {});
@@ -158,45 +153,7 @@ export default function WorkoutSessionPlayer() {
     };
   }, [clearLockScreenMediaSession]);
 
-  // Screen Wake Lock API: Impede a tela do celular de apagar por inatividade durante a sessão de treino
-  useEffect(() => {
-    const requestWakeLock = async () => {
-      try {
-        if (
-          typeof navigator !== "undefined" &&
-          "wakeLock" in navigator &&
-          document.visibilityState === "visible"
-        ) {
-          const navWithWakeLock = navigator as unknown as {
-            wakeLock: {
-              request: (type: "screen") => Promise<ScreenWakeLockSentinel>;
-            };
-          };
-          wakeLockRef.current = await navWithWakeLock.wakeLock.request("screen");
-        }
-      } catch {
-        // Ignorar em caso de bateria muito baixa ou restrição do OS
-      }
-    };
-
-    requestWakeLock();
-
-    const handleVisibilityChangeWakeLock = () => {
-      if (document.visibilityState === "visible") {
-        requestWakeLock();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChangeWakeLock);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChangeWakeLock);
-      if (wakeLockRef.current) {
-        wakeLockRef.current.release().catch(() => {});
-        wakeLockRef.current = null;
-      }
-    };
-  }, []);
+  // Respeita o tempo de tela nativo do dispositivo (sem manter a tela ligada permanentemente)
 
   // Solicitar permissão oficial de notificações nativas para a sessão de treino
   useEffect(() => {
