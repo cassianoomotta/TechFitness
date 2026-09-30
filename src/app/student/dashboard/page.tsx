@@ -144,6 +144,9 @@ interface WorkoutPlan {
   deletionStatus?: "ACTIVE" | "PENDING_DELETION" | "ARCHIVED" | string;
   deletionRequestedAt?: string | null;
   order?: number;
+  completedThisWeek?: boolean;
+  completedAt?: string | null;
+  completedDurationMs?: number | null;
 }
 
 interface TrainerInfo {
@@ -707,6 +710,23 @@ export default function StudentDashboard() {
       if (response.ok) {
         const data = await response.json();
         const sorted = sortPlansByWeekDays(data.plans);
+        // Mesclagem otimista caso o aluno tenha acabado de concluir um treino e a tela seja recarregada
+        try {
+          const tempNow = new Date();
+          tempNow.setHours(0, 0, 0, 0);
+          const cDay = tempNow.getDay();
+          const diffToMon = tempNow.getDate() - cDay + (cDay === 0 ? -6 : 1);
+          const currentMonStr = new Date(tempNow.setDate(diffToMon)).toLocaleDateString("en-CA");
+          const weekCacheKey = `tf_weekly_completed_${currentMonStr}`;
+          const localDone: string[] = JSON.parse(localStorage.getItem(weekCacheKey) || "[]");
+          if (localDone.length > 0) {
+            sorted.forEach((p: WorkoutPlan) => {
+              if (localDone.includes(p.id)) {
+                p.completedThisWeek = true;
+              }
+            });
+          }
+        } catch {}
         setPlans(sorted);
         setTrainer(data.trainer);
         if (data.lastCompletedPlanId) {
@@ -1940,7 +1960,7 @@ export default function StudentDashboard() {
         onClose={() => setIsProfilePhotoModalOpen(false)}
         currentImage={profilePhoto || session?.user?.image}
         userName={session?.user?.name}
-        onPhotoUpdated={(newPhoto) => {
+        onPhotoUpdated={(newPhoto: string) => {
           setProfilePhoto(newPhoto);
           if (update) {
             update();

@@ -125,21 +125,83 @@ export async function GET() {
       return 0;
     });
 
-    // Identificar qual ficha foi realizada na última sessão para determinar o próximo treino do ciclo
-    const lastSession = await prisma.workoutSession.findFirst({
+    // Identificar sessões da semana atual (Segunda-feira 00:00:00) para status de conclusão semanal
+    const now = new Date();
+    const tempDate = new Date(now);
+    tempDate.setHours(0, 0, 0, 0);
+    const currentDay = tempDate.getDay();
+    const diffToMonday = tempDate.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+    const startOfWeek = new Date(tempDate.setDate(diffToMonday));
+
+    // Buscar sessões concluídas nesta semana pelo aluno
+    const weekSessions = await prisma.workoutSession.findMany({
       where: {
         studentId: studentProfile.id,
         completed: true,
+        date: { gte: startOfWeek },
       },
       orderBy: { date: "desc" },
       select: {
         id: true,
+        date: true,
+        durationMs: true,
         logs: {
           select: { exerciseId: true },
-          take: 10,
         },
       },
     });
+
+    // Mapear quais fichas foram concluídas nesta semana
+    interface WeeklyCompletedInfo {
+      completedAt: string;
+      durationMs: number;
+      sessionId: string;
+    }
+    const weeklyCompletedMap = new Map<string, WeeklyCompletedInfo>();
+
+    for (const sessionItem of weekSessions) {
+      if (!sessionItem.logs || sessionItem.logs.length === 0) continue;
+      const sessionExerciseIds = new Set(sessionItem.logs.map((l: { exerciseId: string }) => l.exerciseId));
+      let bestMatchedPlanId: string | null = null;
+      let maxMatchesCount = 0;
+
+      for (const p of plans) {
+        if (!p.exercises || p.exercises.length === 0) continue;
+        const matches = p.exercises.filter((pe) => sessionExerciseIds.has(pe.exerciseId)).length;
+        if (matches > maxMatchesCount && matches >= Math.min(2, p.exercises.length)) {
+          maxMatchesCount = matches;
+          bestMatchedPlanId = p.id;
+        }
+      }
+
+      if (bestMatchedPlanId && !weeklyCompletedMap.has(bestMatchedPlanId)) {
+        weeklyCompletedMap.set(bestMatchedPlanId, {
+          completedAt: sessionItem.date.toISOString(),
+          durationMs: sessionItem.durationMs,
+          sessionId: sessionItem.id,
+        });
+      }
+    }
+
+    // Identificar qual ficha foi realizada na última sessão geral para ciclo de treino
+    const lastSession = weekSessions.length > 0
+      ? weekSessions[0]
+      : await prisma.workoutSession.findFirst({
+          where: {
+            studentId: studentProfile.id,
+            completed: true,
+          },
+          orderBy: { date: "desc" },
+          select: {
+            id: true,
+            date: true,
+            durationMs: true,
+            logs: {
+              select: { exerciseId: true },
+              take: 10,
+            },
+          },
+        });
 
     let lastCompletedPlanId: string | null = null;
     if (lastSession && lastSession.logs.length > 0) {
@@ -163,21 +225,27 @@ export async function GET() {
           }
         : null,
       lastCompletedPlanId,
-      plans: plans.map((plan) => ({
-        id: plan.id,
-        name: plan.name,
-        description: plan.description,
-        division: plan.division,
-        weekDays: Array.isArray(plan.weekDays) ? (plan.weekDays as string[]).join(",") : (plan.weekDays as string | null),
-        isArchived: Boolean(plan.isArchived),
-        createdByType: plan.createdByType || "TRAINER",
-        deletionStatus: plan.deletionStatus || "ACTIVE",
-        deletionRequestedAt: plan.deletionRequestedAt ? plan.deletionRequestedAt.toISOString() : null,
-        order: plan.order ?? 0,
-        createdAt: plan.createdAt,
-        exercises: plan.exercises.map((pe) => ({
-          id: pe.id,
-          exerciseId: pe.exerciseId,
+      weeklyCompletedPlanIds: Array.from(weeklyCompletedMap.keys()),
+      plans: plans.map((plan) => {
+        const completedInfo = weeklyCompletedMap.get(plan.id);
+        return {
+          id: plan.id,
+          name: plan.name,
+          description: plan.description,
+          division: plan.division,
+          weekDays: Array.isArray(plan.weekDays) ? (plan.weekDays as string[]).join(",") : (plan.weekDays as string | null),
+          isArchived: Boolean(plan.isArchived),
+          createdByType: plan.createdByType || "TRAINER",
+          deletionStatus: plan.deletionStatus || "ACTIVE",
+          deletionRequestedAt: plan.deletionRequestedAt ? plan.deletionRequestedAt.toISOString() : null,
+          order: plan.order ?? 0,
+          createdAt: plan.createdAt,
+          completedThisWeek: Boolean(completedInfo),
+          completedAt: completedInfo?.completedAt || null,
+          completedDurationMs: completedInfo?.durationMs || null,
+          exercises: plan.exercises.map((pe) => ({
+            id: pe.id,
+            exerciseId: pe.exerciseId,
           name: pe.customName || pe.exercise.name,
           customName: pe.customName,
           muscleGroup: pe.exercise.muscleGroup,
@@ -193,8 +261,9 @@ export async function GET() {
           recommendedWeight: pe.recommendedWeight,
           notes: pe.notes,
         })),
-      })),
-    };
+      };
+    }),
+  };
 
     return NextResponse.json(formattedResponse);
   } catch (error) {

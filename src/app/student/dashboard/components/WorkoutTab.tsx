@@ -20,6 +20,7 @@ import {
   ListOrdered,
   MoreVertical,
   Dumbbell,
+  CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -50,6 +51,9 @@ export interface WorkoutPlan {
   deletionRequestedAt?: string | null;
   order?: number;
   createdAt?: string;
+  completedThisWeek?: boolean;
+  completedAt?: string | null;
+  completedDurationMs?: number | null;
 }
 
 interface WorkoutTabProps {
@@ -123,6 +127,46 @@ export default function WorkoutTab({
   // Separar fichas ativas das arquivadas
   const activePlans = plans.filter((p) => !p.isArchived);
   const archivedPlans = plans.filter((p) => p.isArchived);
+
+  // Filtro de status e métricas de consistência semanal
+  const [filterStatus, setFilterStatus] = useState<"ALL" | "PENDING" | "COMPLETED">("ALL");
+
+  const completedCount = activePlans.filter((p) => p.completedThisWeek).length;
+  const pendingCount = activePlans.length - completedCount;
+
+  const filteredActivePlans = activePlans.filter((p) => {
+    if (filterStatus === "PENDING") return !p.completedThisWeek;
+    if (filterStatus === "COMPLETED") return !!p.completedThisWeek;
+    return true;
+  });
+
+  const formatCompletionDate = (isoString?: string | null): string => {
+    if (!isoString) return "";
+    try {
+      const d = new Date(isoString);
+      const now = new Date();
+      if (d.toDateString() === now.toDateString()) {
+        return "Feito hoje";
+      }
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (d.toDateString() === yesterday.toDateString()) {
+        return "Feito ontem";
+      }
+      const weekDayNames = [
+        "Domingo",
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado",
+      ];
+      return `Feito na ${weekDayNames[d.getDay()]}`;
+    } catch {
+      return "Concluído esta semana";
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (!planToDelete) return;
@@ -331,24 +375,109 @@ export default function WorkoutTab({
             </div>
           </div>
 
+          {/* Régua de Consistência e Progresso Semanal (Gamificação & Clareza) */}
+          {activePlans.length > 0 && (
+            <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-emerald-50/70 border border-blue-100/80 shadow-2xs">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/20">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-extrabold text-[#0F172A]">
+                      Meta Semanal de Treinos
+                    </h4>
+                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                      {completedCount === activePlans.length && activePlans.length > 0
+                        ? "Semana 100% concluída! Parabéns pelo foco e disciplina."
+                        : `${completedCount} de ${activePlans.length} treinos concluídos nesta semana`}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-black text-blue-700 bg-white/90 px-2.5 py-1 rounded-xl border border-blue-200/60 shadow-2xs">
+                  {Math.round((completedCount / activePlans.length) * 100)}%
+                </span>
+              </div>
+
+              {/* Barra de Progresso */}
+              <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden mt-3">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 transition-all duration-500"
+                  style={{ width: `${Math.round((completedCount / activePlans.length) * 100)}%` }}
+                />
+              </div>
+
+              {/* Filtro Rápido (Chips) se houver pelo menos 1 ficha concluída */}
+              {completedCount > 0 && (
+                <div className="flex items-center gap-1.5 mt-3.5 pt-3 border-t border-blue-100/70">
+                  <span className="text-[11px] font-bold text-slate-500 mr-1">Filtrar:</span>
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus("ALL")}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      filterStatus === "ALL"
+                        ? "bg-blue-600 text-white shadow-2xs"
+                        : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80"
+                    }`}
+                  >
+                    Todos ({activePlans.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus("PENDING")}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      filterStatus === "PENDING"
+                        ? "bg-blue-600 text-white shadow-2xs"
+                        : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80"
+                    }`}
+                  >
+                    Pendentes ({pendingCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus("COMPLETED")}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      filterStatus === "COMPLETED"
+                        ? "bg-emerald-600 text-white shadow-2xs"
+                        : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80"
+                    }`}
+                  >
+                    Concluídos ({completedCount})
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Lista de Fichas Ativas em Formato de Lista Unificada */}
           {activePlans.length === 0 ? (
             <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
               Todas as suas fichas estão arquivadas no momento. Você pode visualizá-las ou desarquivá-las abaixo.
             </div>
+          ) : filteredActivePlans.length === 0 ? (
+            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
+              {filterStatus === "PENDING"
+                ? "Parabéns! Todos os seus treinos desta semana já foram concluídos."
+                : "Nenhum treino concluído nesta semana ainda. Bora treinar!"}
+            </div>
           ) : (
             <div className="space-y-4">
-              {activePlans.map((plan: WorkoutPlan) => {
+              {filteredActivePlans.map((plan: WorkoutPlan) => {
                 const isPendingDeletion = plan.deletionStatus === "PENDING_DELETION";
                 const isTrainerPlan = plan.createdByType === "TRAINER" && hasTrainer;
                 const isMenuOpen = activeMenuPlanId === plan.id;
                 const isExpanded = !!expandedPlanIds[plan.id];
                 const totalSets = plan.exercises.reduce((acc: number, ex: Exercise) => acc + (Number(ex.sets) || 3), 0);
+                const isDone = !!plan.completedThisWeek;
 
                 return (
                   <div
                     key={plan.id}
-                    className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200/80 bg-white/95 shadow-xs hover:border-[#2563EB]/40 hover:shadow-md transition-all duration-200 flex flex-col justify-between relative"
+                    className={`glass-card rounded-2xl p-4 sm:p-5 border transition-all duration-200 flex flex-col justify-between relative shadow-xs ${
+                      isDone
+                        ? "border-emerald-200/90 bg-emerald-50/20 hover:border-emerald-300"
+                        : "border-slate-200/80 bg-white/95 hover:border-[#2563EB]/40 hover:shadow-md"
+                    }`}
                   >
                     <div>
                       {/* Banner de Solicitação de Exclusão Pendente (3 dias) */}
@@ -364,28 +493,53 @@ export default function WorkoutTab({
                         </div>
                       )}
 
-                      {/* Topo do Card: Divisão, Título, Info e Menu Sutil ••• */}
+                      {/* Topo do Card: Divisão / Ícone Concluído, Título, Info e Menu Sutil ••• */}
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <span className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs shadow-blue-500/20">
-                            {plan.division || "A"}
-                          </span>
+                          {isDone ? (
+                            <span
+                              className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs shadow-emerald-500/20"
+                              title="Treino concluído esta semana"
+                            >
+                              <Check className="w-4 h-4 text-white stroke-[3]" />
+                            </span>
+                          ) : (
+                            <span className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs shadow-blue-500/20">
+                              {plan.division || "A"}
+                            </span>
+                          )}
+
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A] truncate">
-                              {plan.name}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A] truncate">
+                                {plan.name}
+                              </h4>
+                              {isDone && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/90 shadow-2xs">
+                                  <Check className="w-3 h-3 text-emerald-700 stroke-[3]" />
+                                  Concluído esta semana
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-[11px] font-bold text-slate-500">
                                 {plan.exercises.length} exercícios • {totalSets} séries
                               </span>
-                              {plan.weekDays && (
+                              {isDone && plan.completedAt ? (
+                                <>
+                                  <span className="text-slate-300 text-xs">•</span>
+                                  <span className="text-[11px] text-emerald-700 font-bold truncate">
+                                    {formatCompletionDate(plan.completedAt)}
+                                  </span>
+                                </>
+                              ) : plan.weekDays ? (
                                 <>
                                   <span className="text-slate-300 text-xs">•</span>
                                   <span className="text-[11px] text-blue-600 font-semibold truncate">
                                     {plan.weekDays}
                                   </span>
                                 </>
-                              )}
+                              ) : null}
                             </div>
                           </div>
                         </div>
@@ -456,53 +610,104 @@ export default function WorkoutTab({
                         </div>
                       </div>
 
-                      {/* Lista de Exercícios em Formato de Linhas (Visão Holística / Opção A) */}
+                      {/* Lista de Exercícios:
+                          Se concluído, fica RECOLHIDO por padrão com botão de acordeão para ver quando quiser.
+                          Se pendente, exibe os primeiros exercícios diretamente. */}
                       {plan.exercises && plan.exercises.length > 0 ? (
-                        <div className="my-3 space-y-1.5">
-                          {((isExpanded || plan.exercises.length <= 4)
-                            ? plan.exercises
-                            : plan.exercises.slice(0, 4)
-                          ).map((ex: Exercise, idx: number) => (
-                            <div
-                              key={ex.id || idx}
-                              className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-100/90 transition-colors"
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">
-                                  {idx + 1}.
-                                </span>
-                                <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
-                                  {ex.name}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
-                                  {ex.sets || 3} séries × {ex.reps || "10-12"} reps
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-
-                          {/* Seta para expandir e ver todos os exercícios caso exceda 4 */}
-                          {plan.exercises.length > 4 && (
+                        isDone ? (
+                          <div className="my-2.5">
                             <button
                               type="button"
                               onClick={() => togglePlanExpand(plan.id)}
-                              className="w-full py-2 mt-1 flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/70 rounded-xl transition-all cursor-pointer border border-blue-100/60 bg-blue-50/30"
+                              className="w-full py-2 px-3 rounded-xl bg-white/90 hover:bg-slate-50 border border-emerald-200/80 text-slate-600 font-semibold text-xs flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
                             >
-                              <span>
-                                {isExpanded
-                                  ? "Recolher exercícios"
-                                  : `Ver todos os ${plan.exercises.length} exercícios (+${plan.exercises.length - 4})`}
+                              <span className="flex items-center gap-1.5 text-slate-700 font-bold text-[11px]">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>
+                                  {isExpanded
+                                    ? "Ocultar exercícios realizados"
+                                    : `Ver ${plan.exercises.length} exercícios realizados`}
+                                </span>
                               </span>
                               {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-blue-600" />
+                                <ChevronUp className="w-4 h-4 text-slate-400" />
                               ) : (
-                                <ChevronDown className="w-4 h-4 text-blue-600" />
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
                               )}
                             </button>
-                          )}
-                        </div>
+
+                            {isExpanded && (
+                              <div className="mt-2 space-y-1.5 animate-in fade-in duration-150">
+                                {plan.exercises.map((ex: Exercise, idx: number) => (
+                                  <div
+                                    key={ex.id || idx}
+                                    className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-100/90 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                      <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">
+                                        {idx + 1}.
+                                      </span>
+                                      <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                                        {ex.name}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
+                                        {ex.sets || 3} séries × {ex.reps || "10-12"} reps
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="my-3 space-y-1.5">
+                            {((isExpanded || plan.exercises.length <= 4)
+                              ? plan.exercises
+                              : plan.exercises.slice(0, 4)
+                            ).map((ex: Exercise, idx: number) => (
+                              <div
+                                key={ex.id || idx}
+                                className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-100/90 transition-colors"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">
+                                    {idx + 1}.
+                                  </span>
+                                  <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                                    {ex.name}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
+                                    {ex.sets || 3} séries × {ex.reps || "10-12"} reps
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Seta para expandir e ver todos os exercícios caso exceda 4 */}
+                            {plan.exercises.length > 4 && (
+                              <button
+                                type="button"
+                                onClick={() => togglePlanExpand(plan.id)}
+                                className="w-full py-2 mt-1 flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/70 rounded-xl transition-all cursor-pointer border border-blue-100/60 bg-blue-50/30"
+                              >
+                                <span>
+                                  {isExpanded
+                                    ? "Recolher exercícios"
+                                    : `Ver todos os ${plan.exercises.length} exercícios (+${plan.exercises.length - 4})`}
+                                </span>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4 text-blue-600" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-blue-600" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )
                       ) : (
                         <p className="my-3 text-xs text-slate-400 italic">
                           Nenhum exercício cadastrado nesta ficha.
@@ -520,13 +725,24 @@ export default function WorkoutTab({
                         <Eye className="w-3.5 h-3.5 text-slate-400" />
                         <span>Ver Exercícios</span>
                       </button>
-                      <Link
-                        href={`/student/workout-session/${plan.id}`}
-                        className="flex-[1.2] min-h-[44px] py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 active:scale-95 text-center"
-                      >
-                        <Dumbbell className="w-4 h-4 text-white" />
-                        <span>Iniciar Treino</span>
-                      </Link>
+
+                      {isDone ? (
+                        <Link
+                          href={`/student/workout-session/${plan.id}`}
+                          className="flex-[1.2] min-h-[44px] py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95 text-center"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-slate-300" />
+                          <span>Refazer Treino</span>
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/student/workout-session/${plan.id}`}
+                          className="flex-[1.2] min-h-[44px] py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 active:scale-95 text-center"
+                        >
+                          <Dumbbell className="w-4 h-4 text-white" />
+                          <span>Iniciar Treino</span>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 );

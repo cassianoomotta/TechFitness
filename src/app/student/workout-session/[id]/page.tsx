@@ -960,6 +960,19 @@ export default function WorkoutSessionPlayer() {
       localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
       try {
         localStorage.setItem("tf_last_completed_plan_id", planId);
+
+        // Registrar no cache local da semana atual para feedback visual instantâneo
+        const tempNow = new Date();
+        tempNow.setHours(0, 0, 0, 0);
+        const cDay = tempNow.getDay();
+        const diffToMon = tempNow.getDate() - cDay + (cDay === 0 ? -6 : 1);
+        const currentMonStr = new Date(tempNow.setDate(diffToMon)).toLocaleDateString("en-CA");
+        const weekCacheKey = `tf_weekly_completed_${currentMonStr}`;
+        const localDone: string[] = JSON.parse(localStorage.getItem(weekCacheKey) || "[]");
+        if (!localDone.includes(planId)) {
+          localDone.push(planId);
+          localStorage.setItem(weekCacheKey, JSON.stringify(localDone));
+        }
       } catch {}
 
       // Dados para o modal de vitória
