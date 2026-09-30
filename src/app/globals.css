@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: 210 40% 98%;  /* #F8FAFC */
   --foreground: 222 47% 11%;  /* #0F172A */
@@ -21,13 +23,43 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221 83% 53%;
 
-  /* TechFitness Brand Colors (Refined Theme) */
+  /* TechFitness Brand Colors (Refined Light Theme) */
   --tf-primary: 221 83% 53%;
   --tf-accent: 194 100% 50%;
   --tf-surface: 210 40% 98%;
   --tf-card: 0 0% 100%;
   --tf-text: 222 47% 11%;
   --tf-muted: 215.4 16.3% 46.9%;
+}
+
+.dark {
+  --background: 222 47% 8%;   /* #0B0F19 */
+  --foreground: 210 40% 98%;  /* #F8FAFC */
+  --card: 217 33% 13%;        /* #151D2F */
+  --card-foreground: 210 40% 98%;
+  --popover: 217 33% 13%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217 91% 60%;     /* #3B82F6 */
+  --primary-foreground: 222 47% 11%;
+  --secondary: 217 33% 17%;   /* #1E293B */
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%; /* #94A3B8 */
+  --accent: 194 100% 50%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 33% 20%;      /* #27354A */
+  --input: 217 33% 20%;
+  --ring: 217 91% 60%;
+
+  /* TechFitness Brand Colors (Refined Dark Theme) */
+  --tf-primary: 217 91% 60%;
+  --tf-accent: 194 100% 50%;
+  --tf-surface: 222 47% 8%;
+  --tf-card: 217 33% 13%;
+  --tf-text: 210 40% 98%;
+  --tf-muted: 215 20% 65%;
 }
 
 @theme {
@@ -55,6 +87,11 @@ body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   min-height: 100dvh;
+}
+
+.dark body {
+  background-color: #0B0F19;
+  color: #F8FAFC;
 }
 
 /* Safe area utilities for iPhone Notch, Dynamic Island & Android Navigation Bar */
@@ -86,27 +123,36 @@ body {
 ::-webkit-scrollbar-track {
   background: #F8FAFC;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 999px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 .font-display {
   font-family: var(--font-display);
 }
 
-/* Glassmorphism card — premium tech light */
+/* Glassmorphism card — premium tech light & dark */
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   border: 1px solid #E2E8F0;
   box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, background-color 0.25s ease;
 }
 
 .glass-card:hover {
@@ -115,6 +161,22 @@ body {
     0 10px 15px -3px rgba(37, 99, 235, 0.08),
     0 4px 6px -2px rgba(37, 99, 235, 0.04);
   transform: translateY(-1px);
+}
+
+.dark .glass-card {
+  background: rgba(21, 29, 47, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.75);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.35),
+    0 2px 4px -1px rgba(0, 0, 0, 0.25);
+}
+
+.dark .glass-card:hover {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.45),
+    0 4px 6px -2px rgba(59, 130, 246, 0.2);
 }
 
 /* High-tech glows */
@@ -139,6 +201,16 @@ body {
   background-size: 400% 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: 8px;
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #1e293b 25%,
+    #334155 37%,
+    #1e293b 63%
+  );
+  background-size: 400% 100%;
 }
 
 @keyframes shimmer {

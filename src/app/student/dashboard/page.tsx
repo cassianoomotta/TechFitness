@@ -83,7 +83,10 @@ import {
   Camera,
   Trash2,
   HelpCircle,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 interface Achievement {
   id: string;
@@ -292,6 +295,7 @@ export default function StudentDashboard() {
   }, []);
 
   // Estados da Aba e Grupos/Duelo
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<"home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso">("home");
   const [initialJoinCode, setInitialJoinCode] = useState<string | null>(null);
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
@@ -994,10 +998,10 @@ export default function StudentDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] flex flex-col text-[#0F172A] dark:text-[#F8FAFC] transition-colors duration-200">
       {/* Header com suporte total a Safe Area (iPhone Notch, Dynamic Island e Android) */}
       <header 
-        className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 pt-safe"
+        className="border-b border-[#E2E8F0]/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md sticky top-0 z-40 pt-safe transition-colors"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
@@ -1020,7 +1024,7 @@ export default function StudentDashboard() {
             {/* User Avatar & Profile Click -> Redireciona para /student/profile */}
             <Link
               href="/student/profile"
-              className="flex items-center gap-2 group p-1 pr-1.5 sm:pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
+              className="flex items-center gap-2 group p-1 pr-1.5 sm:pr-2.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0] dark:hover:border-slate-700"
               title="Meu Perfil e Configurações da Conta"
             >
               <div className="relative">
@@ -1030,19 +1034,34 @@ export default function StudentDashboard() {
                   size="md"
                   expandable={false}
                 />
-                <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white">
+                <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white dark:border-[#1E293B]">
                   <Camera className="w-2.5 h-2.5" />
                 </span>
               </div>
               <div className="text-left hidden sm:block">
-                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors leading-tight">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-white group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors leading-tight">
                   {session?.user?.name || "Aluno"}
                 </p>
-                <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
+                <p className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold uppercase tracking-wider">
                   Minha Conta
                 </p>
               </div>
             </Link>
+
+            {/* Botão de Alternância Rápida de Tema (Claro / Escuro) */}
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 text-[#64748B] dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
+              title={resolvedTheme === "dark" ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
+              aria-label="Alternar tema de cores"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600" />
+              )}
+            </button>
 
             {/* Bell Icon & Dropdown */}
             <div className="relative" ref={notificationRef}>
@@ -2144,7 +2163,7 @@ export default function StudentDashboard() {
           ========================================================================= */}
       <nav
         aria-label="Navegação Principal do Aplicativo"
-        className={`sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white/95 backdrop-blur-xl border-t border-slate-200/80 shadow-2xl bottom-nav-safe transform-gpu ${
+        className={`sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800/80 shadow-2xl bottom-nav-safe transform-gpu transition-colors ${
           isImportModalOpen ? "hidden" : ""
         }`}
       >

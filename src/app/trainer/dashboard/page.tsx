@@ -25,7 +25,10 @@ import {
   Check,
   ChevronRight,
   Camera,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import DumbbellLoading from "@/components/DumbbellLoading";
@@ -42,6 +45,7 @@ interface Student {
 }
 
 export default function TrainerDashboard() {
+  const { resolvedTheme, setTheme } = useTheme();
   const { data: session } = useSession();
   
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -342,10 +346,10 @@ export default function TrainerDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] flex flex-col text-[#0F172A] dark:text-[#F8FAFC] transition-colors duration-200">
       {/* Header com suporte a Safe Area */}
       <header 
-        className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 pt-safe"
+        className="border-b border-[#E2E8F0]/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md sticky top-0 z-40 pt-safe transition-colors"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -355,46 +359,61 @@ export default function TrainerDashboard() {
             <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/trainer/dashboard"
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-white text-[#2563EB] border border-[#E2E8F0]"
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#151D2F] text-[#2563EB] dark:text-[#38BDF8] border border-[#E2E8F0] dark:border-slate-700"
               >
                 Alunos
               </Link>
               <Link
                 href="/trainer/exercises"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-[#94A3B8] hover:text-zinc-950 transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-[#94A3B8] dark:text-slate-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
               >
                 Exercícios
               </Link>
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <Link
               href="/trainer/profile"
-              className="flex items-center gap-3 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0]"
-              title="Meu Perfil & Configurações da Conta"
+              className="flex items-center gap-3 group p-1 pr-2.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0] dark:hover:border-slate-700"
+              title="Meu Perfil e Configurações da Conta"
             >
               <div className="relative">
                 <UserAvatar
                   name={session?.user?.name || "Professor"}
                   image={profileImage || session?.user?.image}
                   size="md"
-                  className="border-2 border-blue-200 shadow-sm transition-transform group-hover:scale-105"
+                  className="border-2 border-blue-200 dark:border-blue-800 shadow-sm transition-transform group-hover:scale-105"
                 />
-                <span className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full shadow-md group-hover:bg-blue-700 transition-colors border border-white">
+                <span className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full shadow-md group-hover:bg-blue-700 transition-colors border border-white dark:border-[#1E293B]">
                   <Camera className="w-2.5 h-2.5" />
                 </span>
               </div>
 
               <div className="text-left hidden sm:block">
-                <p className="text-xs font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors leading-tight">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-white group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors leading-tight">
                   {session?.user?.name || "Professor"}
                 </p>
-                <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
+                <p className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold uppercase tracking-wider">
                   Minha Conta
                 </p>
               </div>
             </Link>
+
+            {/* Botão de Alternância Rápida de Tema (Claro / Escuro) */}
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 text-[#64748B] dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
+              title={resolvedTheme === "dark" ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
+              aria-label="Alternar tema de cores"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600" />
+              )}
+            </button>
 
             {/* Bell Icon & Dropdown */}
             <div className="relative" ref={notificationRef}>
