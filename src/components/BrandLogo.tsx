@@ -14,7 +14,7 @@ export default function BrandLogo({
   className = "",
   size = 40,
   showText = true,
-  textColorClass = "text-[#0F172A]",
+  textColorClass = "text-[#0F172A] dark:text-white",
   href,
   onClick,
 }: BrandLogoProps) {
@@ -35,12 +35,12 @@ export default function BrandLogo({
           <defs>
             <linearGradient id="logo-t-grad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#00C2FF" />
-              <stop offset="40%" stopColor="#2563EB" />
+              <stop offset="45%" stopColor="#2563EB" />
               <stop offset="100%" stopColor="#1E40AF" />
             </linearGradient>
             <linearGradient id="logo-db-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#1E40AF" />
-              <stop offset="100%" stopColor="#0F172A" />
+              <stop offset="0%" stopColor="#38BDF8" />
+              <stop offset="100%" stopColor="#1E40AF" />
             </linearGradient>
           </defs>
 
@@ -52,17 +52,18 @@ export default function BrandLogo({
             height="3"
             rx="1"
             fill="url(#logo-db-grad)"
+            className="opacity-75 dark:opacity-90"
           />
 
           {/* Left weights */}
-          <rect x="22" y="37" width="3" height="26" rx="1.5" fill="url(#logo-db-grad)" />
-          <rect x="17" y="41" width="3" height="18" rx="1.5" fill="url(#logo-db-grad)" />
-          <rect x="12" y="45" width="3" height="10" rx="1.5" fill="url(#logo-db-grad)" />
+          <rect x="22" y="37" width="3" height="26" rx="1.5" fill="url(#logo-db-grad)" className="opacity-75 dark:opacity-90" />
+          <rect x="17" y="41" width="3" height="18" rx="1.5" fill="url(#logo-db-grad)" className="opacity-75 dark:opacity-90" />
+          <rect x="12" y="45" width="3" height="10" rx="1.5" fill="url(#logo-db-grad)" className="opacity-75 dark:opacity-90" />
 
           {/* Right weights */}
-          <rect x="75" y="37" width="3" height="26" rx="1.5" fill="url(#logo-db-grad)" />
-          <rect x="80" y="41" width="3" height="18" rx="1.5" fill="url(#logo-db-grad)" />
-          <rect x="85" y="45" width="3" height="10" rx="1.5" fill="url(#logo-db-grad)" />
+          <rect x="75" y="37" width="3" height="26" rx="1.5" fill="url(#logo-db-grad)" className="opacity-75 dark:opacity-90" />
+          <rect x="80" y="41" width="3" height="18" rx="1.5" fill="url(#logo-db-grad)" className="opacity-75 dark:opacity-90" />
+          <rect x="85" y="45" width="3" height="10" rx="1.5" fill="url(#logo-db-grad)" className="opacity-75 dark:opacity-90" />
 
           {/* Slanted "T" logo */}
           <path
@@ -73,8 +74,8 @@ export default function BrandLogo({
       </div>
 
       {showText && (
-        <span className={`font-display font-bold text-2xl tracking-wider uppercase ${textColorClass}`}>
-          Tech<span className="text-[#2563EB]">Fitness</span>
+        <span className={`font-display font-bold text-2xl tracking-wider uppercase transition-colors ${textColorClass}`}>
+          Tech<span className="text-[#2563EB] dark:text-[#38BDF8]">Fitness</span>
         </span>
       )}
     </div>

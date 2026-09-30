@@ -1003,7 +1003,7 @@ export default function WorkoutSessionPlayer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in">
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in transition-colors">
         {/* Círculo visual que se completa (Progress Ring) */}
         <div className="relative w-18 h-18 flex items-center justify-center mb-4">
           <svg className="w-full h-full" viewBox="0 0 72 72">
@@ -1019,9 +1019,9 @@ export default function WorkoutSessionPlayer() {
               cy="36"
               r="30"
               fill="none"
-              stroke="#E2E8F0"
+              stroke="currentColor"
               strokeWidth="4"
-              className="opacity-70"
+              className="text-slate-200 dark:text-slate-800 opacity-80"
             />
             {/* Arco que se completa continuamente */}
             <circle
@@ -1039,14 +1039,14 @@ export default function WorkoutSessionPlayer() {
 
           {/* Ícone esportivo centralizado com micro-pulso */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-9 h-9 rounded-xl bg-blue-50/90 text-blue-600 flex items-center justify-center shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-blue-50/90 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-2xs border border-blue-100/50 dark:border-blue-800/50 transition-colors">
               <Dumbbell className="w-4.5 h-4.5 animate-pulse" />
             </div>
           </div>
         </div>
 
         {/* Texto solicitado pelo usuário */}
-        <p className="text-sm font-bold text-slate-800 tracking-tight">
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight transition-colors">
           Carregando treino.
         </p>
       </div>
@@ -1056,293 +1056,292 @@ export default function WorkoutSessionPlayer() {
   if (!plan) return null;
 
   return (
-    <div className="h-[100dvh] bg-[#F8FAFC] flex flex-col max-w-md mx-auto relative border-x border-[#E2E8F0] shadow-2xl text-[#0F172A]">
-      
-      {/* Header Fixo com suporte a Safe Area */}
-      <header 
-        className="border-b border-[#E2E8F0] bg-white/95 z-30 px-4 pb-4 flex items-center justify-between flex-none pt-safe"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
-      >
-        <div className="flex items-center gap-3">
-          <Link
-            href="/student/dashboard"
-            className="p-2 rounded-lg border border-[#E2E8F0] hover:bg-white text-[#94A3B8]"
-          >
-            <ChevronLeft className="w-4.5 h-4.5" />
-          </Link>
-          <div>
-            <span className="text-[9px] font-bold text-[#2563EB] bg-[#00C2FF]/10 px-1.5 py-0.5 rounded block w-fit">
-              Treino {plan.division}
-            </span>
-            <h2 className="text-sm font-bold text-[#0F172A] mt-1 leading-none">{plan.name}</h2>
-          </div>
-        </div>
-
-        {/* Controles de Cabeçalho: Cancelar e Cronômetro Geral à Direita */}
-        <div className="flex items-center gap-2">
-          {/* Botão Cancelar Treino */}
-          <button
-            type="button"
-            onClick={() => setIsCancelModalOpen(true)}
-            className="p-1.5 px-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
-            title="Cancelar treino e descartar sessão"
-          >
-            <X className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Cancelar</span>
-          </button>
-
-          {/* Cronômetro Geral do Treino (à direita) */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] font-mono text-xs font-semibold shadow-xs">
-            <Clock className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-            {formatTime(totalSeconds)}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Exercises List (Mobile-First scroll com folga inferior para widgets) */}
-      <main
-        className="flex-1 px-4 py-6 space-y-6 overflow-y-auto pb-40"
-        onFocus={() => setIsInputFocused(true)}
-        onBlur={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            setIsInputFocused(false);
-          }
-        }}
-      >
-        {plan.exercises.map((exercise, exIndex) => (
-          <div
-            key={exercise.id}
-            className="glass-card rounded-2xl p-4 border border-[#E2E8F0] bg-white space-y-4 shadow-sm"
-          >
-            {/* Título do Exercício */}
-            <div className="flex justify-between items-start gap-4">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#0F172A] leading-tight">{exercise.name}</h3>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRenamingExercise(exercise);
-                      setNewCustomName(exercise.name);
-                    }}
-                    className="p-1 rounded text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#2563EB]/5 transition-colors cursor-pointer"
-                    title="Renomear exercício para este treino"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <span className="text-[8px] font-bold bg-[#00C2FF]/10 text-[#2563EB] px-1.5 py-0.5 rounded">
-                    {exercise.equipment}
-                  </span>
-                  <span className="text-[8px] font-bold bg-white border border-[#E2E8F0] text-[#94A3B8] px-1.5 py-0.5 rounded">
-                    Descanso: {exercise.restSeconds}s
-                  </span>
-                  <span className="text-[8px] font-bold bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded">
-                    {exercise.method}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleSuggestAlternative(exercise.exerciseId, exIndex)}
-                  disabled={suggestingFor === exIndex}
-                  className="p-1.5 rounded-lg bg-white text-[#94A3B8] hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer disabled:opacity-50"
-                  title="Sugerir exercício alternativo"
-                >
-                  {suggestingFor === exIndex ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Shuffle className="w-4 h-4" />
-                  )}
-                </button>
-                {(exercise.videoUrl || exercise.gifUrl) && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveVideoUrl(exercise.gifUrl || exercise.videoUrl || "")}
-                    className="p-1.5 rounded-lg bg-white text-[#94A3B8] hover:text-[#2563EB] hover:bg-[#00C2FF]/10 transition-colors cursor-pointer"
-                    title="Ver vídeo demonstrativo"
-                  >
-                    <Tv className="w-4 h-4" />
-                  </button>
-                )}
-
-              </div>
+    <div className="min-h-[100dvh] w-full bg-[#F8FAFC] dark:bg-[#0B0F19] flex justify-center transition-colors">
+      <div className="h-[100dvh] w-full max-w-md bg-[#F8FAFC] dark:bg-[#0B0F19] flex flex-col relative border-x border-[#E2E8F0] dark:border-slate-800 shadow-2xl text-[#0F172A] dark:text-slate-100 transition-colors">
+        
+        {/* Header Fixo com suporte a Safe Area */}
+        <header 
+          className="border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151D2F]/95 z-30 px-4 py-3 flex items-center justify-between flex-none pt-safe backdrop-blur-md"
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+        >
+          <div className="flex items-center gap-3">
+            <Link
+              href="/student/dashboard"
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+              title="Voltar ao Painel"
+            >
+              <ChevronLeft className="w-4.5 h-4.5" />
+            </Link>
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB] dark:text-[#38BDF8] bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-900/60 px-2 py-0.5 rounded-md inline-block">
+                Treino {plan.division}
+              </span>
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5 leading-tight">{plan.name}</h2>
             </div>
+          </div>
 
-            {/* Painel de Sugestão de Alternativa */}
-            {alternativeSuggestion && alternativeSuggestion.forExerciseIndex === exIndex && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-col gap-2 animate-slide-down">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-[9px] font-bold text-amber-700 uppercase tracking-wider">Sugestão de alternativa</p>
-                    <p className="text-xs font-bold text-[#0F172A] mt-0.5">{alternativeSuggestion.name}</p>
-                    <p className="text-[9px] text-[#94A3B8] mt-0.5">{alternativeSuggestion.equipment}</p>
+          {/* Controles de Cabeçalho: Cancelar e Cronômetro Geral à Direita */}
+          <div className="flex items-center gap-2">
+            {/* Botão Cancelar Treino */}
+            <button
+              type="button"
+              onClick={() => setIsCancelModalOpen(true)}
+              className="p-1.5 px-2.5 rounded-xl border border-red-200/80 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-bold text-xs transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+              title="Cancelar treino e descartar sessão"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Cancelar</span>
+            </button>
+
+            {/* Cronômetro Geral do Treino (à direita) */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-mono text-xs font-bold shadow-xs">
+              <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+              {formatTime(totalSeconds)}
+            </div>
+          </div>
+        </header>
+
+        {/* Main Exercises List (Mobile-First scroll com folga inferior para widgets) */}
+        <main
+          className="flex-1 px-4 py-5 space-y-5 overflow-y-auto pb-40"
+          onFocus={() => setIsInputFocused(true)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setIsInputFocused(false);
+            }
+          }}
+        >
+          {plan.exercises.map((exercise, exIndex) => (
+            <div
+              key={exercise.id}
+              className="rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#151D2F] space-y-4 shadow-sm transition-colors"
+            >
+              {/* Título do Exercício */}
+              <div className="flex justify-between items-start gap-4">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight">{exercise.name}</h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRenamingExercise(exercise);
+                        setNewCustomName(exercise.name);
+                      }}
+                      className="p-1 rounded-md text-slate-400 hover:text-[#2563EB] dark:hover:text-[#38BDF8] hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                      title="Renomear exercício para este treino"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <div className="flex gap-1">
-                    {(alternativeSuggestion.videoUrl || alternativeSuggestion.gifUrl) && (
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                    <span className="text-[9px] font-bold bg-blue-50 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-900/50 text-[#2563EB] dark:text-[#38BDF8] px-2 py-0.5 rounded-md">
+                      {exercise.equipment}
+                    </span>
+                    <span className="text-[9px] font-bold bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md">
+                      Descanso: {exercise.restSeconds}s
+                    </span>
+                    <span className="text-[9px] font-bold bg-purple-50 dark:bg-purple-950/40 border border-purple-200/60 dark:border-purple-800/40 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-md">
+                      {exercise.method}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleSuggestAlternative(exercise.exerciseId, exIndex)}
+                    disabled={suggestingFor === exIndex}
+                    className="p-2 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer disabled:opacity-50"
+                    title="Sugerir exercício alternativo"
+                  >
+                    {suggestingFor === exIndex ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Shuffle className="w-4 h-4" />
+                    )}
+                  </button>
+                  {(exercise.videoUrl || exercise.gifUrl) && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveVideoUrl(exercise.gifUrl || exercise.videoUrl || "")}
+                      className="p-2 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                      title="Ver vídeo demonstrativo"
+                    >
+                      <Tv className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Painel de Sugestão de Alternativa */}
+              {alternativeSuggestion && alternativeSuggestion.forExerciseIndex === exIndex && (
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3 flex flex-col gap-2 animate-slide-down">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Sugestão de alternativa</p>
+                      <p className="text-xs font-bold text-[#0F172A] dark:text-white mt-0.5">{alternativeSuggestion.name}</p>
+                      <p className="text-[9px] text-[#94A3B8] dark:text-slate-400 mt-0.5">{alternativeSuggestion.equipment}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      {(alternativeSuggestion.videoUrl || alternativeSuggestion.gifUrl) && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveVideoUrl(alternativeSuggestion.gifUrl || alternativeSuggestion.videoUrl || "")}
+                          className="p-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors cursor-pointer"
+                          title="Ver vídeo"
+                        >
+                          <Tv className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => setActiveVideoUrl(alternativeSuggestion.gifUrl || alternativeSuggestion.videoUrl || "")}
-                        className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
-                        title="Ver vídeo"
+                        onClick={() => handleSuggestAlternative(exercise.exerciseId, exIndex)}
+                        className="p-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors cursor-pointer"
+                        title="Outra sugestão"
                       >
-                        <Tv className="w-3.5 h-3.5" />
+                        <Shuffle className="w-3.5 h-3.5" />
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleSuggestAlternative(exercise.exerciseId, exIndex)}
-                      className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
-                      title="Outra sugestão"
-                    >
-                      <Shuffle className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAlternativeSuggestion(null)}
-                      className="p-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
-                      title="Fechar"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setAlternativeSuggestion(null)}
+                        className="p-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors cursor-pointer"
+                        title="Fechar"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
+                  {alternativeSuggestion.description && (
+                    <p className="text-[10px] text-amber-800/70 dark:text-amber-300/70 leading-relaxed">{alternativeSuggestion.description}</p>
+                  )}
                 </div>
-                {alternativeSuggestion.description && (
-                  <p className="text-[10px] text-amber-800/70 leading-relaxed">{alternativeSuggestion.description}</p>
-                )}
-              </div>
-            )}
+              )}
 
-            {exercise.notes && (
-              <p className="text-[10px] text-[#94A3B8] leading-relaxed bg-zinc-50 border border-[#E2E8F0] p-2 rounded-lg">
-                <strong>Obs:</strong> {exercise.notes}
-              </p>
-            )}
+              {exercise.notes && (
+                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-800 p-2.5 rounded-xl">
+                  <strong className="text-slate-800 dark:text-slate-100">Obs:</strong> {exercise.notes}
+                </p>
+              )}
 
-            {/* Listagem de Séries do Exercício */}
-            <div className="space-y-2">
-              <div className="grid grid-cols-12 gap-2 text-[9px] font-bold text-[#94A3B8] uppercase tracking-wider text-center">
-                <span className="col-span-2 text-left">Série</span>
-                <span className="col-span-4">Carga (kg)</span>
-                <span className="col-span-4">Reps</span>
-                <span className="col-span-2">Feito</span>
-              </div>
-
-              {/* Séries */}
-              {(setsData[exIndex] || []).map((set, setIndex) => (
-                <div
-                  key={setIndex}
-                  className={`grid grid-cols-12 gap-2 items-center text-xs p-1 rounded-lg transition-all ${
-                    set.completed
-                      ? "bg-[#00C2FF]/10 border border-emerald-200/50"
-                      : "bg-zinc-50/50 border border-transparent"
-                  }`}
-                >
-                  {/* Número */}
-                  <span className="col-span-2 font-semibold text-[#94A3B8] text-center">
-                    {setIndex + 1}ª
-                  </span>
-
-                  {/* Carga Real */}
-                  <div className="col-span-4 flex flex-col items-center">
-                    <input
-                      type="number"
-                      step="any"
-                      inputMode="decimal"
-                      placeholder="--"
-                      value={set.weight}
-                      disabled={set.completed}
-                      onChange={(e) =>
-                        handleUpdateSetField(exIndex, setIndex, "weight", e.target.value)
-                      }
-                      className="w-full text-center py-1 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-base sm:text-xs focus:border-[#2563EB] outline-none transition-all"
-                    />
-                    {/* ... */}
-                    {(() => {
-                      const prevSet = exercise.previousWorkoutSets?.[setIndex];
-                      if (!prevSet) return null;
-                      return (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleUpdateSetField(exIndex, setIndex, "weight", String(prevSet.weightUsed))
-                          }
-                          className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
-                          title="Usar carga anterior"
-                        >
-                          Ant: {prevSet.weightUsed}kg
-                        </button>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Repetições Reais */}
-                  <div className="col-span-4 flex flex-col items-center">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      placeholder="--"
-                      value={set.reps}
-                      disabled={set.completed}
-                      onChange={(e) =>
-                        handleUpdateSetField(exIndex, setIndex, "reps", e.target.value)
-                      }
-                      className="w-full text-center py-1 rounded-lg bg-white border border-[#E2E8F0] disabled:opacity-50 text-[#0F172A] font-mono text-base sm:text-xs focus:border-[#2563EB] outline-none transition-all"
-                    />
-                    {/* ... */}
-                    {(() => {
-                      const prevSet = exercise.previousWorkoutSets?.[setIndex];
-                      if (!prevSet) return null;
-                      return (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleUpdateSetField(exIndex, setIndex, "reps", String(prevSet.repsPerformed))
-                          }
-                          className="text-[9px] text-amber-600 font-semibold mt-1 hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-1 rounded transition-colors"
-                          title="Usar repetições anteriores"
-                        >
-                          Ant: {prevSet.repsPerformed}
-                        </button>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Checkbox */}
-                  <div className="col-span-2 flex justify-center">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleToggleSetComplete(exIndex, setIndex, exercise.restSeconds)
-                      }
-                      className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
-                        set.completed
-                          ? "bg-[#2563EB] border-[#2563EB] text-white"
-                          : "border-[#E2E8F0] hover:border-zinc-350 bg-white"
-                      }`}
-                    >
-                      <Check className={`w-4 h-4 stroke-[3px] ${set.completed ? "scale-100" : "scale-0"} transition-transform`} />
-                    </button>
-                  </div>
+              {/* Listagem de Séries do Exercício */}
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-2 text-[9px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider text-center">
+                  <span className="col-span-2 text-left">Série</span>
+                  <span className="col-span-4">Carga (kg)</span>
+                  <span className="col-span-4">Reps</span>
+                  <span className="col-span-2">Feito</span>
                 </div>
-              ))}
+
+                {/* Séries */}
+                {(setsData[exIndex] || []).map((set, setIndex) => (
+                  <div
+                    key={setIndex}
+                    className={`grid grid-cols-12 gap-2 items-center text-xs p-1.5 rounded-xl transition-all ${
+                      set.completed
+                        ? "bg-emerald-500/10 dark:bg-emerald-950/25 border border-emerald-500/30 dark:border-emerald-600/40"
+                        : "bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/60 dark:border-slate-700/50"
+                    }`}
+                  >
+                    {/* Número */}
+                    <span className="col-span-2 font-bold text-slate-500 dark:text-slate-300 text-center">
+                      {setIndex + 1}ª
+                    </span>
+
+                    {/* Carga Real */}
+                    <div className="col-span-4 flex flex-col items-center">
+                      <input
+                        type="number"
+                        step="any"
+                        inputMode="decimal"
+                        placeholder="--"
+                        value={set.weight}
+                        disabled={set.completed}
+                        onChange={(e) =>
+                          handleUpdateSetField(exIndex, setIndex, "weight", e.target.value)
+                        }
+                        className="w-full text-center py-2 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 disabled:opacity-50 text-slate-900 dark:text-white font-mono text-base sm:text-xs font-bold shadow-2xs focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/20 outline-none transition-all"
+                      />
+                      {(() => {
+                        const prevSet = exercise.previousWorkoutSets?.[setIndex];
+                        if (!prevSet) return null;
+                        return (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateSetField(exIndex, setIndex, "weight", String(prevSet.weightUsed))
+                            }
+                            className="text-[9px] text-amber-700 dark:text-amber-400 font-bold mt-1 hover:underline cursor-pointer bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/60 dark:border-amber-800/40 px-1.5 py-0.5 rounded transition-colors"
+                            title="Usar carga anterior"
+                          >
+                            Ant: {prevSet.weightUsed}kg
+                          </button>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Repetições Reais */}
+                    <div className="col-span-4 flex flex-col items-center">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder="--"
+                        value={set.reps}
+                        disabled={set.completed}
+                        onChange={(e) =>
+                          handleUpdateSetField(exIndex, setIndex, "reps", e.target.value)
+                        }
+                        className="w-full text-center py-2 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 disabled:opacity-50 text-slate-900 dark:text-white font-mono text-base sm:text-xs font-bold shadow-2xs focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/20 outline-none transition-all"
+                      />
+                      {(() => {
+                        const prevSet = exercise.previousWorkoutSets?.[setIndex];
+                        if (!prevSet) return null;
+                        return (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateSetField(exIndex, setIndex, "reps", String(prevSet.repsPerformed))
+                            }
+                            className="text-[9px] text-amber-700 dark:text-amber-400 font-bold mt-1 hover:underline cursor-pointer bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/60 dark:border-amber-800/40 px-1.5 py-0.5 rounded transition-colors"
+                            title="Usar repetições anteriores"
+                          >
+                            Ant: {prevSet.repsPerformed}
+                          </button>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Checkbox */}
+                    <div className="col-span-2 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleToggleSetComplete(exIndex, setIndex, exercise.restSeconds)
+                        }
+                        className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all cursor-pointer ${
+                          set.completed
+                            ? "bg-emerald-500 border-emerald-500 text-white shadow-xs shadow-emerald-500/30 scale-100"
+                            : "border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-[#0B0F19]"
+                        }`}
+                      >
+                        <Check className={`w-4 h-4 stroke-[3px] ${set.completed ? "scale-100" : "scale-0"} transition-transform`} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </main>
+          ))}
+        </main>
 
-      {/* Barra de Ação na Base */}
-      <footer className="border-t border-[#E2E8F0] bg-white/90 backdrop-blur-md p-4 pb-[calc(1.0rem+safe-area-inset-bottom)] flex gap-3 z-30 flex-none">
-        <button
-          onClick={() => setIsFinishModalOpen(true)}
-          className="flex-1 py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 active:scale-[0.98]"
-        >
-          Finalizar Treino
-        </button>
-      </footer>
+        {/* Barra de Ação na Base */}
+        <footer className="border-t border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151D2F]/95 backdrop-blur-md p-4 pb-[calc(1.0rem+safe-area-inset-bottom)] flex gap-3 z-30 flex-none">
+          <button
+            onClick={() => setIsFinishModalOpen(true)}
+            className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/20 active:scale-[0.98]"
+          >
+            Finalizar Treino
+          </button>
+        </footer>
 
       {/* Cronômetro Redondo Flutuante Móvel (Stopwatch Ring Draggable) */}
       {isResting && (
@@ -1483,14 +1482,14 @@ export default function WorkoutSessionPlayer() {
 
       {/* Modal de Confirmação de Cancelamento de Treino */}
       {isCancelModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-xs bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-xs bg-white dark:bg-[#151D2F] rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
               <X className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-900">Cancelar Treino?</h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">Cancelar Treino?</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 Se cancelar agora, as cargas e séries registradas nesta sessão serão descartadas.
               </p>
             </div>
@@ -1505,7 +1504,7 @@ export default function WorkoutSessionPlayer() {
               <button
                 type="button"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all active:scale-95 cursor-pointer"
+                className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all active:scale-95 cursor-pointer"
               >
                 Continuar Treinando
               </button>
@@ -1516,27 +1515,27 @@ export default function WorkoutSessionPlayer() {
 
       {/* Modal Finalizar Treino com Foto Obrigatória e Escolha de Grupos */}
       {isFinishModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] text-center max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-white dark:bg-[#151D2F] rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] dark:border-slate-800 text-center max-h-[90vh] overflow-y-auto">
             
             <button
               onClick={() => setIsFinishModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-xl hover:bg-slate-100 text-[#94A3B8] hover:text-[#0F172A]"
+              className="absolute right-4 top-4 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="bg-[#00C2FF]/10 p-3 rounded-full w-fit mx-auto text-[#2563EB] mb-3 animate-bounce">
+            <div className="bg-[#00C2FF]/10 dark:bg-blue-950/40 p-3 rounded-full w-fit mx-auto text-[#2563EB] dark:text-[#38BDF8] mb-3 animate-bounce">
               <Dumbbell className="w-6 h-6" />
             </div>
 
-            <h3 className="font-display font-bold text-lg text-zinc-950 mb-1">Concluir Treino</h3>
-            <p className="text-xs text-[#94A3B8] mb-5 leading-relaxed">
+            <h3 className="font-display font-bold text-lg text-zinc-950 dark:text-white mb-1">Concluir Treino</h3>
+            <p className="text-xs text-[#94A3B8] dark:text-slate-400 mb-5 leading-relaxed">
               Tire sua foto de check-in para comprovar seu treino e registrar seus pontos!
             </p>
 
             {finishError && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold text-left">
+              <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-semibold text-left">
                 {finishError}
               </div>
             )}
@@ -1544,7 +1543,7 @@ export default function WorkoutSessionPlayer() {
             <div className="space-y-4 text-left">
               {/* Seção 1: Foto Comprobatória (Obrigatória) */}
               <div>
-                <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block mb-1.5">
+                <label className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
                   1. Foto de Comprovação (Obrigatória):
                 </label>
 
@@ -1579,14 +1578,14 @@ export default function WorkoutSessionPlayer() {
                   <button
                     type="button"
                     onClick={() => photoInputRef.current?.click()}
-                    className="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-[#2563EB]/40 bg-[#2563EB]/5 hover:bg-[#2563EB]/10 transition-all flex flex-col items-center justify-center gap-2 text-center cursor-pointer group"
+                    className="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-[#2563EB]/40 dark:border-[#2563EB]/50 bg-[#2563EB]/5 dark:bg-[#2563EB]/10 hover:bg-[#2563EB]/10 dark:hover:bg-[#2563EB]/20 transition-all flex flex-col items-center justify-center gap-2 text-center cursor-pointer group"
                   >
-                    <div className="p-3 rounded-full bg-[#2563EB]/10 text-[#2563EB] group-hover:scale-110 transition-transform">
+                    <div className="p-3 rounded-full bg-[#2563EB]/10 dark:bg-blue-500/20 text-[#2563EB] dark:text-[#38BDF8] group-hover:scale-110 transition-transform">
                       <Camera className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-[#0F172A]">Tirar Selfie / Foto do Treino</p>
-                      <p className="text-[10px] text-[#94A3B8] mt-0.5">Formato vertical • Câmera ou galeria</p>
+                      <p className="text-xs font-bold text-[#0F172A] dark:text-white">Tirar Selfie / Foto do Treino</p>
+                      <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 mt-0.5">Formato vertical • Câmera ou galeria</p>
                     </div>
                   </button>
                 )}
@@ -1594,7 +1593,7 @@ export default function WorkoutSessionPlayer() {
 
               {/* Seção 2: Intensidade (RPE) */}
               <div>
-                <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block mb-1.5">
+                <label className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
                   2. Intensidade do Treino:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1619,7 +1618,7 @@ export default function WorkoutSessionPlayer() {
                               : option.value === 8
                               ? "bg-amber-500 border-amber-500 text-white"
                               : "bg-red-500 border-red-500 text-white"
-                            : `bg-white border-[#E2E8F0] text-[#475569] hover:bg-slate-50`
+                            : `bg-white dark:bg-[#1E293B] border-[#E2E8F0] dark:border-slate-700 text-[#475569] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800`
                         }`}
                       >
                         {option.label}
@@ -1630,26 +1629,26 @@ export default function WorkoutSessionPlayer() {
               </div>
 
               {/* Seção 3: Compartilhar Check-in nos Grupos */}
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block">
+                  <label className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-bold uppercase tracking-wider block">
                     3. Compartilhar Check-in nos Grupos:
                   </label>
                   {userGroups.length > 0 && (
-                    <span className="text-[10px] text-[#2563EB] font-bold">
+                    <span className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold">
                       {userGroups.length} {userGroups.length === 1 ? "grupo" : "grupos"}
                     </span>
                   )}
                 </div>
 
                 {userGroupsLoading ? (
-                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-xs text-[#94A3B8]">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#2563EB]" />
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2 text-xs text-[#94A3B8] dark:text-slate-400">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#2563EB] dark:text-[#38BDF8]" />
                     <span>Carregando seus grupos...</span>
                   </div>
                 ) : userGroups.length === 0 ? (
-                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                    <p className="text-xs text-[#64748B]">
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-center">
+                    <p className="text-xs text-[#64748B] dark:text-slate-400">
                       Você ainda não participa de grupos. O check-in ficará salvo no seu perfil!
                     </p>
                   </div>
@@ -1664,21 +1663,21 @@ export default function WorkoutSessionPlayer() {
                       }}
                       className={`w-full p-2.5 sm:p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         postToAllGroups
-                          ? "bg-blue-50/70 border-[#2563EB] text-[#0F172A] shadow-2xs"
-                          : "bg-white border-slate-200 text-[#64748B] hover:bg-slate-50"
+                          ? "bg-blue-50/70 dark:bg-blue-950/40 border-[#2563EB] text-[#0F172A] dark:text-white shadow-2xs"
+                          : "bg-white dark:bg-[#1E293B]/70 border-slate-200 dark:border-slate-700 text-[#64748B] dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                          postToAllGroups ? "border-[#2563EB] bg-[#2563EB] text-white" : "border-slate-300 bg-white"
+                          postToAllGroups ? "border-[#2563EB] bg-[#2563EB] text-white" : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
                         }`}>
                           {postToAllGroups && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                         </div>
                         <div>
-                          <span className="text-xs font-bold block leading-tight text-[#0F172A]">
+                          <span className="text-xs font-bold block leading-tight text-[#0F172A] dark:text-white">
                             Postar para todos os meus grupos
                           </span>
-                          <span className="text-[10px] text-[#64748B] leading-none">
+                          <span className="text-[10px] text-[#64748B] dark:text-slate-400 leading-none">
                             Todos os seus amigos e turmas verão o check-in
                           </span>
                         </div>
@@ -1692,33 +1691,33 @@ export default function WorkoutSessionPlayer() {
                       onClick={() => setPostToAllGroups(false)}
                       className={`w-full p-2.5 sm:p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         !postToAllGroups
-                          ? "bg-blue-50/70 border-[#2563EB] text-[#0F172A] shadow-2xs"
-                          : "bg-white border-slate-200 text-[#64748B] hover:bg-slate-50"
+                          ? "bg-blue-50/70 dark:bg-blue-950/40 border-[#2563EB] text-[#0F172A] dark:text-white shadow-2xs"
+                          : "bg-white dark:bg-[#1E293B]/70 border-slate-200 dark:border-slate-700 text-[#64748B] dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                          !postToAllGroups ? "border-[#2563EB] bg-[#2563EB] text-white" : "border-slate-300 bg-white"
+                          !postToAllGroups ? "border-[#2563EB] bg-[#2563EB] text-white" : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
                         }`}>
                           {!postToAllGroups && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                         </div>
                         <div>
-                          <span className="text-xs font-bold block leading-tight text-[#0F172A]">
+                          <span className="text-xs font-bold block leading-tight text-[#0F172A] dark:text-white">
                             Escolher grupos específicos
                           </span>
-                          <span className="text-[10px] text-[#64748B] leading-none">
+                          <span className="text-[10px] text-[#64748B] dark:text-slate-400 leading-none">
                             Selecione apenas as turmas desejadas
                           </span>
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-[#2563EB]">
+                      <span className="text-xs font-bold text-[#2563EB] dark:text-[#38BDF8]">
                         {!postToAllGroups ? `${selectedTargetGroupIds.length}/${userGroups.length}` : ""}
                       </span>
                     </button>
 
                     {/* Lista de Checkboxes de Grupos quando customizado */}
                     {!postToAllGroups && (
-                      <div className="p-2 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-1.5 max-h-36 overflow-y-auto pr-1 animate-in fade-in duration-150">
+                      <div className="p-2 bg-slate-50/90 dark:bg-[#0B0F19] rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-1.5 max-h-36 overflow-y-auto pr-1 animate-in fade-in duration-150">
                         {userGroups.map((group: UserGroupOption) => {
                           const isChecked = selectedTargetGroupIds.includes(group.id);
                           return (
@@ -1733,20 +1732,20 @@ export default function WorkoutSessionPlayer() {
                               }}
                               className={`p-2 rounded-xl flex items-center justify-between transition-all cursor-pointer border ${
                                 isChecked
-                                  ? "bg-white border-blue-200 shadow-2xs"
-                                  : "bg-transparent border-transparent hover:bg-slate-100/70"
+                                  ? "bg-white dark:bg-[#1E293B] border-blue-200 dark:border-blue-800 shadow-2xs"
+                                  : "bg-transparent border-transparent hover:bg-slate-100/70 dark:hover:bg-slate-800/70"
                               }`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-base shrink-0">{group.icon || "🏋️"}</span>
-                                <span className="text-xs font-semibold text-[#0F172A] truncate">
+                                <span className="text-xs font-semibold text-[#0F172A] dark:text-slate-200 truncate">
                                   {group.name}
                                 </span>
                               </div>
                               <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-all ${
                                 isChecked
                                   ? "bg-[#2563EB] border-[#2563EB] text-white"
-                                  : "border-slate-300 bg-white"
+                                  : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
                               }`}>
                                 {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                               </div>
@@ -1890,17 +1889,17 @@ export default function WorkoutSessionPlayer() {
 
       {/* Modal para Renomear Exercício */}
       {renamingExercise && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm border border-[#E2E8F0] shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#151D2F] rounded-2xl p-6 w-full max-w-sm border border-[#E2E8F0] dark:border-slate-800 shadow-2xl space-y-4">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-base font-bold text-[#0F172A]">Renomear Exercício</h3>
-                <p className="text-xs text-[#94A3B8] mt-1">Dê um apelido ou mude o nome para esta ficha.</p>
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white">Renomear Exercício</h3>
+                <p className="text-xs text-[#94A3B8] dark:text-slate-400 mt-1">Dê um apelido ou mude o nome para esta ficha.</p>
               </div>
               <button 
                 type="button" 
                 onClick={() => setRenamingExercise(null)}
-                className="p-1 rounded-lg hover:bg-zinc-100 text-[#94A3B8]"
+                className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-slate-800 text-[#94A3B8] dark:text-slate-400"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1911,14 +1910,14 @@ export default function WorkoutSessionPlayer() {
               value={newCustomName}
               onChange={(e) => setNewCustomName(e.target.value)}
               placeholder={renamingExercise.name}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] focus:border-[#2563EB] outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#0B0F19] text-sm text-[#0F172A] dark:text-white focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none transition-all"
             />
             
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setRenamingExercise(null)}
-                className="flex-1 py-2 px-4 rounded-xl border border-[#E2E8F0] text-[#0F172A] text-xs font-semibold hover:bg-zinc-50"
+                className="flex-1 py-2 px-4 rounded-xl border border-[#E2E8F0] dark:border-slate-700 text-[#0F172A] dark:text-slate-300 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -1926,7 +1925,7 @@ export default function WorkoutSessionPlayer() {
                 type="button"
                 onClick={handleRenameExercise}
                 disabled={savingRename}
-                className="flex-1 py-2 px-4 rounded-xl bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1E40AF] disabled:opacity-50"
+                className="flex-1 py-2 px-4 rounded-xl bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1E40AF] disabled:opacity-50 transition-colors"
               >
                 {savingRename ? "Salvando..." : "Salvar"}
               </button>
@@ -1937,8 +1936,8 @@ export default function WorkoutSessionPlayer() {
 
       {/* Modal Player de Vídeo */}
       {activeVideoUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-2xl p-4 shadow-2xl relative border border-[#E2E8F0]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-2xl bg-white dark:bg-[#151D2F] rounded-2xl p-4 shadow-2xl relative border border-[#E2E8F0] dark:border-slate-800">
             <button
               onClick={() => setActiveVideoUrl(null)}
               className="absolute -top-12 right-0 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
@@ -1972,6 +1971,7 @@ export default function WorkoutSessionPlayer() {
         </div>
       )}
 
+      </div>
     </div>
   );
 }

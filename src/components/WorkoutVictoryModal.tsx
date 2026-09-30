@@ -82,19 +82,19 @@ export default function WorkoutVictoryModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
       {/* Container Principal no padrão TechFitness */}
-      <div className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#E2E8F0] text-[#0F172A] relative my-auto max-h-[92vh] overflow-y-auto">
+      <div className="w-full max-w-lg bg-white dark:bg-[#151D2F] rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#E2E8F0] dark:border-slate-800 text-[#0F172A] dark:text-slate-100 relative my-auto max-h-[92vh] overflow-y-auto transition-colors">
         
         {/* Cabeçalho Limpo */}
         <div className="text-center mb-5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-[11px] font-bold uppercase tracking-wider mb-2">
-            <Check className="w-3.5 h-3.5 text-emerald-600" /> Treino Concluído com Sucesso
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 text-[#2563EB] dark:text-[#38BDF8] text-[11px] font-bold uppercase tracking-wider mb-2">
+            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Treino Concluído com Sucesso
           </div>
-          <h2 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-[#0F172A]">
+          <h2 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-[#0F172A] dark:text-white">
             Resumo do Treino
           </h2>
-          <p className="text-xs text-[#64748B] mt-1">
+          <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
             Seus dados e comprovante foram salvos e computados no seu perfil.
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function WorkoutVictoryModal({
         <div className="space-y-4">
           {/* Card da Foto de Comprovação — Formato Vertical Adaptativo */}
           {photoUrl && (
-            <div className="relative w-full max-w-[240px] sm:max-w-[280px] mx-auto aspect-[3/4] rounded-2xl overflow-hidden border border-[#E2E8F0] bg-slate-950 shadow-md group">
+            <div className="relative w-full max-w-[240px] sm:max-w-[280px] mx-auto aspect-[3/4] rounded-2xl overflow-hidden border border-[#E2E8F0] dark:border-slate-800 bg-slate-950 shadow-md group">
               <img
                 src={photoUrl}
                 alt="Comprovação do Treino"
@@ -121,17 +121,17 @@ export default function WorkoutVictoryModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             
             {/* Card de Volume / Tonelagem */}
-            <div className="rounded-2xl p-4 bg-slate-50 border border-[#E2E8F0] flex flex-col justify-between">
+            <div className="rounded-2xl p-4 bg-slate-50 dark:bg-[#1E293B]/70 border border-[#E2E8F0] dark:border-slate-700/80 flex flex-col justify-between">
               <div>
-                <span className="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">
+                <span className="text-[10px] text-[#64748B] dark:text-slate-400 font-bold uppercase tracking-wider block">
                   Volume Total Erguido
                 </span>
-                <p className="font-display font-extrabold text-2xl text-[#0F172A] mt-0.5">
+                <p className="font-display font-extrabold text-2xl text-[#0F172A] dark:text-white mt-0.5">
                   {volumeKg.toLocaleString("pt-BR")}{" "}
-                  <span className="text-xs font-semibold text-[#64748B]">kg</span>
+                  <span className="text-xs font-semibold text-[#64748B] dark:text-slate-400">kg</span>
                 </p>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-[#E2E8F0] flex items-center gap-2 text-xs text-[#475569]">
+              <div className="mt-3 pt-2.5 border-t border-[#E2E8F0] dark:border-slate-700/60 flex items-center gap-2 text-xs text-[#475569] dark:text-slate-300">
                 <span className="text-xl shrink-0">{tonnageComparison?.icon || "🏋️"}</span>
                 <span className="leading-snug text-[11px]">
                   {tonnageComparison?.comparisonText || "Excelente volume de trabalho hoje!"}
@@ -140,19 +140,19 @@ export default function WorkoutVictoryModal({
             </div>
 
             {/* Card de XP & Nível */}
-            <div className="rounded-2xl p-4 bg-blue-50/50 border border-blue-100 flex flex-col justify-between">
+            <div className="rounded-2xl p-4 bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 flex flex-col justify-between">
               <div>
-                <span className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider block">
+                <span className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold uppercase tracking-wider block">
                   XP da Sessão
                 </span>
-                <p className="font-display font-extrabold text-2xl text-[#2563EB] mt-0.5">
+                <p className="font-display font-extrabold text-2xl text-[#2563EB] dark:text-[#38BDF8] mt-0.5">
                   +{animatedXp}{" "}
-                  <span className="text-xs font-bold text-[#64748B]">XP</span>
+                  <span className="text-xs font-bold text-[#64748B] dark:text-slate-400">XP</span>
                 </p>
               </div>
-              <div className="mt-3 pt-2.5 border-t border-blue-100 flex items-center justify-between text-xs">
-                <span className="text-[#64748B] font-medium">Nível {level}</span>
-                <span className="font-bold text-[#2563EB]">{levelTitle}</span>
+              <div className="mt-3 pt-2.5 border-t border-blue-100 dark:border-blue-900/40 flex items-center justify-between text-xs">
+                <span className="text-[#64748B] dark:text-slate-400 font-medium">Nível {level}</span>
+                <span className="font-bold text-[#2563EB] dark:text-[#38BDF8]">{levelTitle}</span>
               </div>
             </div>
 
@@ -160,20 +160,20 @@ export default function WorkoutVictoryModal({
 
           {/* Novos Recordes Pessoais (PRs) */}
           {prsBeaten && prsBeaten.length > 0 && (
-            <div className="rounded-2xl p-4 bg-amber-50/80 border border-amber-200/80">
-              <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs uppercase tracking-wider mb-2">
-                <Trophy className="w-4 h-4 text-amber-600" /> Novos Recordes Pessoais (PR)
+            <div className="rounded-2xl p-4 bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40">
+              <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-wider mb-2">
+                <Trophy className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Novos Recordes Pessoais (PR)
               </div>
               <div className="space-y-1.5">
                 {prsBeaten.map((pr, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between text-xs py-1 border-b border-amber-200/40 last:border-0"
+                    className="flex items-center justify-between text-xs py-1 border-b border-amber-200/40 dark:border-amber-900/30 last:border-0"
                   >
-                    <span className="font-semibold text-[#0F172A]">{pr.exerciseName}</span>
-                    <span className="font-bold text-amber-700">
+                    <span className="font-semibold text-[#0F172A] dark:text-white">{pr.exerciseName}</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-400">
                       {pr.weight} kg{" "}
-                      <span className="text-[10px] text-amber-600 font-normal">
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400/80 font-normal">
                         ({pr.previousWeight > 0 ? `+${pr.weight - pr.previousWeight}kg` : "1º PR"})
                       </span>
                     </span>
@@ -185,18 +185,18 @@ export default function WorkoutVictoryModal({
 
           {/* Conquistas Desbloqueadas */}
           {newAchievements && newAchievements.length > 0 && (
-            <div className="rounded-2xl p-4 bg-purple-50/80 border border-purple-200/80">
-              <div className="flex items-center gap-1.5 text-purple-800 font-bold text-xs uppercase tracking-wider mb-2">
-                <Award className="w-4 h-4 text-purple-600" /> Conquista Desbloqueada!
+            <div className="rounded-2xl p-4 bg-purple-50/80 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-900/40">
+              <div className="flex items-center gap-1.5 text-purple-800 dark:text-purple-300 font-bold text-xs uppercase tracking-wider mb-2">
+                <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Conquista Desbloqueada!
               </div>
               <div className="space-y-1.5">
                 {newAchievements.map((ach) => (
                   <div key={ach.id} className="flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-[#0F172A]">{ach.title}</p>
-                      <p className="text-[10px] text-[#64748B]">{ach.description}</p>
+                      <p className="font-bold text-[#0F172A] dark:text-white">{ach.title}</p>
+                      <p className="text-[10px] text-[#64748B] dark:text-slate-400">{ach.description}</p>
                     </div>
-                    <span className="font-black text-purple-700">+{ach.xpReward} XP</span>
+                    <span className="font-black text-purple-700 dark:text-purple-300">+{ach.xpReward} XP</span>
                   </div>
                 ))}
               </div>
@@ -205,7 +205,7 @@ export default function WorkoutVictoryModal({
         </div>
 
         {/* Botão de Conclusão */}
-        <div className="mt-6 pt-4 border-t border-[#E2E8F0]">
+        <div className="mt-6 pt-4 border-t border-[#E2E8F0] dark:border-slate-800">
           <button
             onClick={onClose}
             className="w-full py-3.5 px-6 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/15 active:scale-[0.99]"

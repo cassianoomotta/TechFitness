@@ -64,9 +64,9 @@ export default function DumbbellLoading({
             cy="36"
             r="30"
             fill="none"
-            stroke="#E2E8F0"
+            stroke="currentColor"
             strokeWidth="4"
-            className="opacity-70"
+            className="text-slate-200 dark:text-slate-800 opacity-80"
           />
           {/* Arco que se completa continuamente */}
           <circle
@@ -84,7 +84,7 @@ export default function DumbbellLoading({
 
         {/* Ícone esportivo de halter centralizado com micro-pulso */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className={`${sizeConfig.box} bg-blue-50/95 text-blue-600 flex items-center justify-center shadow-xs border border-blue-100/60`}>
+          <div className={`${sizeConfig.box} bg-blue-50/95 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs border border-blue-100/60 dark:border-blue-800/60 transition-colors`}>
             <Dumbbell className={`${sizeConfig.icon} animate-pulse`} />
           </div>
         </div>
@@ -92,14 +92,14 @@ export default function DumbbellLoading({
 
       {/* Rótulo de status */}
       {text && (
-        <p className={`${sizeConfig.text} text-slate-800 tracking-tight`}>
+        <p className={`${sizeConfig.text} text-slate-800 dark:text-slate-100 tracking-tight transition-colors`}>
           {text}
         </p>
       )}
 
       {/* Subtexto auxiliar opcional */}
       {subtext && (
-        <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed transition-colors">
           {subtext}
         </p>
       )}
