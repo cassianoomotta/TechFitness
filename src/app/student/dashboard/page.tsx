@@ -489,6 +489,23 @@ export default function StudentDashboard() {
   );
   const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // Navegação por teclado para galeria de fotos (ArrowLeft, ArrowRight, Escape)
+  useEffect(() => {
+    if (!selectedPhotosList || selectedPhotosList.length === 0) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedPhotosList(null);
+      } else if (e.key === "ArrowLeft") {
+        setSelectedPhotoIndex((prev) => Math.max(0, prev - 1));
+      } else if (e.key === "ArrowRight") {
+        setSelectedPhotoIndex((prev) => Math.min(selectedPhotosList.length - 1, prev + 1));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedPhotosList]);
 
   // Calcular a conquista bloqueada mais próxima de ser conquistada para o Teaser de Gamificação na Home
   const nextAchievement = useMemo(() => {
@@ -1423,20 +1440,21 @@ export default function StudentDashboard() {
               ranking={ranking}
               loading={rankingLoading}
               onOpenGamificationGuide={() => setIsGamificationGuideOpen(true)}
-              onOpenCheckinPhoto={(photo) => {
-                setSelectedPhotosList([{
-                  id: photo.id,
+              onOpenCheckinPhoto={(photos, initialIndex = 0) => {
+                const formattedPhotos: WeeklyCheckinFeedItem[] = photos.map((p) => ({
+                  id: p.id,
                   date: new Date().toISOString(),
-                  dayOfWeek: photo.dayOfWeekFull ? photo.dayOfWeekFull.substring(0, 3).toUpperCase() : "TREINO",
-                  dayOfWeekFull: photo.dayOfWeekFull,
-                  formattedDate: photo.formattedDate,
-                  photoUrl: photo.photoUrl,
-                  durationMinutes: 0,
+                  dayOfWeek: p.dayOfWeek || (p.dayOfWeekFull ? p.dayOfWeekFull.substring(0, 3).toUpperCase() : "TREINO"),
+                  dayOfWeekFull: p.dayOfWeekFull,
+                  formattedDate: p.formattedDate,
+                  photoUrl: p.photoUrl,
+                  durationMinutes: p.durationMinutes || 0,
                   studentId: "",
-                  studentName: photo.studentName,
-                  studentImage: photo.studentImage,
-                }]);
-                setSelectedPhotoIndex(0);
+                  studentName: p.studentName,
+                  studentImage: p.studentImage,
+                }));
+                setSelectedPhotosList(formattedPhotos);
+                setSelectedPhotoIndex(initialIndex);
               }}
             />
 
@@ -1994,30 +2012,30 @@ export default function StudentDashboard() {
           onClick={() => setSelectedPhotosList(null)}
         >
           <div
-            className="bg-white rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] relative"
+            className="bg-white dark:bg-[#151D2F] rounded-3xl overflow-hidden max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col max-h-[92vh] relative transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header do Modal */}
-            <div className="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+            <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-[#1E293B]/70">
               <div className="flex items-center gap-2.5 min-w-0">
                 <UserAvatar
                   name={selectedPhotosList[selectedPhotoIndex]?.studentName || "Atleta"}
                   image={selectedPhotosList[selectedPhotoIndex]?.studentImage}
                   size="md"
-                  className="border border-slate-200 shrink-0"
+                  className="border border-slate-200 dark:border-slate-700 shrink-0"
                 />
                 <div className="truncate">
                   <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-bold text-[#0F172A] truncate">
+                    <h4 className="text-xs font-bold text-[#0F172A] dark:text-white truncate">
                       {selectedPhotosList[selectedPhotoIndex]?.studentName}
                     </h4>
                     {selectedPhotosList.length > 1 && (
-                      <span className="text-[10px] font-bold text-[#2563EB] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-[#2563EB] dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/60 px-1.5 py-0.5 rounded-md">
                         {selectedPhotoIndex + 1} de {selectedPhotosList.length}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-[#64748B]">
+                  <p className="text-[10px] text-[#64748B] dark:text-slate-400">
                     {selectedPhotosList[selectedPhotoIndex]?.dayOfWeekFull} • {selectedPhotosList[selectedPhotoIndex]?.formattedDate}
                   </p>
                 </div>
@@ -2044,7 +2062,7 @@ export default function StudentDashboard() {
                     className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                       deleteConfirm
                         ? "bg-red-600 text-white shadow-md animate-pulse"
-                        : "text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-200/60"
+                        : "text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200/60 dark:border-red-900/60"
                     }`}
                     title={deleteConfirm ? "Clique novamente para confirmar a exclusão" : "Remover foto deste treino"}
                   >
@@ -2059,7 +2077,7 @@ export default function StudentDashboard() {
                     setSelectedPhotosList(null);
                     setDeleteConfirm(false);
                   }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   title="Fechar"
                 >
                   <X className="w-4 h-4" />
@@ -2067,8 +2085,24 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* Imagem com Navegação Lateral e Dots estilo Instagram */}
-            <div className="p-3 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden relative">
+            {/* Imagem com Navegação Lateral e Dots estilo Instagram (com suporte a swipe) */}
+            <div
+              className="p-3 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden relative touch-pan-y"
+              onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+              onTouchEnd={(e) => {
+                if (touchStartX === null) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 40) {
+                  if (diff > 0 && selectedPhotoIndex < selectedPhotosList.length - 1) {
+                    setSelectedPhotoIndex((prev) => prev + 1);
+                  } else if (diff < 0 && selectedPhotoIndex > 0) {
+                    setSelectedPhotoIndex((prev) => prev - 1);
+                  }
+                }
+                setTouchStartX(null);
+              }}
+            >
               <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
                 <img
                   key={selectedPhotosList[selectedPhotoIndex]?.id}
@@ -2126,10 +2160,10 @@ export default function StudentDashboard() {
               )}
             </div>
 
-            <div className="p-3 bg-slate-50 flex items-center justify-between text-[11px] text-[#64748B] font-medium border-t border-slate-100">
+            <div className="p-3 bg-slate-50 dark:bg-[#1E293B]/70 flex items-center justify-between text-[11px] text-[#64748B] dark:text-slate-400 font-medium border-t border-slate-100 dark:border-slate-800">
               <span>Check-in comprovado da assessoria</span>
               {selectedPhotosList.length > 1 && (
-                <span className="font-semibold text-[#2563EB]">
+                <span className="font-semibold text-[#2563EB] dark:text-blue-400">
                   {selectedPhotosList.length} treinos nos últimos 7 dias
                 </span>
               )}

@@ -58,17 +58,21 @@ export interface RankingData {
   };
 }
 
+export interface CheckinPhotoItem {
+  id: string;
+  photoUrl: string;
+  studentName: string;
+  studentImage?: string | null;
+  dayOfWeek?: string;
+  dayOfWeekFull: string;
+  formattedDate: string;
+  durationMinutes?: number;
+}
+
 interface RankingLeaderboardProps {
   ranking: RankingData | null;
   loading: boolean;
-  onOpenCheckinPhoto: (photo: {
-    id: string;
-    photoUrl: string;
-    studentName: string;
-    studentImage?: string | null;
-    dayOfWeekFull: string;
-    formattedDate: string;
-  }) => void;
+  onOpenCheckinPhoto: (photos: CheckinPhotoItem[], initialIndex?: number) => void;
   onOpenGamificationGuide?: () => void;
 }
 
@@ -118,6 +122,21 @@ export default function RankingLeaderboard({
 
   const handleToggleFullRanking = () => {
     setShowFullRanking((prev) => !prev);
+  };
+
+  const handleOpenAthletePhotos = (athlete: RankingItem) => {
+    if (!athlete.weeklyCheckins || athlete.weeklyCheckins.length === 0) return;
+    const photos: CheckinPhotoItem[] = athlete.weeklyCheckins.map((chk) => ({
+      id: chk.id,
+      photoUrl: chk.photoUrl,
+      studentName: athlete.name,
+      studentImage: athlete.image,
+      dayOfWeek: chk.dayOfWeek,
+      dayOfWeekFull: chk.dayOfWeekFull,
+      formattedDate: chk.formattedDate,
+      durationMinutes: chk.durationMinutes,
+    }));
+    onOpenCheckinPhoto(photos, 0);
   };
 
   const handleOpenModal = () => {
@@ -252,28 +271,19 @@ export default function RankingLeaderboard({
                   {(activeTop5[1].displayXp ?? activeTop5[1].totalXp).toLocaleString("pt-BR")} XP
                 </p>
                 {activeTop5[1].weeklyCheckins && activeTop5[1].weeklyCheckins.length > 0 && (
-                  <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
-                    {activeTop5[1].weeklyCheckins.map((chk) => (
-                      <button
-                        key={chk.id}
-                        type="button"
-                        onClick={() =>
-                          onOpenCheckinPhoto({
-                            id: chk.id,
-                            photoUrl: chk.photoUrl,
-                            studentName: activeTop5[1].name,
-                            studentImage: activeTop5[1].image,
-                            dayOfWeekFull: chk.dayOfWeekFull,
-                            formattedDate: chk.formattedDate,
-                          })
-                        }
-                        className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-0.5 cursor-pointer transition-colors"
-                        title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
-                      >
-                        <Camera className="w-2.5 h-2.5" />
-                        {chk.dayOfWeek}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-center mt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAthletePhotos(activeTop5[1])}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      title={`Ver ${activeTop5[1].weeklyCheckins.length} ${activeTop5[1].weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                    >
+                      <Camera className="w-2.5 h-2.5 text-slate-500 dark:text-slate-400" />
+                      <span>
+                        {activeTop5[1].weeklyCheckins.length}{" "}
+                        {activeTop5[1].weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                      </span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -308,28 +318,19 @@ export default function RankingLeaderboard({
                   {(activeTop5[0].displayXp ?? activeTop5[0].totalXp).toLocaleString("pt-BR")} XP
                 </p>
                 {activeTop5[0].weeklyCheckins && activeTop5[0].weeklyCheckins.length > 0 && (
-                  <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
-                    {activeTop5[0].weeklyCheckins.map((chk) => (
-                      <button
-                        key={chk.id}
-                        type="button"
-                        onClick={() =>
-                          onOpenCheckinPhoto({
-                            id: chk.id,
-                            photoUrl: chk.photoUrl,
-                            studentName: activeTop5[0].name,
-                            studentImage: activeTop5[0].image,
-                            dayOfWeekFull: chk.dayOfWeekFull,
-                            formattedDate: chk.formattedDate,
-                          })
-                        }
-                        className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/60 flex items-center gap-0.5 cursor-pointer transition-colors"
-                        title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
-                      >
-                        <Camera className="w-2.5 h-2.5" />
-                        {chk.dayOfWeek}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-center mt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAthletePhotos(activeTop5[0])}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100/90 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border border-amber-300/90 dark:border-amber-700/80 hover:bg-amber-200 dark:hover:bg-amber-900/60 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      title={`Ver ${activeTop5[0].weeklyCheckins.length} ${activeTop5[0].weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                    >
+                      <Camera className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
+                      <span>
+                        {activeTop5[0].weeklyCheckins.length}{" "}
+                        {activeTop5[0].weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                      </span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -364,28 +365,19 @@ export default function RankingLeaderboard({
                   {(activeTop5[2].displayXp ?? activeTop5[2].totalXp).toLocaleString("pt-BR")} XP
                 </p>
                 {activeTop5[2].weeklyCheckins && activeTop5[2].weeklyCheckins.length > 0 && (
-                  <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
-                    {activeTop5[2].weeklyCheckins.map((chk) => (
-                      <button
-                        key={chk.id}
-                        type="button"
-                        onClick={() =>
-                          onOpenCheckinPhoto({
-                            id: chk.id,
-                            photoUrl: chk.photoUrl,
-                            studentName: activeTop5[2].name,
-                            studentImage: activeTop5[2].image,
-                            dayOfWeekFull: chk.dayOfWeekFull,
-                            formattedDate: chk.formattedDate,
-                          })
-                        }
-                        className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-orange-50 dark:bg-orange-950/60 text-[#8C4315] dark:text-orange-200 border border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/60 flex items-center gap-0.5 cursor-pointer transition-colors"
-                        title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
-                      >
-                        <Camera className="w-2.5 h-2.5" />
-                        {chk.dayOfWeek}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-center mt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAthletePhotos(activeTop5[2])}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-orange-100/80 dark:bg-orange-950/70 text-[#8C4315] dark:text-orange-200 border border-orange-200 dark:border-orange-800 hover:bg-orange-200/70 dark:hover:bg-orange-900/60 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      title={`Ver ${activeTop5[2].weeklyCheckins.length} ${activeTop5[2].weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                    >
+                      <Camera className="w-2.5 h-2.5 text-orange-600 dark:text-orange-400" />
+                      <span>
+                        {activeTop5[2].weeklyCheckins.length}{" "}
+                        {activeTop5[2].weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                      </span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -446,28 +438,19 @@ export default function RankingLeaderboard({
                         Lvl {user.level} • {user.levelTitle}
                       </p>
                       {user.weeklyCheckins && user.weeklyCheckins.length > 0 && (
-                        <div className="flex items-center gap-1 mt-1 flex-wrap">
-                          {user.weeklyCheckins.map((chk) => (
-                            <button
-                              key={chk.id}
-                              type="button"
-                              onClick={() =>
-                                onOpenCheckinPhoto({
-                                  id: chk.id,
-                                  photoUrl: chk.photoUrl,
-                                  studentName: user.name,
-                                  studentImage: user.image,
-                                  dayOfWeekFull: chk.dayOfWeekFull,
-                                  formattedDate: chk.formattedDate,
-                                })
-                              }
-                              className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border border-blue-200/80 dark:border-blue-900/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 flex items-center gap-0.5 cursor-pointer transition-colors"
-                              title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
-                            >
-                              <Camera className="w-2.5 h-2.5" />
-                              {chk.dayOfWeek}
-                            </button>
-                          ))}
+                        <div className="mt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenAthletePhotos(user)}
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                            title={`Ver ${user.weeklyCheckins.length} ${user.weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                          >
+                            <Camera className="w-2.5 h-2.5 text-[#2563EB] dark:text-blue-400" />
+                            <span>
+                              {user.weeklyCheckins.length}{" "}
+                              {user.weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                            </span>
+                          </button>
                         </div>
                       )}
                     </div>

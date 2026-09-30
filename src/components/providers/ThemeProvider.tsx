@@ -11,7 +11,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "system",
+  theme: "light",
   resolvedTheme: "light",
   setTheme: () => {},
 });
@@ -23,20 +23,24 @@ export default function ThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
 
-  // Ler tema salvo inicialmente
+  // Ler tema salvo inicialmente. O padrão absoluto é "light".
   useEffect(() => {
     try {
       const saved = localStorage.getItem("tf_theme") as Theme | null;
-      if (saved && (saved === "light" || saved === "dark" || saved === "system")) {
-        setThemeState(saved);
+      if (saved === "dark") {
+        setThemeState("dark");
+      } else if (saved === "system") {
+        setThemeState("system");
+      } else {
+        setThemeState("light");
       }
     } catch {}
   }, []);
 
-  // Aplicar tema e escutar mudanças do sistema
+  // Aplicar tema
   useEffect(() => {
     const root = document.documentElement;
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -45,10 +49,10 @@ export default function ThemeProvider({
       let isDark = false;
       if (theme === "dark") {
         isDark = true;
-      } else if (theme === "light") {
-        isDark = false;
-      } else {
+      } else if (theme === "system") {
         isDark = mediaQuery.matches;
+      } else {
+        isDark = false; // "light" por padrão estrito
       }
 
       setResolvedTheme(isDark ? "dark" : "light");

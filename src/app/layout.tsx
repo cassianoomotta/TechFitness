@@ -64,7 +64,7 @@ export default function RootLayout({
             __html: `
               try {
                 const t = localStorage.getItem("tf_theme");
-                const isDark = t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches);
+                const isDark = t === "dark";
                 if (isDark) document.documentElement.classList.add("dark");
                 else document.documentElement.classList.remove("dark");
               } catch (_) {}

@@ -8,7 +8,7 @@ import {
   Camera,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
-import { RankingItem } from "./RankingLeaderboard";
+import { RankingItem, CheckinPhotoItem } from "./RankingLeaderboard";
 
 interface FullRankingModalProps {
   isOpen: boolean;
@@ -16,14 +16,7 @@ interface FullRankingModalProps {
   rankingList: RankingItem[];
   userPosition: number;
   totalParticipants: number;
-  onOpenCheckinPhoto: (photo: {
-    id: string;
-    photoUrl: string;
-    studentName: string;
-    studentImage?: string | null;
-    dayOfWeekFull: string;
-    formattedDate: string;
-  }) => void;
+  onOpenCheckinPhoto: (photos: CheckinPhotoItem[], initialIndex?: number) => void;
 }
 
 export default function FullRankingModal({
@@ -200,30 +193,35 @@ export default function FullRankingModal({
                         Lvl {student.level} • {student.levelTitle}
                       </p>
 
-                      {/* Check-ins com foto */}
+                      {/* Check-ins com foto: botão consolidado para abrir galeria */}
                       {student.weeklyCheckins && student.weeklyCheckins.length > 0 && (
-                        <div className="flex items-center gap-1 mt-1 flex-wrap">
-                          {student.weeklyCheckins.map((chk) => (
-                            <button
-                              key={chk.id}
-                              type="button"
-                              onClick={() => {
-                                onOpenCheckinPhoto({
-                                   id: chk.id,
-                                   photoUrl: chk.photoUrl,
-                                   studentName: student.name,
-                                   studentImage: student.image,
-                                   dayOfWeekFull: chk.dayOfWeekFull,
-                                   formattedDate: chk.formattedDate,
-                                });
-                              }}
-                              className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100 dark:hover:bg-blue-900/40 flex items-center gap-0.5 cursor-pointer transition-colors"
-                              title={`${chk.dayOfWeekFull} (${chk.formattedDate}) - Ver foto`}
-                            >
-                              <Camera className="w-2.5 h-2.5" />
-                              {chk.dayOfWeek}
-                            </button>
-                          ))}
+                        <div className="mt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onOpenCheckinPhoto(
+                                student.weeklyCheckins!.map((chk) => ({
+                                  id: chk.id,
+                                  photoUrl: chk.photoUrl,
+                                  studentName: student.name,
+                                  studentImage: student.image,
+                                  dayOfWeek: chk.dayOfWeek,
+                                  dayOfWeekFull: chk.dayOfWeekFull,
+                                  formattedDate: chk.formattedDate,
+                                  durationMinutes: chk.durationMinutes,
+                                })),
+                                0
+                              );
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-0.75 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100 dark:hover:bg-blue-900/40 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                            title={`Ver ${student.weeklyCheckins.length} ${student.weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                          >
+                            <Camera className="w-3 h-3 text-[#2563EB] dark:text-blue-300" />
+                            <span>
+                              {student.weeklyCheckins.length}{" "}
+                              {student.weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                            </span>
+                          </button>
                         </div>
                       )}
                     </div>
