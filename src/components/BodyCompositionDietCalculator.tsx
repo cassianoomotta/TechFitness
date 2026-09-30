@@ -267,19 +267,19 @@ export default function BodyCompositionDietCalculator({
   };
 
   return (
-    <div className="glass-card rounded-3xl p-5 sm:p-7 border border-[#E2E8F0] shadow-sm space-y-6">
+    <div className="glass-card rounded-3xl p-5 sm:p-7 border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#151D2F] shadow-sm space-y-6">
       {/* Cabeçalho da Calculadora */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-blue-50 text-[#2563EB]">
+            <span className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400">
               <Scale className="w-5 h-5" />
             </span>
-            <h3 className="text-lg font-extrabold text-[#0F172A] tracking-tight">
+            <h3 className="text-lg font-extrabold text-[#0F172A] dark:text-white tracking-tight">
               Calculadora de Composição Corporal e Dieta
             </h3>
           </div>
-          <p className="text-xs text-[#64748B] mt-1">
+          <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
             Calcule sua taxa metabólica, calorias e macros. Inserindo suas medidas com fita métrica, o cálculo de gordura corporal fica ainda mais assertivo.
           </p>
         </div>
@@ -288,7 +288,7 @@ export default function BodyCompositionDietCalculator({
           <button
             type="button"
             onClick={onClose}
-            className="self-end sm:self-auto text-xs font-bold text-slate-400 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            className="self-end sm:self-auto text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
           >
             Fechar
           </button>
@@ -301,10 +301,10 @@ export default function BodyCompositionDietCalculator({
         <div className="space-y-4">
           {/* Seletor de Sexo */}
           <div>
-            <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block mb-2">
+            <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider block mb-2">
               Sexo Biológico <span className="text-rose-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
               <button
                 type="button"
                 onClick={() => {
@@ -314,7 +314,7 @@ export default function BodyCompositionDietCalculator({
                 className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px] ${
                   sex === "male"
                     ? "bg-[#2563EB] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span>Masculino</span>
@@ -328,7 +328,7 @@ export default function BodyCompositionDietCalculator({
                 className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px] ${
                   sex === "female"
                     ? "bg-[#2563EB] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span>Feminino</span>
@@ -338,10 +338,10 @@ export default function BodyCompositionDietCalculator({
 
           {/* Seletor de Biotipo */}
           <div>
-            <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block mb-2">
+            <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider block mb-2">
               Biotipo Predominante <span className="text-rose-500">*</span>
             </label>
-            <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <div className="grid grid-cols-3 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
               <button
                 type="button"
                 onClick={() => {
@@ -350,8 +350,8 @@ export default function BodyCompositionDietCalculator({
                 }}
                 className={`py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center min-h-[44px] ${
                   biotype === "ecto"
-                    ? "bg-white text-[#2563EB] shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span>Ectomorfo</span>
@@ -365,8 +365,8 @@ export default function BodyCompositionDietCalculator({
                 }}
                 className={`py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center min-h-[44px] ${
                   biotype === "meso"
-                    ? "bg-white text-[#2563EB] shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span>Mesomorfo</span>
@@ -380,8 +380,8 @@ export default function BodyCompositionDietCalculator({
                 }}
                 className={`py-2 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center min-h-[44px] ${
                   biotype === "endo"
-                    ? "bg-white text-[#2563EB] shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span>Endomorfo</span>
@@ -390,8 +390,8 @@ export default function BodyCompositionDietCalculator({
             </div>
 
             {/* Legenda explicativa de como o biotipo atua */}
-            <p className="text-[11px] text-slate-500 mt-2 flex items-start gap-1.5 leading-relaxed bg-blue-50/60 p-2.5 rounded-xl border border-blue-100/70">
-              <Info className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-2 flex items-start gap-1.5 leading-relaxed bg-blue-50/60 dark:bg-blue-950/40 p-2.5 rounded-xl border border-blue-100/70 dark:border-blue-900/50">
+              <Info className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <span>
                 <strong>Como o biotipo atua:</strong> ele ajusta a sua queima metabólica (TMB) e as calorias da sua dieta. Já a silhueta corporal reflete a gordura física calculada pelas medidas da fita métrica.
               </span>
@@ -402,7 +402,7 @@ export default function BodyCompositionDietCalculator({
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider block">
                   Idade <span className="text-rose-500">*</span>
                 </label>
               </div>
@@ -416,10 +416,10 @@ export default function BodyCompositionDietCalculator({
                   setAge(e.target.value);
                   setHasCalculated(false);
                 }}
-                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] dark:text-white bg-white dark:bg-[#1E293B] font-semibold outline-none transition-all ${
                   attemptedSubmit && (!age || parseFloat(age) <= 0)
                     ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
-                    : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                    : "border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10"
                 }`}
                 placeholder="Ex: 28"
               />
@@ -432,7 +432,7 @@ export default function BodyCompositionDietCalculator({
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider block">
                   Altura <span className="text-rose-500">*</span>
                 </label>
               </div>
@@ -447,10 +447,10 @@ export default function BodyCompositionDietCalculator({
                   setHeight(e.target.value);
                   setHasCalculated(false);
                 }}
-                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] dark:text-white bg-white dark:bg-[#1E293B] font-semibold outline-none transition-all ${
                   attemptedSubmit && (!height || parseFloat(height) <= 0)
                     ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
-                    : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                    : "border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10"
                 }`}
                 placeholder="Ex: 175"
               />
@@ -463,7 +463,7 @@ export default function BodyCompositionDietCalculator({
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">
+                <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider block">
                   Peso <span className="text-rose-500">*</span>
                 </label>
               </div>
@@ -478,10 +478,10 @@ export default function BodyCompositionDietCalculator({
                   setWeight(e.target.value);
                   setHasCalculated(false);
                 }}
-                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all ${
+                className={`w-full px-3 py-2.5 min-h-[48px] rounded-xl border text-base md:text-sm text-[#0F172A] dark:text-white bg-white dark:bg-[#1E293B] font-semibold outline-none transition-all ${
                   attemptedSubmit && (!weight || parseFloat(weight) <= 0)
                     ? "border-rose-400 bg-rose-50/20 focus:border-rose-500 ring-2 ring-rose-200"
-                    : "border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+                    : "border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10"
                 }`}
                 placeholder="Ex: 75.5"
               />
@@ -498,10 +498,10 @@ export default function BodyCompositionDietCalculator({
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+              <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider">
                 Medidas com Fita Métrica
               </label>
-              <span className="text-[10px] text-blue-700 font-bold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80">
+              <span className="text-[10px] text-blue-700 dark:text-blue-300 font-bold bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full border border-blue-200/80 dark:border-blue-800/60">
                 Opcional • Torna o cálculo mais assertivo
               </span>
             </div>
@@ -509,7 +509,7 @@ export default function BodyCompositionDietCalculator({
             <div className={`grid ${sex === "female" ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
               {/* Cintura */}
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-between">
                   <span>Cintura</span>
                 </label>
                 <input
@@ -523,7 +523,7 @@ export default function BodyCompositionDietCalculator({
                     setWaist(e.target.value);
                     setHasCalculated(false);
                   }}
-                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all"
+                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] dark:text-white font-semibold outline-none transition-all"
                   placeholder="Ex: 84"
                 />
                 <span className="text-[10px] text-slate-400 block">altura do umbigo</span>
@@ -531,7 +531,7 @@ export default function BodyCompositionDietCalculator({
 
               {/* Pescoço */}
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-between">
                   <span>Pescoço</span>
                 </label>
                 <input
@@ -545,7 +545,7 @@ export default function BodyCompositionDietCalculator({
                     setNeck(e.target.value);
                     setHasCalculated(false);
                   }}
-                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all"
+                  className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] dark:text-white font-semibold outline-none transition-all"
                   placeholder="Ex: 38"
                 />
                 <span className="text-[10px] text-slate-400 block">abaixo do pomo</span>
@@ -554,7 +554,7 @@ export default function BodyCompositionDietCalculator({
               {/* Quadril (apenas feminino) */}
               {sex === "female" && (
                 <div className="space-y-1 animate-fade-in">
-                  <label className="text-[10px] font-bold text-slate-600 flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-between">
                     <span>Quadril</span>
                   </label>
                   <input
@@ -568,7 +568,7 @@ export default function BodyCompositionDietCalculator({
                       setHip(e.target.value);
                       setHasCalculated(false);
                     }}
-                    className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] font-semibold outline-none transition-all"
+                    className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10 text-base md:text-sm text-[#0F172A] dark:text-white font-semibold outline-none transition-all"
                     placeholder="Ex: 98"
                   />
                   <span className="text-[10px] text-slate-400 block">maior diâmetro</span>
@@ -579,13 +579,13 @@ export default function BodyCompositionDietCalculator({
 
           {/* Nível de Atividade Física */}
           <div>
-            <label className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-wider block mb-1">
               Nível de Atividade Diária
             </label>
             <select
               value={activity}
               onChange={(e) => setActivity(e.target.value as ActivityLevel)}
-              className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 text-base md:text-sm text-[#0F172A] font-semibold focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all bg-white cursor-pointer"
+              className="w-full px-3 py-2.5 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 text-base md:text-sm text-[#0F172A] dark:text-white font-semibold focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all bg-white dark:bg-[#1E293B] cursor-pointer"
             >
               <option value="sedentary">Sedentário (Trabalho sentado, pouco ou nenhum exercício)</option>
               <option value="light">Levemente ativo (Treino leve 1 a 3 dias por semana)</option>
@@ -611,24 +611,24 @@ export default function BodyCompositionDietCalculator({
 
       {/* Estado Bloqueado: Exibir orientações e campos pendentes */}
       {!calculation && (
-        <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3 animate-fade-in">
-          <div className="flex items-center gap-2.5 text-[#0F172A]">
-            <span className="p-2 rounded-xl bg-blue-100 text-blue-800">
+        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200/90 dark:border-slate-800 space-y-3 animate-fade-in">
+          <div className="flex items-center gap-2.5 text-[#0F172A] dark:text-white">
+            <span className="p-2 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
               <Lock className="w-4 h-4" />
             </span>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F172A] dark:text-white">
                 Preencha seus dados para calcular
               </h4>
-              <p className="text-[11px] text-[#64748B]">
+              <p className="text-[11px] text-[#64748B] dark:text-slate-400">
                 Informe sua Idade, Altura e Peso para calcular. Adicionar a cintura e o pescoço com fita métrica deixará o cálculo de gordura corporal e calorias ainda mais assertivo!
               </p>
             </div>
           </div>
 
           {attemptedSubmit && missingFields.length > 0 && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 space-y-2 animate-fade-in">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 space-y-2 animate-fade-in">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400">
                 <AlertCircle className="w-4 h-4" />
                 <span>Preencha os campos obrigatórios para liberar o cálculo:</span>
               </div>
@@ -636,7 +636,7 @@ export default function BodyCompositionDietCalculator({
                 {missingFields.map((f) => (
                   <span
                     key={f.field}
-                    className="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold"
+                    className="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 text-xs font-bold"
                   >
                     {f.label}
                   </span>
@@ -652,26 +652,26 @@ export default function BodyCompositionDietCalculator({
         <div className="space-y-6 pt-2 animate-fade-in">
           {/* Badge do Método de Avaliação Ativo */}
           {calculation.isExactNavy ? (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-xs font-bold text-emerald-900">
+                <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
                   Cálculo de Alta Precisão (Fórmula da Marinha dos EUA com Fita Métrica)
                 </span>
               </div>
-              <span className="text-[11px] text-emerald-700 font-medium">
+              <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
                 Avaliação de máxima assertividade com base nas suas circunferências corporais reais.
               </span>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-blue-50 border border-blue-200/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span className="text-xs font-bold text-blue-900">
+                <span className="text-xs font-bold text-blue-900 dark:text-blue-300">
                   Cálculo Estimado com Sucesso!
                 </span>
               </div>
-              <span className="text-[11px] text-blue-700 font-medium">
+              <span className="text-[11px] text-blue-700 dark:text-blue-400 font-medium">
                 Inserindo cintura e pescoço com fita métrica, o cálculo de gordura e calorias fica ainda mais assertivo!
               </span>
             </div>
@@ -694,65 +694,65 @@ export default function BodyCompositionDietCalculator({
 
           {/* Cartões de Indicadores Chave */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/60 flex flex-col items-center justify-center text-center">
-              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">
+            <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50 flex flex-col items-center justify-center text-center">
+              <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">
                 Gordura Corporal
               </span>
-              <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">
                 {calculation.bf}%
               </div>
-              <span className="text-[10px] text-amber-700/80 font-medium">Método Marinha</span>
+              <span className="text-[10px] text-amber-700/80 dark:text-amber-400/80 font-medium">Método Marinha</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/60 flex flex-col items-center justify-center text-center">
-              <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1.5">
-                <BicepsFlexed className="w-3.5 h-3.5 text-blue-600" />
+            <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/50 flex flex-col items-center justify-center text-center">
+              <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <BicepsFlexed className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>Massa Magra</span>
               </span>
-              <div className="text-2xl sm:text-3xl font-black text-[#2563EB] mt-1">
-                {calculation.leanMass} <span className="text-xs font-bold text-blue-600">kg</span>
+              <div className="text-2xl sm:text-3xl font-black text-[#2563EB] dark:text-blue-400 mt-1">
+                {calculation.leanMass} <span className="text-xs font-bold text-blue-600 dark:text-blue-400">kg</span>
               </div>
-              <span className="text-[10px] text-blue-700/80 font-medium">Músculo, osso e água</span>
+              <span className="text-[10px] text-blue-700/80 dark:text-blue-400/80 font-medium">Músculo, osso e água</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/60 flex flex-col items-center justify-center text-center">
-              <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">
+            <div className="p-4 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-800/50 flex flex-col items-center justify-center text-center">
+              <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider">
                 Massa Gorda
               </span>
-              <div className="text-2xl sm:text-3xl font-black text-rose-600 mt-1">
-                {calculation.fatMass} <span className="text-xs font-bold text-rose-500">kg</span>
+              <div className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-1">
+                {calculation.fatMass} <span className="text-xs font-bold text-rose-500 dark:text-rose-400">kg</span>
               </div>
-              <span className="text-[10px] text-rose-700/80 font-medium">Tecido adiposo</span>
+              <span className="text-[10px] text-rose-700/80 dark:text-rose-400/80 font-medium">Tecido adiposo</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/60 flex flex-col items-center justify-center text-center">
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+            <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 flex flex-col items-center justify-center text-center">
+              <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">
                 Metabolismo (TMB)
               </span>
-              <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">
-                {calculation.tmb} <span className="text-xs font-bold text-emerald-500">kcal</span>
+              <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                {calculation.tmb} <span className="text-xs font-bold text-emerald-500 dark:text-emerald-400">kcal</span>
               </div>
-              <span className="text-[10px] text-emerald-700/80 font-medium">
+              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-400/80 font-medium">
                 Gasto diário: {calculation.tdee} kcal
               </span>
             </div>
           </div>
 
           {/* Gráfico 1: Barra Visual de Proporção de Composição Corporal */}
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200/80 dark:border-slate-800 space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-[#2563EB]" />
+              <h4 className="text-xs font-bold text-[#0F172A] dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-4 h-4 text-[#2563EB] dark:text-blue-400" />
                 Proporção da sua Composição Corporal
               </h4>
-              <span className="text-xs font-bold text-slate-600 font-mono">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400 font-mono">
                 Total: {weight} kg
               </span>
             </div>
 
             {/* Barra Segmentada de Composição */}
             <div className="space-y-1.5">
-              <div className="w-full h-7 rounded-xl bg-slate-200 overflow-hidden flex shadow-inner border border-slate-200">
+              <div className="w-full h-7 rounded-xl bg-slate-200 dark:bg-slate-800 overflow-hidden flex shadow-inner border border-slate-200 dark:border-slate-700">
                 <div
                   style={{ width: `${100 - calculation.bf}%` }}
                   className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white text-[11px] font-extrabold transition-all duration-500 shadow-sm"
@@ -772,15 +772,15 @@ export default function BodyCompositionDietCalculator({
               {/* Legenda visual da barra */}
               <div className="flex items-center justify-between text-xs pt-1 px-1">
                 <div className="flex items-center gap-1.5">
-                  <BicepsFlexed className="w-3.5 h-3.5 text-blue-600" />
-                  <span className="font-semibold text-slate-700">
-                    Massa Magra: <strong className="text-blue-600">{calculation.leanMass} kg</strong>
+                  <BicepsFlexed className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    Massa Magra: <strong className="text-blue-600 dark:text-blue-400">{calculation.leanMass} kg</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-                  <span className="font-semibold text-slate-700">
-                    Gordura: <strong className="text-amber-600">{calculation.fatMass} kg</strong>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    Gordura: <strong className="text-amber-600 dark:text-amber-400">{calculation.fatMass} kg</strong>
                   </span>
                 </div>
               </div>
@@ -788,27 +788,27 @@ export default function BodyCompositionDietCalculator({
           </div>
 
           {/* Planejamento de Dieta e Macronutrientes */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#151D2F] border border-[#E2E8F0] dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
-                  <Apple className="w-4 h-4 text-emerald-600" />
+                <h4 className="text-xs font-bold text-[#0F172A] dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Apple className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   Metas de Dieta e Macronutrientes
                 </h4>
-                <p className="text-[11px] text-[#64748B]">
+                <p className="text-[11px] text-[#64748B] dark:text-slate-400">
                   Gasto calórico estimado: <strong>{calculation.tdee} kcal/dia</strong>. Escolha sua meta:
                 </p>
               </div>
 
               {/* Seletor de Meta de Dieta (responsivo, nunca sai para fora da moldura) */}
-              <div className="grid grid-cols-3 w-full sm:w-auto bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
+              <div className="grid grid-cols-3 w-full sm:w-auto bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1">
                 <button
                   type="button"
                   onClick={() => setDietGoal("cutting")}
                   className={`px-1.5 sm:px-3 py-2 sm:py-1.5 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                     dietGoal === "cutting"
                       ? "bg-rose-500 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Emagrecer
@@ -819,7 +819,7 @@ export default function BodyCompositionDietCalculator({
                   className={`px-1.5 sm:px-3 py-2 sm:py-1.5 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                     dietGoal === "maintenance"
                       ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Manutenção
@@ -830,7 +830,7 @@ export default function BodyCompositionDietCalculator({
                   className={`px-1.5 sm:px-3 py-2 sm:py-1.5 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                     dietGoal === "bulking"
                       ? "bg-emerald-600 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Hipertrofia
@@ -839,18 +839,18 @@ export default function BodyCompositionDietCalculator({
             </div>
 
             {/* Cartão de Calorias Totais da Meta */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                 Meta Calórica Diária Recomendada:
               </span>
-              <span className="text-lg font-black text-[#0F172A] font-mono">
-                {calculation.targetCalories} <span className="text-xs font-semibold text-slate-500">kcal/dia</span>
+              <span className="text-lg font-black text-[#0F172A] dark:text-white font-mono">
+                {calculation.targetCalories} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">kcal/dia</span>
               </span>
             </div>
 
             {/* Gráfico 2: Barra Proporcional de Macronutrientes */}
             <div className="space-y-2">
-              <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden flex">
+              <div className="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
                 <div
                   style={{
                     width: `${Math.round((calculation.macros.protein.kcal / calculation.targetCalories) * 100)}%`,
@@ -876,47 +876,47 @@ export default function BodyCompositionDietCalculator({
 
               {/* Detalhamento dos 3 Macros */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="p-3 rounded-xl border border-blue-100 bg-blue-50/50 space-y-1">
+                <div className="p-3 rounded-xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/40 space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-blue-900">Proteínas</span>
-                    <span className="text-[11px] font-semibold text-blue-700">
+                    <span className="font-bold text-blue-900 dark:text-blue-300">Proteínas</span>
+                    <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">
                       {calculation.macros.protein.perKg}g/kg
                     </span>
                   </div>
-                  <div className="text-xl font-black text-blue-700 font-mono">
+                  <div className="text-xl font-black text-blue-700 dark:text-blue-400 font-mono">
                     {calculation.macros.protein.grams}g
                   </div>
-                  <div className="text-[10px] text-blue-600/80">
+                  <div className="text-[10px] text-blue-600/80 dark:text-blue-400/80">
                     {calculation.macros.protein.kcal} kcal (
                     {Math.round((calculation.macros.protein.kcal / calculation.targetCalories) * 100)}%)
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl border border-emerald-100 bg-emerald-50/50 space-y-1">
+                <div className="p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/40 space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-emerald-900">Carboidratos</span>
-                    <span className="text-[11px] font-semibold text-emerald-700">Energia</span>
+                    <span className="font-bold text-emerald-900 dark:text-emerald-300">Carboidratos</span>
+                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">Energia</span>
                   </div>
-                  <div className="text-xl font-black text-emerald-700 font-mono">
+                  <div className="text-xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
                     {calculation.macros.carbs.grams}g
                   </div>
-                  <div className="text-[10px] text-emerald-600/80">
+                  <div className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80">
                     {calculation.macros.carbs.kcal} kcal (
                     {Math.round((calculation.macros.carbs.kcal / calculation.targetCalories) * 100)}%)
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl border border-amber-100 bg-amber-50/50 space-y-1">
+                <div className="p-3 rounded-xl border border-amber-100 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/40 space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-amber-900">Gorduras Boas</span>
-                    <span className="text-[11px] font-semibold text-amber-700">
+                    <span className="font-bold text-amber-900 dark:text-amber-300">Gorduras Boas</span>
+                    <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
                       {calculation.macros.fat.perKg}g/kg
                     </span>
                   </div>
-                  <div className="text-xl font-black text-amber-700 font-mono">
+                  <div className="text-xl font-black text-amber-700 dark:text-amber-400 font-mono">
                     {calculation.macros.fat.grams}g
                   </div>
-                  <div className="text-[10px] text-amber-600/80">
+                  <div className="text-[10px] text-amber-600/80 dark:text-amber-400/80">
                     {calculation.macros.fat.kcal} kcal (
                     {Math.round((calculation.macros.fat.kcal / calculation.targetCalories) * 100)}%)
                   </div>
@@ -924,21 +924,21 @@ export default function BodyCompositionDietCalculator({
               </div>
 
               {/* Meta Hídrica Diária Recomendada (Consumo de Água por Objetivo) */}
-              <div className="p-3.5 rounded-xl bg-cyan-50/80 border border-cyan-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="p-3.5 rounded-xl bg-cyan-50/80 dark:bg-cyan-950/40 border border-cyan-200/80 dark:border-cyan-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="p-2 rounded-lg bg-cyan-500/20 text-cyan-600 shrink-0">
+                  <span className="p-2 rounded-lg bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 shrink-0">
                     <Droplets className="w-4 h-4" />
                   </span>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-cyan-950">
+                      <span className="text-xs font-bold text-cyan-950 dark:text-cyan-200">
                         Consumo Hídrico Diário Recomendado
                       </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-100 dark:bg-cyan-900/60 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60">
                         {dietGoal === "cutting" ? "Emagrecimento (42 ml/kg)" : dietGoal === "bulking" ? "Hipertrofia (48 ml/kg)" : "Manutenção (38 ml/kg)"}
                       </span>
                     </div>
-                    <p className="text-[11px] text-cyan-800/80 mt-0.5">
+                    <p className="text-[11px] text-cyan-800/80 dark:text-cyan-300/80 mt-0.5">
                       {dietGoal === "cutting"
                         ? "Acelera a eliminação de toxinas, controla a saciedade e diminui a retenção líquida."
                         : dietGoal === "bulking"
@@ -949,10 +949,10 @@ export default function BodyCompositionDietCalculator({
                 </div>
 
                 <div className="text-left sm:text-right shrink-0">
-                  <div className="text-lg font-black text-cyan-700 font-mono">
-                    {calculation.waterRecommendations.active} <span className="text-xs font-bold text-cyan-900">L/dia</span>
+                  <div className="text-lg font-black text-cyan-700 dark:text-cyan-300 font-mono">
+                    {calculation.waterRecommendations.active} <span className="text-xs font-bold text-cyan-900 dark:text-cyan-200">L/dia</span>
                   </div>
-                  <span className="text-[10px] font-semibold text-cyan-600">
+                  <span className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-400">
                     ~{calculation.waterRecommendations.glasses} copos de 250ml
                   </span>
                 </div>

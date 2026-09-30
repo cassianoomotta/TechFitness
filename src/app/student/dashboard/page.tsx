@@ -1216,16 +1216,16 @@ export default function StudentDashboard() {
             {/* Welcome Block + Atalho de Treino */}
             <section className="text-center sm:text-left space-y-4">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0]/80 text-[#2563EB] text-xs font-semibold mb-3 tracking-wide uppercase shadow-2xs">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#151D2F] border border-[#E2E8F0]/80 dark:border-slate-800 text-[#2563EB] dark:text-blue-400 text-xs font-semibold mb-3 tracking-wide uppercase shadow-2xs">
                   <Sparkles className="w-3.5 h-3.5 fill-[#2563EB]/10" /> Hora do show
                 </div>
-                <h1 className="font-display text-3xl font-extrabold text-[#0F172A] tracking-tight">
-                  Pronto para treinar hoje, <span className="text-[#2563EB]">{session?.user?.name?.split(" ")[0]}</span>?
+                <h1 className="font-display text-3xl font-extrabold text-[#0F172A] dark:text-white tracking-tight">
+                  Pronto para treinar hoje, <span className="text-[#2563EB] dark:text-blue-400">{session?.user?.name?.split(" ")[0]}</span>?
                 </h1>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
                   {trainer && (
-                    <p className="text-xs text-[#94A3B8]">
-                      Assessoria Esportiva: <span className="text-[#0F172A] font-semibold">{trainer.name}</span>
+                    <p className="text-xs text-[#94A3B8] dark:text-slate-400">
+                      Assessoria Esportiva: <span className="text-[#0F172A] dark:text-white font-semibold">{trainer.name}</span>
                     </p>
                   )}
                 </div>
@@ -1233,19 +1233,19 @@ export default function StudentDashboard() {
 
               {/* Rotina Disponível (Layout Original Limpo, seleção inteligente baseada no último treino) */}
               {plans.length > 0 && suggestedPlan && (
-                <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#2563EB]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-white dark:bg-[#151D2F] border border-[#E2E8F0] dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#2563EB]/40 dark:hover:border-blue-500/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#00C2FF]/10 flex items-center justify-center text-[#2563EB] flex-none">
+                    <div className="w-12 h-12 rounded-2xl bg-[#00C2FF]/10 dark:bg-blue-950/60 flex items-center justify-center text-[#2563EB] dark:text-blue-400 flex-none">
                       <Dumbbell className="w-6 h-6" />
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#2563EB] tracking-wider block">
+                      <span className="text-[10px] uppercase font-bold text-[#2563EB] dark:text-blue-400 tracking-wider block">
                         Rotina Disponível
                       </span>
-                      <h2 className="text-base font-extrabold text-[#0F172A] leading-tight mt-0.5">
+                      <h2 className="text-base font-extrabold text-[#0F172A] dark:text-white leading-tight mt-0.5">
                         {suggestedPlan.division ? `(${suggestedPlan.division}) ` : ""}{suggestedPlan.name}
                       </h2>
-                      <p className="text-xs text-[#64748B] mt-0.5">
+                      <p className="text-xs text-[#64748B] dark:text-slate-300 mt-0.5">
                         {suggestedPlan.exercises?.length || 0} exercícios prontos para executar
                       </p>
                     </div>
@@ -1442,24 +1442,24 @@ export default function StudentDashboard() {
 
             {/* Seção de Fotos do Dia e da Semana dos Concorrentes na Tela Inicial */}
             {!rankingLoading && ranking && (
-              <section className="bg-white border border-[#E2E8F0] rounded-3xl p-5 sm:p-6 shadow-sm">
+              <section className="bg-white dark:bg-[#151D2F] border border-[#E2E8F0] dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-50 text-[#2563EB] rounded-xl border border-blue-100">
+                    <div className="p-2 bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/60">
                       <Camera className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
+                      <h3 className="text-sm font-bold text-[#0F172A] dark:text-white leading-tight">
                         Check-ins da Turma (Fotos da Semana)
                       </h3>
-                      <p className="text-[11px] text-[#94A3B8]">
+                      <p className="text-[11px] text-[#94A3B8] dark:text-slate-400">
                         Fotos de treino dos concorrentes nos últimos 7 dias
                       </p>
                     </div>
                   </div>
 
                   {groupedStudentFeeds && groupedStudentFeeds.length > 0 && (
-                    <span className="text-[10px] font-bold bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded-full">
+                    <span className="text-[10px] font-bold bg-[#2563EB]/10 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 px-2.5 py-1 rounded-full border dark:border-blue-900/60">
                       {groupedStudentFeeds.length} {groupedStudentFeeds.length === 1 ? "atleta no mural" : "atletas no mural"}
                     </span>
                   )}
@@ -1479,11 +1479,11 @@ export default function StudentDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
-                    <p className="text-xs text-[#64748B] font-semibold">
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/60 border border-dashed border-slate-200 dark:border-slate-800 text-center">
+                    <p className="text-xs text-[#64748B] dark:text-slate-300 font-semibold">
                       Nenhum colega postou foto de treino hoje ainda.
                     </p>
-                    <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                    <p className="text-[11px] text-[#94A3B8] dark:text-slate-400 mt-0.5">
                       Conclua seu treino com foto para liderar o mural da assessoria!
                     </p>
                   </div>
@@ -1499,13 +1499,13 @@ export default function StudentDashboard() {
         {activeTab === "fichas" && (
           <div className="space-y-6 animate-fade-in">
             <div className="mb-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-xs font-semibold mb-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 text-[#2563EB] dark:text-blue-400 text-xs font-semibold mb-2">
                 <Dumbbell className="w-3.5 h-3.5" /> Fichas de Treino
               </div>
-              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0F172A] dark:text-white tracking-tight">
                 Meus Treinos
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Rotinas periodizadas e prescrições do seu treinador.
               </p>
             </div>
@@ -1758,48 +1758,48 @@ export default function StudentDashboard() {
       {/* Modal de Visualização da Ficha Completa */}
       {mounted && selectedPlanForPreview && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-lg my-auto bg-white rounded-2xl p-5 sm:p-6 shadow-2xl relative border border-[#E2E8F0] animate-scale-up flex flex-col max-h-[90vh]">
+          <div className="w-full max-w-lg my-auto bg-white dark:bg-[#151D2F] rounded-2xl p-5 sm:p-6 shadow-2xl relative border border-[#E2E8F0] dark:border-slate-800 animate-scale-up flex flex-col max-h-[90vh]">
             {/* Fechar */}
             <button
               onClick={() => setSelectedPlanForPreview(null)}
-              className="absolute top-4 right-4 p-2 rounded-lg border border-[#E2E8F0] text-[#94A3B8] hover:text-[#0F172A] hover:bg-zinc-100 transition-all cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-lg border border-[#E2E8F0] dark:border-slate-700 text-[#94A3B8] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="mb-4">
-              <span className="text-[10px] bg-blue-55 border border-blue-200 px-2 py-0.5 rounded font-bold text-[#2563EB] uppercase">
+              <span className="text-[10px] bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/60 px-2 py-0.5 rounded font-bold text-[#2563EB] dark:text-blue-400 uppercase">
                 Visualizando Ficha
               </span>
-              <h3 className="font-display text-xl font-extrabold text-[#0F172A] mt-1 flex items-center gap-2">
-                <Dumbbell className="w-5 h-5 text-[#2563EB]" /> {selectedPlanForPreview.name}
+              <h3 className="font-display text-xl font-extrabold text-[#0F172A] dark:text-white mt-1 flex items-center gap-2">
+                <Dumbbell className="w-5 h-5 text-[#2563EB] dark:text-blue-400" /> {selectedPlanForPreview.name}
               </h3>
               {selectedPlanForPreview.description && (
-                <p className="text-xs text-[#94A3B8] mt-1.5 leading-relaxed">
+                <p className="text-xs text-[#94A3B8] dark:text-slate-300 mt-1.5 leading-relaxed">
                   {selectedPlanForPreview.description}
                 </p>
               )}
             </div>
 
             {/* Lista de Exercícios */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2 my-2 border-y border-[#E2E8F0]/80">
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2 my-2 border-y border-[#E2E8F0]/80 dark:border-slate-800">
               {selectedPlanForPreview.exercises.map((ex, idx) => (
                 <div
                   key={ex.id}
-                  className="p-3 bg-zinc-50 border border-[#E2E8F0] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#2563EB]/20 hover:bg-[#2563EB]/1 shadow-sm transition-all"
+                  className="p-3 bg-zinc-50 dark:bg-[#1E293B]/70 border border-[#E2E8F0] dark:border-slate-700 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#2563EB]/20 dark:hover:border-blue-500/30 shadow-sm transition-all"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-4.5 h-4.5 rounded-full bg-zinc-200 text-[#0F172A] text-[10px] font-bold flex items-center justify-center">
+                      <span className="w-4.5 h-4.5 rounded-full bg-zinc-200 dark:bg-slate-800 text-[#0F172A] dark:text-slate-200 text-[10px] font-bold flex items-center justify-center">
                         {idx + 1}
                       </span>
-                      <p className="text-xs font-bold text-[#0F172A]">{ex.name}</p>
+                      <p className="text-xs font-bold text-[#0F172A] dark:text-white">{ex.name}</p>
                     </div>
-                    <p className="text-[10px] text-[#94A3B8] pl-6">
+                    <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 pl-6">
                       {ex.muscleGroup} • {ex.equipment}
                     </p>
                     {ex.description && (
-                      <p className="text-[10px] text-[#94A3B8] pl-6 italic line-clamp-1 hover:line-clamp-none transition-all duration-300">
+                      <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 pl-6 italic line-clamp-1 hover:line-clamp-none transition-all duration-300">
                         Obs: {ex.description}
                       </p>
                     )}
@@ -1807,17 +1807,17 @@ export default function StudentDashboard() {
                   
                   <div className="flex items-center justify-between sm:justify-end gap-3 pl-6 sm:pl-0">
                     <div className="text-right">
-                      <p className="text-xs font-bold text-[#0F172A]">{ex.sets}x{ex.reps}</p>
-                      <p className="text-[9px] text-[#94A3B8] font-medium uppercase tracking-wider">{ex.method}</p>
+                      <p className="text-xs font-bold text-[#0F172A] dark:text-white">{ex.sets}x{ex.reps}</p>
+                      <p className="text-[9px] text-[#94A3B8] dark:text-slate-400 font-medium uppercase tracking-wider">{ex.method}</p>
                       {ex.restSeconds > 0 && (
-                        <p className="text-[9px] text-[#94A3B8] font-medium font-mono">Descanso: {ex.restSeconds}s</p>
+                        <p className="text-[9px] text-[#94A3B8] dark:text-slate-400 font-medium font-mono">Descanso: {ex.restSeconds}s</p>
                       )}
                     </div>
                     {(ex.videoUrl || ex.gifUrl) && (
                       <button
                         type="button"
                         onClick={() => handleOpenMedia(ex.gifUrl || ex.videoUrl || null)}
-                        className="p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#2563EB] transition-all cursor-pointer animate-pulse-subtle"
+                        className="p-2.5 rounded-lg border border-[#E2E8F0] dark:border-slate-700 hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 dark:hover:bg-blue-950/40 text-[#2563EB] dark:text-blue-400 transition-all cursor-pointer animate-pulse-subtle"
                         title="Ver execução do exercício"
                       >
                         <Tv className="w-4 h-4" />
@@ -1830,11 +1830,11 @@ export default function StudentDashboard() {
             </div>
 
             {/* Ações */}
-            <div className="flex gap-3 pt-3 border-t border-[#E2E8F0] mt-3">
+            <div className="flex gap-3 pt-3 border-t border-[#E2E8F0] dark:border-slate-800 mt-3">
               <button
                 type="button"
                 onClick={() => setSelectedPlanForPreview(null)}
-                className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] hover:bg-zinc-100/50 text-[#475569] font-bold text-xs transition-all cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-xl border border-[#E2E8F0] dark:border-slate-700 hover:bg-zinc-100/50 dark:hover:bg-slate-800 text-[#475569] dark:text-slate-300 font-bold text-xs transition-all cursor-pointer"
               >
                 Voltar
               </button>

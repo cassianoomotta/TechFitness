@@ -112,7 +112,7 @@ interface BodyMetricsChartProps {
 export default function BodyMetricsChart({
   measurements,
   weightGoal = "EMAGRECER",
-  title = "Curva de Evolução & Monitoramento",
+  title = "Curva de Evolução e Monitoramento",
   subtitle = "Acompanhamento visual de peso e métricas biométricas ao longo do tempo.",
   compact = false,
 }: BodyMetricsChartProps) {
@@ -326,9 +326,9 @@ export default function BodyMetricsChart({
       : 0;
 
   return (
-    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-[#E2E8F0] shadow-sm space-y-5 bg-white transition-all">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-[#E2E8F0] dark:border-slate-800 shadow-sm space-y-5 bg-white dark:bg-[#151D2F] transition-all">
       {/* Top Header: Título, Filtro de Período e Seletor de Métrica */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0] dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
             <div
@@ -337,16 +337,16 @@ export default function BodyMetricsChart({
             >
               <config.icon className="w-4 h-4" />
             </div>
-            <h3 className="font-display font-bold text-sm sm:text-base text-[#0F172A] tracking-tight">
+            <h3 className="font-display font-bold text-sm sm:text-base text-[#0F172A] dark:text-white tracking-tight">
               {title}
             </h3>
           </div>
-          <p className="text-[11px] text-[#64748B] mt-0.5">{subtitle}</p>
+          <p className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{subtitle}</p>
         </div>
 
         {/* Filtros de Período */}
         {filteredData.length > 2 && (
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 self-start sm:self-auto">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
             {(
               [
                 { id: "all", label: "Tudo" },
@@ -360,8 +360,8 @@ export default function BodyMetricsChart({
                 onClick={() => setTimeRange(t.id)}
                 className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${
                   timeRange === t.id
-                    ? "bg-white text-[#2563EB] shadow-2xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-2xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
                 }`}
               >
                 {t.label}
@@ -384,8 +384,8 @@ export default function BodyMetricsChart({
                 onClick={() => setSelectedMetric(key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer active:scale-95 ${
                   isSelected
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100/90 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
+                    ? "bg-slate-900 dark:bg-slate-800 text-white shadow-xs border dark:border-slate-700"
+                    : "bg-slate-100/90 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-[#1E293B] hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span
@@ -404,18 +404,18 @@ export default function BodyMetricsChart({
       {filteredData.length > 0 && (
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {/* Card 1: Ponto de Partida */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400 flex items-center gap-1">
               <Calendar className="w-3 h-3 text-slate-400" /> Início
             </span>
             <div className="mt-1">
-              <span className="text-base sm:text-lg font-black font-mono text-[#0F172A] leading-tight">
+              <span className="text-base sm:text-lg font-black font-mono text-[#0F172A] dark:text-white leading-tight">
                 {stats.firstVal}
-                <span className="text-xs font-semibold text-[#64748B] ml-0.5">
+                <span className="text-xs font-semibold text-[#64748B] dark:text-slate-400 ml-0.5">
                   {config.unit}
                 </span>
               </span>
-              <p className="text-[10px] text-[#94A3B8] font-medium truncate mt-0.5">
+              <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-medium truncate mt-0.5">
                 {new Date(filteredData[0]?.date).toLocaleDateString("pt-BR", {
                   day: "2-digit",
                   month: "short",
@@ -425,18 +425,18 @@ export default function BodyMetricsChart({
           </div>
 
           {/* Card 2: Atual / Mais Recente */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
-              <Scale className="w-3 h-3 text-[#2563EB]" /> Atual
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400 flex items-center gap-1">
+              <Scale className="w-3 h-3 text-[#2563EB] dark:text-blue-400" /> Atual
             </span>
             <div className="mt-1">
-              <span className="text-base sm:text-lg font-black font-mono text-[#2563EB] leading-tight">
+              <span className="text-base sm:text-lg font-black font-mono text-[#2563EB] dark:text-blue-400 leading-tight">
                 {stats.latestVal}
-                <span className="text-xs font-semibold text-[#64748B] ml-0.5">
+                <span className="text-xs font-semibold text-[#64748B] dark:text-slate-400 ml-0.5">
                   {config.unit}
                 </span>
               </span>
-              <p className="text-[10px] text-[#94A3B8] font-medium truncate mt-0.5">
+              <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-medium truncate mt-0.5">
                 {new Date(
                   filteredData[filteredData.length - 1]?.date
                 ).toLocaleDateString("pt-BR", {
@@ -451,10 +451,10 @@ export default function BodyMetricsChart({
           <div
             className={`p-3 rounded-xl border flex flex-col justify-between ${
               stats.delta === 0
-                ? "bg-slate-50 border-slate-200/80 text-slate-600"
+                ? "bg-slate-50 dark:bg-[#1E293B]/70 border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300"
                 : stats.isSuccess
-                ? "bg-emerald-50/70 border-emerald-200/70 text-emerald-700"
-                : "bg-amber-50/70 border-amber-200/70 text-amber-700"
+                ? "bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-200/70 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300"
+                : "bg-amber-50/70 dark:bg-amber-950/40 border-amber-200/70 dark:border-amber-800/60 text-amber-700 dark:text-amber-300"
             }`}
           >
             <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
@@ -486,27 +486,27 @@ export default function BodyMetricsChart({
 
       {/* Área do Gráfico SVG Vetorial */}
       {filteredData.length === 0 ? (
-        <div className="p-8 sm:p-12 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto">
+        <div className="p-8 sm:p-12 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/40 border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-2">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 flex items-center justify-center mx-auto">
             <Scale className="w-5 h-5" />
           </div>
-          <p className="text-xs font-bold text-[#0F172A]">
+          <p className="text-xs font-bold text-[#0F172A] dark:text-white">
             Nenhum registro para {config.label.toLowerCase()}
           </p>
-          <p className="text-[11px] text-[#94A3B8] max-w-sm mx-auto">
+          <p className="text-[11px] text-[#94A3B8] dark:text-slate-400 max-w-sm mx-auto">
             Realize sua primeira pesagem ou medição no formulário para desbloquear o gráfico evolutivo.
           </p>
         </div>
       ) : filteredData.length === 1 ? (
         /* Estado Parcial com 1 Ponto de Dados */
-        <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold">
+        <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200/80 dark:border-slate-800 text-center space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 text-xs font-bold border border-blue-100 dark:border-blue-900/40">
             <Activity className="w-3.5 h-3.5" /> Ponto Inicial Registrado
           </div>
-          <div className="text-2xl font-black font-mono text-[#0F172A]">
+          <div className="text-2xl font-black font-mono text-[#0F172A] dark:text-white">
             {chartPoints[0].val} {config.unit}
           </div>
-          <p className="text-xs text-[#64748B] max-w-md mx-auto">
+          <p className="text-xs text-[#64748B] dark:text-slate-400 max-w-md mx-auto">
             Ótimo começo! Registre ao menos mais uma pesagem nos próximos dias para gerar a curva e traçar seu ritmo de evolução.
           </p>
         </div>
@@ -516,7 +516,7 @@ export default function BodyMetricsChart({
           {activePoint && (
             <div className="flex items-center justify-between mb-2 px-1">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-slate-500">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   {new Date(activePoint.date).toLocaleDateString("pt-BR", {
                     day: "numeric",
                     month: "long",
@@ -530,22 +530,22 @@ export default function BodyMetricsChart({
                       (activeMetric === "weight" && weightGoal === "EMAGRECER" && pointDelta < 0) ||
                       (activeMetric === "weight" && weightGoal === "GANHAR_MASSA" && pointDelta > 0) ||
                       (activeMetric !== "weight" && pointDelta > 0)
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-red-50 text-red-700"
+                        ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60"
+                        : "bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200/60 dark:border-red-800/60"
                     }`}
                   >
                     {pointDelta > 0 ? `+${pointDelta}` : pointDelta} {config.unit} vs anterior
                   </span>
                 )}
               </div>
-              <div className="text-sm font-black font-mono text-[#0F172A]">
+              <div className="text-sm font-black font-mono text-[#0F172A] dark:text-white">
                 {activePoint.val} {config.unit}
               </div>
             </div>
           )}
 
           {/* Canvas SVG */}
-          <div className="w-full overflow-hidden rounded-xl bg-gradient-to-b from-slate-50/60 to-transparent p-1 border border-slate-100">
+          <div className="w-full overflow-hidden rounded-xl bg-gradient-to-b from-slate-50/60 to-transparent dark:from-slate-900/50 dark:to-transparent p-1 border border-slate-100 dark:border-slate-800">
             <svg
               ref={svgRef}
               viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
@@ -582,7 +582,7 @@ export default function BodyMetricsChart({
                     y1={y}
                     x2={viewBoxWidth - paddingX}
                     y2={y}
-                    stroke="#E2E8F0"
+                    className="stroke-slate-200 dark:stroke-slate-800"
                     strokeWidth="1"
                     strokeDasharray="4 4"
                   />
@@ -642,10 +642,9 @@ export default function BodyMetricsChart({
                       cx={pt.x}
                       cy={pt.y}
                       r={isActive ? "6" : "4"}
-                      fill="#FFFFFF"
                       stroke={config.color}
                       strokeWidth={isActive ? "3" : "2.5"}
-                      className="transition-all duration-150"
+                      className="fill-white dark:fill-[#0B0F19] transition-all duration-150"
                     />
                   </g>
                 );

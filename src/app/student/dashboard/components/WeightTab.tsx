@@ -63,34 +63,34 @@ export default function WeightTab({
         {/* Cabeçalho da Página: Peso e Dieta */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2.5">
-              <span className="p-2 rounded-2xl bg-blue-50 text-[#2563EB]">
+            <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] dark:text-white tracking-tight flex items-center gap-2.5">
+              <span className="p-2 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400">
                 <TrendingUp className="w-6 h-6" />
               </span>
               Peso e Dieta
             </h2>
-            <p className="text-xs text-[#64748B] mt-1">
+            <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
               Acompanhe sua pesagem, composição corporal, percentual de gordura e planejamento nutricional.
             </p>
           </div>
         </div>
 
         {/* Card Objetivo de Peso */}
-        <div className="glass-card rounded-2xl p-5 border border-[#E2E8F0] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="glass-card rounded-2xl p-5 border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#151D2F] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
-            <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Foco do seu Objetivo</h4>
-            <p className="text-[11px] text-[#94A3B8] mt-1">
+            <h4 className="text-xs font-bold text-[#0F172A] dark:text-white uppercase tracking-wider">Foco do seu Objetivo</h4>
+            <p className="text-[11px] text-[#94A3B8] dark:text-slate-400 mt-1">
               Define se o ganho (Hipertrofia) ou a perda (Emagrecer) de peso será destacado em verde.
             </p>
           </div>
-          <div className="flex bg-zinc-100 p-1 rounded-xl border border-[#E2E8F0] w-full sm:w-auto">
+          <div className="flex bg-zinc-100 dark:bg-slate-800 p-1 rounded-xl border border-[#E2E8F0] dark:border-slate-700 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => handleUpdateWeightGoal("EMAGRECER")}
               className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 weightGoal === "EMAGRECER"
                   ? "bg-[#2563EB] text-white shadow-sm"
-                  : "text-[#94A3B8] hover:text-[#0F172A]"
+                  : "text-[#94A3B8] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white"
               }`}
             >
               Emagrecer
@@ -101,7 +101,7 @@ export default function WeightTab({
               className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 weightGoal === "GANHAR_MASSA"
                   ? "bg-[#2563EB] text-white shadow-sm"
-                  : "text-[#94A3B8] hover:text-[#0F172A]"
+                  : "text-[#94A3B8] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white"
               }`}
             >
               Ganho de Massa
@@ -110,21 +110,21 @@ export default function WeightTab({
         </div>
 
         {/* Card de Destaque: Calculadora de Gordura Corporal e Dieta */}
-        <div className="glass-card rounded-2xl p-5 border border-blue-200/70 bg-gradient-to-br from-blue-50/60 via-white to-indigo-50/30 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="glass-card rounded-2xl p-5 border border-blue-200/70 dark:border-slate-800 bg-gradient-to-br from-blue-50/60 via-white to-indigo-50/30 dark:from-blue-950/30 dark:via-[#151D2F] dark:to-indigo-950/20 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Scale className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-extrabold text-[#0F172A] tracking-tight">
+                <h4 className="text-sm font-extrabold text-[#0F172A] dark:text-white tracking-tight">
                   Calculadora de Gordura Corporal e Dieta
                 </h4>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white">
                   Método Marinha
                 </span>
               </div>
-              <p className="text-xs text-[#64748B] mt-0.5">
+              <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
                 Estime seu % BF, massa magra, gasto calórico e divisão de macronutrientes para sua meta.
               </p>
             </div>
@@ -133,7 +133,7 @@ export default function WeightTab({
           <button
             type="button"
             onClick={() => setShowCalculator((prev) => !prev)}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[#0F172A] font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0F172A] dark:text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 min-h-[44px]"
           >
             <span>{showCalculator ? "Ocultar Calculadora" : "Abrir Calculadora"}</span>
             <ChevronDown
@@ -160,18 +160,18 @@ export default function WeightTab({
         )}
 
         {/* Card Registrar Peso */}
-        <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] shadow-sm space-y-4">
-          <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-[#2563EB]" />
+        <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#151D2F] shadow-sm space-y-4">
+          <h3 className="text-base font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#2563EB] dark:text-blue-400" />
             Registrar Peso Corporal
           </h3>
-          <p className="text-xs text-[#94A3B8]">
+          <p className="text-xs text-[#94A3B8] dark:text-slate-400">
             Monitore sua evolução registrando seu peso regularmente. Os registros também ficarão disponíveis para seu treinador.
           </p>
           
           <form onSubmit={handleSaveWeight} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">Peso (kg)</label>
+              <label className="text-[11px] font-bold text-[#94A3B8] dark:text-slate-400 uppercase tracking-wider">Peso (kg)</label>
               <input
                 type="number"
                 step="0.1"
@@ -180,18 +180,18 @@ export default function WeightTab({
                 inputMode="decimal"
                 value={newWeight}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewWeight(e.target.value)}
-                className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] text-base md:text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#1E293B] text-base md:text-sm text-[#0F172A] dark:text-white focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
               />
             </div>
             
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">Data</label>
+              <label className="text-[11px] font-bold text-[#94A3B8] dark:text-slate-400 uppercase tracking-wider">Data</label>
               <input
                 type="date"
                 required
                 value={newWeightDate}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewWeightDate(e.target.value)}
-                className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] text-base md:text-sm text-[#0F172A] focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
+                className="w-full px-4 py-2.5 min-h-[48px] rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#1E293B] text-base md:text-sm text-[#0F172A] dark:text-white focus:border-[#2563EB] dark:focus:border-blue-500 focus:ring-2 focus:ring-[#2563EB]/10 outline-none transition-all"
               />
             </div>
             
@@ -209,7 +209,7 @@ export default function WeightTab({
           </form>
           
           {weightError && (
-            <p className="text-[11px] text-red-600 font-semibold bg-red-50 border border-red-200/60 px-3 py-2 rounded-xl">{weightError}</p>
+            <p className="text-[11px] text-red-600 dark:text-red-400 font-semibold bg-red-50 dark:bg-red-950/40 border border-red-200/60 dark:border-red-800/60 px-3 py-2 rounded-xl">{weightError}</p>
           )}
         </div>
 
@@ -217,27 +217,27 @@ export default function WeightTab({
         {measurements.length > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-blue-50 text-[#2563EB]">
+              <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400">
                 <TrendingUp className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#0F172A] leading-tight">
+                <h3 className="text-sm font-bold text-[#0F172A] dark:text-white leading-tight">
                   Painel de Monitoramento e Evolução
                 </h3>
-                <p className="text-[11px] text-[#64748B]">
+                <p className="text-[11px] text-[#64748B] dark:text-slate-400">
                   {measurements.length} {measurements.length === 1 ? "medição registrada" : "medições registradas"}
                 </p>
               </div>
             </div>
 
-            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setViewMode("chart")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   viewMode === "chart"
-                    ? "bg-white text-[#2563EB] shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
                 }`}
               >
                 Gráfico
@@ -247,8 +247,8 @@ export default function WeightTab({
                 onClick={() => setViewMode("history")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   viewMode === "history"
-                    ? "bg-white text-[#2563EB] shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
                 }`}
               >
                 Histórico
@@ -258,8 +258,8 @@ export default function WeightTab({
                 onClick={() => setViewMode("all")}
                 className={`hidden sm:block px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   viewMode === "all"
-                    ? "bg-white text-[#2563EB] shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-white dark:bg-[#1E293B] text-[#2563EB] dark:text-blue-400 shadow-xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
                 }`}
               >
                 Ambos
@@ -280,8 +280,8 @@ export default function WeightTab({
 
         {/* 2. Card Histórico Detalhado */}
         {(viewMode === "history" || viewMode === "all") && (
-          <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] shadow-sm space-y-4">
-            <h3 className="text-base font-bold text-[#0F172A]">Histórico de Registros</h3>
+          <div className="glass-card rounded-2xl p-6 border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#151D2F] shadow-sm space-y-4">
+            <h3 className="text-base font-bold text-[#0F172A] dark:text-white">Histórico de Registros</h3>
           
           {measurementsLoading ? (
             /* Skeleton Shimmer — Substituindo Loader2 spinner */
@@ -297,17 +297,17 @@ export default function WeightTab({
               ))}
             </div>
           ) : measurements.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center mx-auto mb-3">
+            <div className="p-8 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/40 border border-dashed border-slate-200 dark:border-slate-700 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center mx-auto mb-3">
                 <Scale className="w-6 h-6" />
               </div>
-              <p className="text-xs text-[#64748B] font-semibold">Você ainda não registrou nenhum peso.</p>
-              <p className="text-[11px] text-[#94A3B8] mt-1">
+              <p className="text-xs text-[#64748B] dark:text-slate-300 font-semibold">Você ainda não registrou nenhum peso.</p>
+              <p className="text-[11px] text-[#94A3B8] dark:text-slate-400 mt-1">
                 Use o formulário acima para começar a acompanhar sua evolução! ⚖️
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-[#E2E8F0] max-h-96 overflow-y-auto pr-1">
+            <div className="divide-y divide-[#E2E8F0] dark:divide-slate-800 max-h-96 overflow-y-auto pr-1">
               {measurements.map((m: WeightMeasurement, idx: number) => {
                 const nextMeasurement = measurements[idx + 1];
                 const diff = nextMeasurement ? m.weight - nextMeasurement.weight : 0;
@@ -333,10 +333,10 @@ export default function WeightTab({
                           setExpandedMeasurementId(isExpanded ? null : m.id);
                         }
                       }}
-                      className={`flex items-center justify-between transition-all ${hasAdditionalInfo ? "cursor-pointer hover:bg-zinc-50/60 p-1.5 rounded-xl -mx-1.5" : ""}`}
+                      className={`flex items-center justify-between transition-all ${hasAdditionalInfo ? "cursor-pointer hover:bg-zinc-50/60 dark:hover:bg-[#1E293B]/60 p-1.5 rounded-xl -mx-1.5" : ""}`}
                     >
                       <div className="space-y-1">
-                        <span className="text-xs font-semibold text-[#0F172A] flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-[#0F172A] dark:text-white flex items-center gap-1.5">
                           {new Date(m.date).toLocaleDateString("pt-BR", {
                             day: "numeric",
                             month: "long",
@@ -344,7 +344,7 @@ export default function WeightTab({
                             timeZone: "UTC",
                           })}
                           {hasAdditionalInfo && (
-                            <span className="text-[10px] bg-blue-50 text-[#2563EB] px-1 py-0.5 rounded font-bold uppercase tracking-wider">
+                            <span className="text-[10px] bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 px-1 py-0.5 rounded font-bold uppercase tracking-wider">
                               Completo
                             </span>
                           )}
@@ -355,64 +355,64 @@ export default function WeightTab({
                               ? weightGoal === "GANHAR_MASSA" ? "text-emerald-500" : "text-red-500"
                               : diff < 0 
                               ? weightGoal === "GANHAR_MASSA" ? "text-red-500" : "text-emerald-500"
-                              : "text-[#94A3B8]"
+                              : "text-[#94A3B8] dark:text-slate-400"
                           }`}>
                             {diff > 0 ? `+${diff.toFixed(1)} kg 📈` : diff < 0 ? `${diff.toFixed(1)} kg 📉` : "Sem alteração"}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="text-base font-black text-[#2563EB] font-mono">
+                        <div className="text-base font-black text-[#2563EB] dark:text-blue-400 font-mono">
                           {m.weight.toFixed(1)} kg
                         </div>
                         {hasAdditionalInfo && (
-                          <ChevronRight className={`w-4 h-4 text-[#94A3B8] transition-transform ${isExpanded ? "rotate-90 text-[#2563EB]" : ""}`} />
+                          <ChevronRight className={`w-4 h-4 text-[#94A3B8] dark:text-slate-400 transition-transform ${isExpanded ? "rotate-90 text-[#2563EB] dark:text-blue-400" : ""}`} />
                         )}
                       </div>
                     </div>
 
                     {/* Detalhes Adicionais se Expandido */}
                     {isExpanded && hasAdditionalInfo && (
-                      <div className="mt-3 p-4 rounded-xl bg-zinc-50/40 border border-[#E2E8F0] space-y-4 animate-slide-down">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] text-[#94A3B8]">
+                      <div className="mt-3 p-4 rounded-xl bg-zinc-50/40 dark:bg-[#1E293B]/70 border border-[#E2E8F0] dark:border-slate-700/80 space-y-4 animate-slide-down">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] text-[#94A3B8] dark:text-slate-400">
                           {m.bodyFat !== null && m.bodyFat !== undefined && (
                             <div>
-                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8]">BF (Gordura)</span>
-                              <span className="text-[#0F172A] font-bold font-mono text-xs">{m.bodyFat}%</span>
+                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400">BF (Gordura)</span>
+                              <span className="text-[#0F172A] dark:text-white font-bold font-mono text-xs">{m.bodyFat}%</span>
                             </div>
                           )}
                           {m.chest !== null && m.chest !== undefined && (
                             <div>
-                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8]">Peitoral</span>
-                              <span className="text-[#0F172A] font-bold font-mono text-xs">{m.chest} cm</span>
+                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400">Peitoral</span>
+                              <span className="text-[#0F172A] dark:text-white font-bold font-mono text-xs">{m.chest} cm</span>
                             </div>
                           )}
                           {m.waist !== null && m.waist !== undefined && (
                             <div>
-                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8]">Cintura</span>
-                              <span className="text-[#0F172A] font-bold font-mono text-xs">{m.waist} cm</span>
+                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400">Cintura</span>
+                              <span className="text-[#0F172A] dark:text-white font-bold font-mono text-xs">{m.waist} cm</span>
                             </div>
                           )}
                           {(m.armLeft !== null || m.armRight !== null) && (
                             <div>
-                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8]">Braços (E/D)</span>
-                              <span className="text-[#0F172A] font-bold font-mono text-xs">
+                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400">Braços (E/D)</span>
+                              <span className="text-[#0F172A] dark:text-white font-bold font-mono text-xs">
                                 {m.armLeft ?? "--"} / {m.armRight ?? "--"} cm
                               </span>
                             </div>
                           )}
                           {(m.thighLeft !== null || m.thighRight !== null) && (
                             <div>
-                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8]">Coxas (E/D)</span>
-                              <span className="text-[#0F172A] font-bold font-mono text-xs">
+                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400">Coxas (E/D)</span>
+                              <span className="text-[#0F172A] dark:text-white font-bold font-mono text-xs">
                                 {m.thighLeft ?? "--"} / {m.thighRight ?? "--"} cm
                               </span>
                             </div>
                           )}
                           {(m.calfLeft !== null || m.calfRight !== null) && (
                             <div>
-                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8]">Panturrilhas (E/D)</span>
-                              <span className="text-[#0F172A] font-bold font-mono text-xs">
+                              <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400">Panturrilhas (E/D)</span>
+                              <span className="text-[#0F172A] dark:text-white font-bold font-mono text-xs">
                                 {m.calfLeft ?? "--"} / {m.calfRight ?? "--"} cm
                               </span>
                             </div>
@@ -421,14 +421,14 @@ export default function WeightTab({
 
                         {/* Fotos comparativas se existirem */}
                         {m.photos && m.photos.length > 0 && (
-                          <div className="pt-3 border-t border-[#E2E8F0]/80">
-                            <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] mb-2 font-display">Fotos Comparativas</span>
+                          <div className="pt-3 border-t border-[#E2E8F0]/80 dark:border-slate-700/80">
+                            <span className="block font-bold text-[10px] uppercase tracking-wider text-[#94A3B8] dark:text-slate-400 mb-2 font-display">Fotos Comparativas</span>
                             <div className="flex gap-2 flex-wrap">
                               {m.photos.map((photo: string, pIdx: number) => (
                                 <div
                                   key={pIdx}
                                   onClick={() => setSelectedPhotoForZoom(photo)}
-                                  className="w-14 h-14 rounded-lg bg-zinc-50 border border-[#E2E8F0] overflow-hidden relative cursor-zoom-in hover:border-[#2563EB] transition-all hover:scale-105"
+                                  className="w-14 h-14 rounded-lg bg-zinc-50 dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-700 overflow-hidden relative cursor-zoom-in hover:border-[#2563EB] transition-all hover:scale-105"
                                 >
                                   <img src={photo} alt={`Foto ${pIdx + 1}`} className="w-full h-full object-cover" />
                                 </div>

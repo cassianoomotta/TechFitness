@@ -15,10 +15,10 @@ export default function WeatherCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Santo Antônio da Patrulha (Default)
+  // Local padrao / Fallback (respeitando privacidade)
   const defaultLat = -29.8248;
   const defaultLon = -50.5186;
-  const defaultCity = "Santo Antônio da Patrulha";
+  const defaultCity = "Sua Região";
 
   useEffect(() => {
     const fetchWeather = async (lat: number, lon: number, cityName: string) => {
@@ -73,9 +73,9 @@ export default function WeatherCard() {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-2xl p-4 flex items-center justify-between animate-pulse mb-6">
-        <div className="h-4 w-32 bg-[#E2E8F0] rounded"></div>
-        <div className="h-8 w-8 bg-[#E2E8F0] rounded-full"></div>
+      <div className="glass-card dark:bg-[#151D2F] dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between animate-pulse mb-6">
+        <div className="h-4 w-32 bg-[#E2E8F0] dark:bg-slate-800 rounded"></div>
+        <div className="h-8 w-8 bg-[#E2E8F0] dark:bg-slate-800 rounded-full"></div>
       </div>
     );
   }
@@ -84,12 +84,12 @@ export default function WeatherCard() {
 
   // Determinar visual e mensagem de acordo com o código WMO
   let Icon = weather.isDay === 0 ? Moon : Sun;
-  let wrapperClass = "bg-gradient-to-br from-white to-slate-50 border-slate-200/60";
-  let iconBoxClass = "bg-amber-100 shadow-sm shadow-amber-200/20";
-  let iconColor = "text-amber-500";
-  let textColor = "text-slate-800";
-  let subtextColor = "text-slate-500";
-  let pillClass = "bg-slate-100/80 text-slate-600";
+  let wrapperClass = "bg-gradient-to-br from-white to-slate-50 border-slate-200/60 dark:from-[#151D2F] dark:to-[#1E293B] dark:border-slate-800";
+  let iconBoxClass = "bg-amber-100 shadow-sm shadow-amber-200/20 dark:bg-amber-950/40 dark:shadow-none dark:border dark:border-amber-800/50";
+  let iconColor = "text-amber-500 dark:text-amber-400";
+  let textColor = "text-slate-800 dark:text-white";
+  let subtextColor = "text-slate-500 dark:text-slate-300";
+  let pillClass = "bg-slate-100/80 text-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:border dark:border-slate-700";
   
   let message = weather.isDay === 0 
     ? "A noite chegou! A academia costuma ser mais tranquila agora. Ótimo momento para um treino focado." 
@@ -99,31 +99,39 @@ export default function WeatherCard() {
     // Chuva
     Icon = CloudRain;
     wrapperClass = weather.isDay === 0 
-      ? "bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700/50 shadow-inner" 
-      : "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200/50";
-    iconBoxClass = weather.isDay === 0 ? "bg-slate-800/80 shadow-inner border border-slate-700" : "bg-blue-100/80 shadow-sm shadow-blue-200/40";
-    iconColor = weather.isDay === 0 ? "text-cyan-400" : "text-blue-500";
-    textColor = weather.isDay === 0 ? "text-slate-100" : "text-slate-800";
-    subtextColor = weather.isDay === 0 ? "text-slate-400" : "text-slate-500";
-    pillClass = weather.isDay === 0 ? "bg-slate-800 text-slate-300 border border-slate-700" : "bg-blue-100 text-blue-700";
+      ? "bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700/50 shadow-inner dark:from-[#0B0F19] dark:to-[#151D2F] dark:border-slate-800" 
+      : "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200/50 dark:from-[#151D2F] dark:to-cyan-950/40 dark:border-slate-800";
+    iconBoxClass = weather.isDay === 0 
+      ? "bg-slate-800/80 shadow-inner border border-slate-700 dark:bg-slate-900 dark:border-slate-700" 
+      : "bg-blue-100/80 shadow-sm shadow-blue-200/40 dark:bg-blue-950/50 dark:shadow-none dark:border dark:border-blue-800/50";
+    iconColor = weather.isDay === 0 ? "text-cyan-400" : "text-blue-500 dark:text-cyan-400";
+    textColor = weather.isDay === 0 ? "text-slate-100" : "text-slate-800 dark:text-white";
+    subtextColor = weather.isDay === 0 ? "text-slate-400" : "text-slate-500 dark:text-slate-300";
+    pillClass = weather.isDay === 0 
+      ? "bg-slate-800 text-slate-300 border border-slate-700" 
+      : "bg-blue-100 text-blue-700 dark:bg-slate-800 dark:text-cyan-300 dark:border dark:border-slate-700";
     message = "Chuva lá fora? Aqui dentro o clima é de ferro! O ambiente perfeito para focar no treino.";
   } else if (weather.code === 3 || (weather.code >= 45 && weather.code < 51)) {
     // Nublado / Ventando / Neblina
     Icon = weather.code >= 45 ? Wind : Cloud;
     wrapperClass = weather.isDay === 0 
-      ? "bg-gradient-to-br from-zinc-900 to-slate-900 border-zinc-800/50" 
-      : "bg-gradient-to-br from-slate-100 to-zinc-50 border-slate-200";
-    iconBoxClass = weather.isDay === 0 ? "bg-zinc-800/80 border border-zinc-700" : "bg-slate-200/70 shadow-sm";
-    iconColor = weather.isDay === 0 ? "text-slate-400" : "text-slate-500";
-    textColor = weather.isDay === 0 ? "text-zinc-100" : "text-slate-800";
-    subtextColor = weather.isDay === 0 ? "text-zinc-400" : "text-slate-500";
-    pillClass = weather.isDay === 0 ? "bg-zinc-800 text-zinc-300 border border-zinc-700" : "bg-slate-200/80 text-slate-600";
+      ? "bg-gradient-to-br from-zinc-900 to-slate-900 border-zinc-800/50 dark:from-[#0B0F19] dark:to-[#151D2F] dark:border-slate-800" 
+      : "bg-gradient-to-br from-slate-100 to-zinc-50 border-slate-200 dark:from-[#151D2F] dark:to-[#1E293B] dark:border-slate-800";
+    iconBoxClass = weather.isDay === 0 
+      ? "bg-zinc-800/80 border border-zinc-700 dark:bg-slate-900 dark:border-slate-700" 
+      : "bg-slate-200/70 shadow-sm dark:bg-slate-800 dark:border dark:border-slate-700 dark:shadow-none";
+    iconColor = weather.isDay === 0 ? "text-slate-400" : "text-slate-500 dark:text-slate-300";
+    textColor = weather.isDay === 0 ? "text-zinc-100" : "text-slate-800 dark:text-white";
+    subtextColor = weather.isDay === 0 ? "text-zinc-400" : "text-slate-500 dark:text-slate-300";
+    pillClass = weather.isDay === 0 
+      ? "bg-zinc-800 text-zinc-300 border border-zinc-700" 
+      : "bg-slate-200/80 text-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:border dark:border-slate-700";
     message = weather.isDay === 0 
       ? "Noite nublada, mas a disciplina não tem clima. Bora esmagar os pesos!"
       : "Tempo fechado, mas o seu foco não! O clima ideal para um treino intenso na academia.";
   } else if (weather.isDay === 0) {
     // Noite Limpa
-    wrapperClass = "bg-gradient-to-br from-[#0F172A] to-[#1E1B4B] border-[#312E81]/40";
+    wrapperClass = "bg-gradient-to-br from-[#0F172A] to-[#1E1B4B] border-[#312E81]/40 dark:from-[#0B0F19] dark:to-[#1E1B4B]/60 dark:border-indigo-900/50";
     iconBoxClass = "bg-[#1E1B4B]/80 shadow-inner shadow-indigo-500/10 border border-[#3730A3]/50";
     iconColor = "text-indigo-400";
     textColor = "text-indigo-50";
@@ -131,12 +139,12 @@ export default function WeatherCard() {
     pillClass = "bg-[#1E1B4B] text-indigo-300 border border-[#312E81]";
   } else {
     // Dia Limpo
-    wrapperClass = "bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-200/50";
-    iconBoxClass = "bg-amber-100 shadow-sm shadow-amber-200/30";
-    iconColor = "text-amber-500";
-    textColor = "text-amber-950";
-    subtextColor = "text-amber-700/80";
-    pillClass = "bg-amber-100 text-amber-700";
+    wrapperClass = "bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-200/50 dark:from-[#151D2F] dark:to-amber-950/20 dark:border-slate-800";
+    iconBoxClass = "bg-amber-100 shadow-sm shadow-amber-200/30 dark:bg-amber-950/40 dark:border dark:border-amber-800/40 dark:shadow-none";
+    iconColor = "text-amber-500 dark:text-amber-400";
+    textColor = "text-amber-950 dark:text-white";
+    subtextColor = "text-amber-700/80 dark:text-amber-200/80";
+    pillClass = "bg-amber-100 text-amber-700 dark:bg-slate-800 dark:text-amber-300 dark:border dark:border-slate-700";
   }
 
   return (

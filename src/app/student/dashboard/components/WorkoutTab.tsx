@@ -311,12 +311,12 @@ export default function WorkoutTab({
           ))}
         </div>
       ) : plans.length === 0 ? (
-        <div className="glass-card rounded-3xl p-8 sm:p-12 text-center text-[#94A3B8] border border-dashed border-slate-200">
-          <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <div className="glass-card rounded-3xl p-8 sm:p-12 text-center text-[#94A3B8] border border-dashed border-slate-200 dark:border-slate-800 dark:bg-[#151D2F]/80">
+          <div className="w-16 h-16 rounded-3xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-4 shadow-sm">
             <Sparkles className="w-8 h-8" />
           </div>
-          <p className="text-base font-bold text-slate-800">Nenhum treino atribuído ainda</p>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          <p className="text-base font-bold text-slate-800 dark:text-white">Nenhum treino atribuído ainda</p>
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 max-w-sm mx-auto">
             Você pode aguardar o seu treinador prescrever uma ficha ou importar a sua ficha atual por foto, PDF ou mensagem de WhatsApp!
           </p>
           <button
@@ -334,14 +334,14 @@ export default function WorkoutTab({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-1 gap-2.5 sm:gap-2">
             {/* Escrita reposicionada em linha própria no mobile: 100% legível, sem cortes */}
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-800">
+              <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">
                 Rotinas de Treino
               </span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[11px]">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 text-blue-700 dark:text-blue-300 font-bold text-[11px]">
                 {activePlans.length} ativa{activePlans.length > 1 ? 's' : ''}
               </span>
               {archivedPlans.length > 0 && (
-                <span className="text-[11px] text-slate-400 font-medium">
+                <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">
                   • {archivedPlans.length} arquivada{archivedPlans.length > 1 ? 's' : ''}
                 </span>
               )}
@@ -357,19 +357,19 @@ export default function WorkoutTab({
                     setBulkModalTab("actions");
                     setIsBulkModalOpen(true);
                   }}
-                  className="px-2.5 sm:px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11px] sm:text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                  className="px-2.5 sm:px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-[11px] sm:text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   title="Gerenciar e organizar treinos"
                 >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 shrink-0" />
                   <span>Gerenciar Treinos</span>
                 </button>
               )}
               <button
                 type="button"
                 onClick={onOpenImportModal}
-                className="px-2.5 sm:px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-bold text-[11px] sm:text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                className="px-2.5 sm:px-3.5 py-2 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold text-[11px] sm:text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
               >
-                <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>Importar com IA</span>
               </button>
             </div>
@@ -377,30 +377,30 @@ export default function WorkoutTab({
 
           {/* Régua de Consistência e Progresso Semanal (Gamificação & Clareza) */}
           {activePlans.length > 0 && (
-            <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-emerald-50/70 border border-blue-100/80 shadow-2xs">
+            <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-emerald-50/70 dark:from-slate-900/95 dark:via-[#151D2F] dark:to-slate-900/95 border border-blue-100/80 dark:border-slate-800 shadow-2xs">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/20">
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-extrabold text-[#0F172A]">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-[#0F172A] dark:text-white">
                       Meta Semanal de Treinos
                     </h4>
-                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-300 font-medium mt-0.5">
                       {completedCount === activePlans.length && activePlans.length > 0
                         ? "Semana 100% concluída! Parabéns pelo foco e disciplina."
                         : `${completedCount} de ${activePlans.length} treinos concluídos nesta semana`}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-black text-blue-700 bg-white/90 px-2.5 py-1 rounded-xl border border-blue-200/60 shadow-2xs">
+                <span className="text-xs font-black text-blue-700 dark:text-blue-400 bg-white/90 dark:bg-slate-900/90 px-2.5 py-1 rounded-xl border border-blue-200/60 dark:border-slate-700 shadow-2xs">
                   {Math.round((completedCount / activePlans.length) * 100)}%
                 </span>
               </div>
 
               {/* Barra de Progresso */}
-              <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden mt-3">
+              <div className="w-full bg-slate-200/80 dark:bg-slate-800 rounded-full h-2 overflow-hidden mt-3">
                 <div
                   className="h-2 rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 transition-all duration-500"
                   style={{ width: `${Math.round((completedCount / activePlans.length) * 100)}%` }}
@@ -409,15 +409,15 @@ export default function WorkoutTab({
 
               {/* Filtro Rápido (Chips) se houver pelo menos 1 ficha concluída */}
               {completedCount > 0 && (
-                <div className="flex items-center gap-1.5 mt-3.5 pt-3 border-t border-blue-100/70">
-                  <span className="text-[11px] font-bold text-slate-500 mr-1">Filtrar:</span>
+                <div className="flex items-center gap-1.5 mt-3.5 pt-3 border-t border-blue-100/70 dark:border-slate-800">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mr-1">Filtrar:</span>
                   <button
                     type="button"
                     onClick={() => setFilterStatus("ALL")}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       filterStatus === "ALL"
                         ? "bg-blue-600 text-white shadow-2xs"
-                        : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80"
+                        : "bg-white/80 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700"
                     }`}
                   >
                     Todos ({activePlans.length})
@@ -428,7 +428,7 @@ export default function WorkoutTab({
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       filterStatus === "PENDING"
                         ? "bg-blue-600 text-white shadow-2xs"
-                        : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80"
+                        : "bg-white/80 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700"
                     }`}
                   >
                     Pendentes ({pendingCount})
@@ -439,7 +439,7 @@ export default function WorkoutTab({
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       filterStatus === "COMPLETED"
                         ? "bg-emerald-600 text-white shadow-2xs"
-                        : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200/80"
+                        : "bg-white/80 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700"
                     }`}
                   >
                     Concluídos ({completedCount})
@@ -451,11 +451,11 @@ export default function WorkoutTab({
 
           {/* Lista de Fichas Ativas em Formato de Lista Unificada */}
           {activePlans.length === 0 ? (
-            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
+            <div className="bg-slate-50 dark:bg-[#151D2F] border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-500 dark:text-slate-400 text-xs">
               Todas as suas fichas estão arquivadas no momento. Você pode visualizá-las ou desarquivá-las abaixo.
             </div>
           ) : filteredActivePlans.length === 0 ? (
-            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
+            <div className="bg-slate-50 dark:bg-[#151D2F] border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-500 dark:text-slate-400 text-xs">
               {filterStatus === "PENDING"
                 ? "Parabéns! Todos os seus treinos desta semana já foram concluídos."
                 : "Nenhum treino concluído nesta semana ainda. Bora treinar!"}
@@ -475,19 +475,19 @@ export default function WorkoutTab({
                     key={plan.id}
                     className={`glass-card rounded-2xl p-4 sm:p-5 border transition-all duration-200 flex flex-col justify-between relative shadow-xs ${
                       isDone
-                        ? "border-emerald-200/90 bg-emerald-50/20 hover:border-emerald-300"
-                        : "border-slate-200/80 bg-white/95 hover:border-[#2563EB]/40 hover:shadow-md"
+                        ? "border-emerald-200/90 dark:border-emerald-800/60 bg-emerald-50/20 dark:bg-emerald-950/25 hover:border-emerald-300 dark:hover:border-emerald-700/80"
+                        : "border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#151D2F] hover:border-[#2563EB]/40 dark:hover:border-blue-500/50 hover:shadow-md"
                     }`}
                   >
                     <div>
                       {/* Banner de Solicitação de Exclusão Pendente (3 dias) */}
                       {isPendingDeletion && (
-                        <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900 animate-pulse">
+                        <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 animate-pulse">
                           <div className="flex items-center gap-1.5 font-semibold text-[11px]">
-                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                             <span>Exclusão solicitada ao treinador (Prazo de até 3 dias)</span>
                           </div>
-                          <span className="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                          <span className="text-[10px] bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full font-bold">
                             Pendente
                           </span>
                         </div>
@@ -511,31 +511,31 @@ export default function WorkoutTab({
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A] truncate">
+                              <h4 className="text-sm sm:text-base font-extrabold text-[#0F172A] dark:text-white truncate">
                                 {plan.name}
                               </h4>
                               {isDone && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/90 shadow-2xs">
-                                  <Check className="w-3 h-3 text-emerald-700 stroke-[3]" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/90 dark:border-emerald-800/80 shadow-2xs">
+                                  <Check className="w-3 h-3 text-emerald-700 dark:text-emerald-400 stroke-[3]" />
                                   Concluído esta semana
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                              <span className="text-[11px] font-bold text-slate-500">
+                              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300">
                                 {plan.exercises.length} exercícios • {totalSets} séries
                               </span>
                               {isDone && plan.completedAt ? (
                                 <>
-                                  <span className="text-slate-300 text-xs">•</span>
-                                  <span className="text-[11px] text-emerald-700 font-bold truncate">
+                                  <span className="text-slate-300 dark:text-slate-600 text-xs">•</span>
+                                  <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold truncate">
                                     {formatCompletionDate(plan.completedAt)}
                                   </span>
                                 </>
                               ) : plan.weekDays ? (
                                 <>
-                                  <span className="text-slate-300 text-xs">•</span>
-                                  <span className="text-[11px] text-blue-600 font-semibold truncate">
+                                  <span className="text-slate-300 dark:text-slate-600 text-xs">•</span>
+                                  <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate">
                                     {plan.weekDays}
                                   </span>
                                 </>
@@ -549,7 +549,7 @@ export default function WorkoutTab({
                           <button
                             type="button"
                             onClick={() => setActiveMenuPlanId(isMenuOpen ? null : plan.id)}
-                            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
+                            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
                             title="Mais opções da ficha"
                             aria-label="Mais opções"
                           >
@@ -562,16 +562,16 @@ export default function WorkoutTab({
                                 className="fixed inset-0 z-20"
                                 onClick={() => setActiveMenuPlanId(null)}
                               />
-                              <div className="absolute right-0 top-9 z-30 w-48 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                              <div className="absolute right-0 top-9 z-30 w-48 bg-white dark:bg-[#151D2F] rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1.5 animate-in fade-in zoom-in-95 duration-150">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     setActiveMenuPlanId(null);
                                     handleOpenEdit(plan);
                                   }}
-                                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 cursor-pointer"
                                 >
-                                  <Edit className="w-3.5 h-3.5 text-blue-600" />
+                                  <Edit className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                                   <span>Editar ficha e divisão</span>
                                 </button>
 
@@ -581,9 +581,9 @@ export default function WorkoutTab({
                                     setActiveMenuPlanId(null);
                                     onArchivePlan(plan);
                                   }}
-                                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                                  className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 cursor-pointer"
                                 >
-                                  <Archive className="w-3.5 h-3.5 text-amber-600" />
+                                  <Archive className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                   <span>Arquivar treino</span>
                                 </button>
 
@@ -598,9 +598,9 @@ export default function WorkoutTab({
                                         setPlanToDelete(plan);
                                       }
                                     }}
-                                    className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2.5 cursor-pointer border-t border-slate-100"
+                                    className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2.5 cursor-pointer border-t border-slate-100 dark:border-slate-800"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                    <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
                                     <span>{isTrainerPlan ? "Solicitar exclusão" : "Excluir ficha"}</span>
                                   </button>
                                 )}
@@ -619,10 +619,10 @@ export default function WorkoutTab({
                             <button
                               type="button"
                               onClick={() => togglePlanExpand(plan.id)}
-                              className="w-full py-2 px-3 rounded-xl bg-white/90 hover:bg-slate-50 border border-emerald-200/80 text-slate-600 font-semibold text-xs flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
+                              className="w-full py-2 px-3 rounded-xl bg-white/90 dark:bg-[#1E293B]/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-emerald-200/80 dark:border-emerald-800/60 text-slate-600 dark:text-slate-300 font-semibold text-xs flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
                             >
-                              <span className="flex items-center gap-1.5 text-slate-700 font-bold text-[11px]">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold text-[11px]">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                 <span>
                                   {isExpanded
                                     ? "Ocultar exercícios realizados"
@@ -641,18 +641,18 @@ export default function WorkoutTab({
                                 {plan.exercises.map((ex: Exercise, idx: number) => (
                                   <div
                                     key={ex.id || idx}
-                                    className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-100/90 transition-colors"
+                                    className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 dark:bg-[#1E293B]/70 hover:bg-slate-100/70 dark:hover:bg-[#1E293B] border border-slate-100/90 dark:border-slate-700/60 transition-colors"
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                      <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">
+                                      <span className="text-xs font-black text-slate-400 dark:text-slate-500 w-5 text-center shrink-0">
                                         {idx + 1}.
                                       </span>
-                                      <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                                      <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white truncate">
                                         {ex.name}
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
-                                      <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
+                                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-200 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700 shadow-2xs">
                                         {ex.sets || 3} séries × {ex.reps || "10-12"} reps
                                       </span>
                                     </div>
@@ -669,18 +669,18 @@ export default function WorkoutTab({
                             ).map((ex: Exercise, idx: number) => (
                               <div
                                 key={ex.id || idx}
-                                className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-100/90 transition-colors"
+                                className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50/80 dark:bg-[#1E293B]/70 hover:bg-slate-100/70 dark:hover:bg-[#1E293B] border border-slate-100/90 dark:border-slate-700/60 transition-colors"
                               >
                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                  <span className="text-xs font-black text-slate-400 w-5 text-center shrink-0">
+                                  <span className="text-xs font-black text-slate-400 dark:text-slate-500 w-5 text-center shrink-0">
                                     {idx + 1}.
                                   </span>
-                                  <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white truncate">
                                     {ex.name}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-2xs">
+                                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-200 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700 shadow-2xs">
                                     {ex.sets || 3} séries × {ex.reps || "10-12"} reps
                                   </span>
                                 </div>
@@ -692,7 +692,7 @@ export default function WorkoutTab({
                               <button
                                 type="button"
                                 onClick={() => togglePlanExpand(plan.id)}
-                                className="w-full py-2 mt-1 flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/70 rounded-xl transition-all cursor-pointer border border-blue-100/60 bg-blue-50/30"
+                                className="w-full py-2 mt-1 flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50/70 dark:hover:bg-blue-950/50 rounded-xl transition-all cursor-pointer border border-blue-100/60 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/30"
                               >
                                 <span>
                                   {isExpanded
@@ -700,36 +700,36 @@ export default function WorkoutTab({
                                     : `Ver todos os ${plan.exercises.length} exercícios (+${plan.exercises.length - 4})`}
                                 </span>
                                 {isExpanded ? (
-                                  <ChevronUp className="w-4 h-4 text-blue-600" />
+                                  <ChevronUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 ) : (
-                                  <ChevronDown className="w-4 h-4 text-blue-600" />
+                                  <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 )}
                               </button>
                             )}
                           </div>
                         )
                       ) : (
-                        <p className="my-3 text-xs text-slate-400 italic">
+                        <p className="my-3 text-xs text-slate-400 dark:text-slate-500 italic">
                           Nenhum exercício cadastrado nesta ficha.
                         </p>
                       )}
                     </div>
 
                     {/* Botões de Ação Ergonômicos (Apple HIG min 44px) */}
-                    <div className="flex gap-2.5 pt-2 border-t border-slate-100/80 mt-1">
+                    <div className="flex gap-2.5 pt-2 border-t border-slate-100/80 dark:border-slate-800 mt-1">
                       <button
                         type="button"
                         onClick={() => setSelectedPlanForPreview(plan)}
-                        className="flex-1 min-h-[44px] py-2 px-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                        className="flex-1 min-h-[44px] py-2 px-3 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                       >
-                        <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        <Eye className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" />
                         <span>Ver Exercícios</span>
                       </button>
 
                       {isDone ? (
                         <Link
                           href={`/student/workout-session/${plan.id}`}
-                          className="flex-[1.2] min-h-[44px] py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95 text-center"
+                          className="flex-[1.2] min-h-[44px] py-2 px-3 rounded-xl bg-slate-800 dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-slate-700 text-white font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95 text-center border dark:border-slate-700"
                         >
                           <RotateCcw className="w-3.5 h-3.5 text-slate-300" />
                           <span>Refazer Treino</span>
@@ -755,17 +755,17 @@ export default function WorkoutTab({
               Mantém o app 100% limpo, permitindo que o aluno reveja treinos antigos
               ========================================================================= */}
           {archivedPlans.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-slate-200/70">
+            <div className="mt-8 pt-6 border-t border-slate-200/70 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setIsArchivedSectionOpen(!isArchivedSectionOpen)}
-                className="w-full p-4 rounded-2xl bg-slate-100/70 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+                className="w-full p-4 rounded-2xl bg-slate-100/70 dark:bg-[#151D2F] hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99]"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
                     <Archive className="w-4 h-4" />
                   </div>
-                  <span className="text-slate-800">Fichas Arquivadas ({archivedPlans.length})</span>
+                  <span className="text-slate-800 dark:text-white">Fichas Arquivadas ({archivedPlans.length})</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   {archivedPlans.length > 0 && (
@@ -776,14 +776,14 @@ export default function WorkoutTab({
                         handleUnarchiveAll();
                       }}
                       disabled={isActionLoading}
-                      className="px-2.5 py-1 rounded-lg border border-slate-300 hover:border-blue-300 hover:bg-white text-slate-600 hover:text-blue-700 text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                       title="Restaurar todas as fichas arquivadas para a lista ativa"
                     >
                       <RotateCcw className="w-3 h-3" />
                       <span>Desarquivar Todos</span>
                     </button>
                   )}
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
                     <span>{isArchivedSectionOpen ? "Ocultar" : "Visualizar"}</span>
                     {isArchivedSectionOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </div>
@@ -795,24 +795,24 @@ export default function WorkoutTab({
                   {archivedPlans.map((plan: WorkoutPlan) => (
                     <div
                       key={plan.id}
-                      className="glass-card rounded-2xl p-5 border border-slate-200/70 bg-white/70 opacity-90 hover:opacity-100 transition-all flex flex-col justify-between"
+                      className="glass-card rounded-2xl p-5 border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-[#151D2F]/80 opacity-90 hover:opacity-100 transition-all flex flex-col justify-between"
                     >
                       <div className="flex justify-between items-start gap-3 mb-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-bold text-slate-500 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded">
+                            <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 px-1.5 py-0.5 rounded">
                               Arquivada
                             </span>
-                            <h4 className="text-sm font-bold text-slate-800">{plan.name}</h4>
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-white">{plan.name}</h4>
                           </div>
-                          <p className="text-[11px] text-slate-400 mt-1">
+                          <p className="text-[11px] text-slate-400 dark:text-slate-400 mt-1">
                             {plan.exercises.length} exercícios cadastrados
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => onArchivePlan(plan)}
-                          className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 font-bold text-xs flex items-center gap-1.5 hover:bg-blue-100 transition-all cursor-pointer active:scale-95"
+                          className="px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center gap-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all cursor-pointer active:scale-95"
                           title="Restaurar para as fichas ativas"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -824,13 +824,13 @@ export default function WorkoutTab({
                         <button
                           type="button"
                           onClick={() => setSelectedPlanForPreview(plan)}
-                          className="flex-1 py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-xs transition-colors cursor-pointer"
+                          className="flex-1 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs transition-colors cursor-pointer"
                         >
                           Ver Exercícios
                         </button>
                         <Link
                           href={`/student/workout-session/${plan.id}`}
-                          className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs text-center flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                          className="flex-1 py-2 px-3 rounded-xl bg-slate-800 dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-slate-700 text-white font-bold text-xs text-center flex items-center justify-center gap-2 transition-colors cursor-pointer border dark:border-slate-700"
                         >
                           <Dumbbell className="w-3.5 h-3.5 text-white" />
                           <span>Iniciar Treino</span>
@@ -850,36 +850,36 @@ export default function WorkoutTab({
           ========================================================================= */}
       {mounted && isBulkModalOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[calc(100dvh-2rem)] my-auto animate-scale-up">
+          <div className="w-full max-w-md bg-white dark:bg-[#151D2F] rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[calc(100dvh-2rem)] my-auto animate-scale-up">
             {/* Cabeçalho */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                   <SlidersHorizontal className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-[#0F172A]">Gerenciar Treinos</h3>
-                  <p className="text-[11px] text-[#64748B]">Organize a ordem, arquive ou exclua fichas</p>
+                  <h3 className="text-sm font-extrabold text-[#0F172A] dark:text-white">Gerenciar Treinos</h3>
+                  <p className="text-[11px] text-[#64748B] dark:text-slate-400">Organize a ordem, arquive ou exclua fichas</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsBulkModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Segmented Control Tabs */}
-            <div className="flex p-1 bg-slate-100 rounded-2xl gap-1 border border-slate-200/60 shrink-0 my-3">
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl gap-1 border border-slate-200/60 dark:border-slate-800 shrink-0 my-3">
               <button
                 type="button"
                 onClick={() => setBulkModalTab("actions")}
                 className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   bulkModalTab === "actions"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50"
                 }`}
               >
                 <Archive className="w-3.5 h-3.5" />
@@ -893,8 +893,8 @@ export default function WorkoutTab({
                 }}
                 className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   bulkModalTab === "reorder"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                    ? "bg-white dark:bg-[#1E293B] text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50"
                 }`}
               >
                 <ListOrdered className="w-3.5 h-3.5" />
@@ -905,27 +905,27 @@ export default function WorkoutTab({
             {bulkModalTab === "actions" ? (
               <>
                 <div className="overflow-y-auto min-h-0 flex-1 pr-1 space-y-3">
-                  <div className="p-3 rounded-2xl bg-blue-50/60 border border-blue-100 text-xs text-blue-900 leading-relaxed space-y-1">
+                  <div className="p-3 rounded-2xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 text-xs text-blue-900 dark:text-blue-200 leading-relaxed space-y-1">
                     <p className="font-semibold flex items-center gap-1.5 text-[11px] sm:text-xs">
                       💡 Organização Semanal Limpa
                     </p>
-                    <p className="text-[11px] text-blue-800">
+                    <p className="text-[11px] text-blue-800 dark:text-blue-300">
                       Ao arquivar, suas fichas saem da tela principal para você focar no novo ciclo, mas permanecem 100% salvas na gaveta de arquivados. Seus recordes de peso (PRs) e fotos continuam preservados!
                     </p>
                   </div>
 
                   {/* Seletor Todos */}
                   <div className="flex items-center justify-between px-1 py-1">
-                    <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                    <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={selectedPlanIds.length === activePlans.length && activePlans.length > 0}
                         onChange={handleToggleSelectAll}
-                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer"
                       />
                       <span>Selecionar Todos ({selectedPlanIds.length}/{activePlans.length})</span>
                     </label>
-                    <span className="text-[10px] text-slate-400 font-medium">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">
                       {selectedPlanIds.length} marcado{selectedPlanIds.length > 1 ? 's' : ''}
                     </span>
                   </div>
@@ -940,26 +940,26 @@ export default function WorkoutTab({
                           onClick={() => handleToggleSelectPlan(plan.id)}
                           className={`p-3 rounded-2xl border transition-all flex items-center gap-3 cursor-pointer select-none ${
                             isSelected
-                              ? "bg-blue-50/50 border-blue-300 shadow-xs"
-                              : "bg-slate-50 border-slate-200/80 hover:border-slate-300"
+                              ? "bg-blue-50/50 dark:bg-blue-950/50 border-blue-300 dark:border-blue-700 shadow-xs"
+                              : "bg-slate-50 dark:bg-[#1E293B]/70 border-slate-200/80 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {}}
-                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer pointer-events-none"
+                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer pointer-events-none"
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="w-5 h-5 rounded-md bg-blue-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
                                 {plan.division || "A"}
                               </span>
-                              <p className="text-xs font-bold text-slate-800 truncate">
+                              <p className="text-xs font-bold text-slate-800 dark:text-white truncate">
                                 {plan.name}
                               </p>
                             </div>
-                            <p className="text-[10px] text-slate-500 mt-0.5 ml-7">
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 ml-7">
                               {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
                             </p>
                           </div>
@@ -970,11 +970,11 @@ export default function WorkoutTab({
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2 shrink-0">
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => setIsBulkModalOpen(false)}
-                    className="py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition-colors cursor-pointer text-center"
+                    className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer text-center"
                   >
                     Cancelar
                   </button>
@@ -982,7 +982,7 @@ export default function WorkoutTab({
                     type="button"
                     disabled={selectedPlanIds.length === 0 || isActionLoading}
                     onClick={() => handleExecuteBulkAction("DELETE")}
-                    className="py-2.5 px-3 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition-colors cursor-pointer text-center disabled:opacity-50 disabled:pointer-events-none"
+                    className="py-2.5 px-3 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-bold text-xs transition-colors cursor-pointer text-center disabled:opacity-50 disabled:pointer-events-none"
                     title="Excluir fichas selecionadas"
                   >
                     Excluir ({selectedPlanIds.length})
@@ -1001,11 +1001,11 @@ export default function WorkoutTab({
             ) : (
               <>
                 <div className="overflow-y-auto min-h-0 flex-1 pr-1 space-y-3">
-                  <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed space-y-1">
+                  <div className="p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200 leading-relaxed space-y-1">
                     <p className="font-semibold flex items-center gap-1.5 text-[11px] sm:text-xs">
                       ↕️ Sequência Inteligente de Treinos
                     </p>
-                    <p className="text-[11px] text-amber-800">
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300">
                       A ordem abaixo define a sequência inteligente sugerida na tela inicial (ex: 1º Treino ➔ 2º Treino ➔ 3º Treino). Use as setas para mover cada treino para cima ou para baixo.
                     </p>
                   </div>
@@ -1044,10 +1044,10 @@ export default function WorkoutTab({
                           }}
                           className={`p-3 rounded-2xl border flex items-center justify-between gap-3 will-change-transform ${
                             isItemA
-                              ? "z-20 border-blue-400 bg-blue-50/90 shadow-lg shadow-blue-500/15 scale-[1.02]"
+                              ? "z-20 border-blue-400 dark:border-blue-500 bg-blue-50/90 dark:bg-blue-950/90 shadow-lg shadow-blue-500/15 scale-[1.02]"
                               : isItemB
-                              ? "z-10 border-slate-200/90 bg-slate-100/70 opacity-90 scale-[0.99]"
-                              : "border-slate-200 bg-slate-50 shadow-2xs hover:border-slate-300"
+                              ? "z-10 border-slate-200/90 dark:border-slate-700 bg-slate-100/70 dark:bg-slate-800/70 opacity-90 scale-[0.99]"
+                              : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1E293B]/70 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600"
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1055,7 +1055,7 @@ export default function WorkoutTab({
                               className={`w-6 h-6 rounded-lg font-extrabold text-[11px] flex items-center justify-center shrink-0 transition-colors ${
                                 isItemA
                                   ? "bg-blue-600 text-white shadow-xs shadow-blue-500/20"
-                                  : "bg-slate-200 text-slate-700"
+                                  : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
                               }`}
                             >
                               {index + 1}º
@@ -1064,10 +1064,10 @@ export default function WorkoutTab({
                               {plan.division || "A"}
                             </span>
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-bold text-slate-800 truncate">
+                              <p className="text-xs font-bold text-slate-800 dark:text-white truncate">
                                 {plan.name}
                               </p>
-                              <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                                 {plan.exercises?.length || 0} exercícios • {plan.weekDays || "Qualquer dia"}
                               </p>
                             </div>
@@ -1079,7 +1079,7 @@ export default function WorkoutTab({
                               type="button"
                               disabled={isFirst || isActionLoading || !!animatingSwap}
                               onClick={() => handleMovePlan(index, "up")}
-                              className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 active:scale-90 text-slate-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                              className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
                               title="Mover para cima"
                             >
                               <ArrowUp className="w-4 h-4" />
@@ -1088,7 +1088,7 @@ export default function WorkoutTab({
                               type="button"
                               disabled={isLast || isActionLoading || !!animatingSwap}
                               onClick={() => handleMovePlan(index, "down")}
-                              className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 active:scale-90 text-slate-700 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                              className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
                               title="Mover para baixo"
                             >
                               <ArrowDown className="w-4 h-4" />
@@ -1101,11 +1101,11 @@ export default function WorkoutTab({
                 </div>
 
                 {/* Botões de Ação para Salvar Ordem */}
-                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2 shrink-0">
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => setIsBulkModalOpen(false)}
-                    className="py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs transition-colors cursor-pointer text-center"
+                    className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer text-center"
                   >
                     Cancelar
                   </button>
@@ -1131,13 +1131,13 @@ export default function WorkoutTab({
           ========================================================================= */}
       {mounted && planToDelete && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 my-auto animate-scale-up">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+          <div className="w-full max-w-sm bg-white dark:bg-[#151D2F] rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 my-auto animate-scale-up">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
             <div className="text-center space-y-1">
-              <h3 className="text-base font-extrabold text-[#0F172A]">Excluir Ficha de Treino?</h3>
-              <p className="text-xs text-[#64748B] leading-relaxed">
+              <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white">Excluir Ficha de Treino?</h3>
+              <p className="text-xs text-[#64748B] dark:text-slate-300 leading-relaxed">
                 Tem certeza que deseja excluir <strong>{planToDelete.name}</strong>? Fique tranquilo: seus recordes de peso (PRs) e fotos continuam preservados no seu perfil.
               </p>
             </div>
@@ -1153,7 +1153,7 @@ export default function WorkoutTab({
               <button
                 type="button"
                 onClick={() => setPlanToDelete(null)}
-                className="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition-all cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1168,25 +1168,25 @@ export default function WorkoutTab({
           ========================================================================= */}
       {mounted && planToRequestDeletion && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto animate-scale-up max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+          <div className="w-full max-w-md bg-white dark:bg-[#151D2F] rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 my-auto animate-scale-up max-h-[calc(100dvh-2rem)] overflow-y-auto">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
               <Clock className="w-6 h-6" />
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-base font-extrabold text-[#0F172A]">Solicitar Exclusão da Ficha?</h3>
-              <p className="text-xs text-[#64748B] leading-relaxed">
+              <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white">Solicitar Exclusão da Ficha?</h3>
+              <p className="text-xs text-[#64748B] dark:text-slate-300 leading-relaxed">
                 Esta ficha foi prescrita pelo seu treinador. Ao solicitar a exclusão de <strong>{planToRequestDeletion.name}</strong>:
               </p>
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 text-left text-xs space-y-2 text-slate-700">
+              <div className="bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-3.5 text-left text-xs space-y-2 text-slate-700 dark:text-slate-200">
                 <p className="flex items-start gap-2">
-                  <span className="font-bold text-blue-600">•</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">•</span>
                   <span>O treinador será notificado e tem até <strong>3 dias</strong> para analisar e aceitar.</span>
                 </p>
                 <p className="flex items-start gap-2">
-                  <span className="font-bold text-emerald-600">•</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">•</span>
                   <span>Caso o treinador não conteste no prazo, a ficha será <strong>excluída automaticamente</strong>.</span>
                 </p>
-                <p className="flex items-start gap-2 text-slate-500 text-[11px] pt-1 border-t border-slate-200/60">
+                <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400 text-[11px] pt-1 border-t border-slate-200/60 dark:border-slate-700">
                   <span className="font-bold text-amber-500">💡</span>
                   <span>Se você só não quer ver esta ficha agora, prefira <strong>Arquivar</strong> (ela sai da sua tela imediatamente).</span>
                 </p>
@@ -1196,7 +1196,7 @@ export default function WorkoutTab({
               <button
                 type="button"
                 onClick={() => handleArchiveInstead(planToRequestDeletion)}
-                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+                className="w-full py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 border dark:border-slate-700"
               >
                 <Archive className="w-4 h-4" />
                 <span>Arquivar em vez de excluir (Imediato)</span>
@@ -1205,14 +1205,14 @@ export default function WorkoutTab({
                 type="button"
                 disabled={isActionLoading}
                 onClick={handleConfirmRequestDeletion}
-                className="w-full py-2.5 px-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 font-bold text-xs hover:bg-amber-100 transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                className="w-full py-2.5 px-4 rounded-xl border border-amber-300 dark:border-amber-800/80 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
               >
                 {isActionLoading ? "Enviando..." : "Confirmar Solicitação de Exclusão (3 dias)"}
               </button>
               <button
                 type="button"
                 onClick={() => setPlanToRequestDeletion(null)}
-                className="w-full py-2 px-4 rounded-xl text-slate-400 font-semibold text-xs hover:text-slate-600 transition-all cursor-pointer"
+                className="w-full py-2 px-4 rounded-xl text-slate-400 dark:text-slate-400 font-semibold text-xs hover:text-slate-600 dark:hover:text-white transition-all cursor-pointer"
               >
                 Cancelar
               </button>

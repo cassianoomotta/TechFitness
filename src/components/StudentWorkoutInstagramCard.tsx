@@ -57,7 +57,7 @@ export default function StudentWorkoutInstagramCard({
   return (
     <div
       onClick={() => onOpenZoom(currentPhoto, photos, currentIndex)}
-      className="w-32 sm:w-44 shrink-0 aspect-[3/4] rounded-2xl overflow-hidden relative group cursor-pointer border border-[#E2E8F0] shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all bg-slate-950 select-none"
+      className="w-32 sm:w-44 shrink-0 aspect-[3/4] rounded-2xl overflow-hidden relative group cursor-pointer border border-[#E2E8F0] dark:border-slate-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all bg-slate-950 select-none"
       title={`Ver check-ins de ${studentName} (${totalPhotos} ${totalPhotos === 1 ? "foto" : "fotos"})`}
     >
       {/* Imagem do Treino (com transição suave) */}
