@@ -1,5 +1,8 @@
-// TechFitness Service Worker - Notificações Oficiais de Sistema e Temporizador de Descanso
-const SW_VERSION = "techfitness-sw-v2";
+// TechFitness Service Worker - PWA e Gerenciamento de Cache
+const SW_VERSION = "techfitness-sw-v3";
+
+// Chave global para notificações nativas de sistema (desativada para celulares)
+const ENABLE_SYSTEM_NOTIFICATIONS = false;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -9,6 +12,19 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
+      // Fechar e limpar qualquer notificação nativa residual pendente no sistema do dispositivo móvel
+      (async () => {
+        try {
+          if (self.registration && typeof self.registration.getNotifications === "function") {
+            const notifications = await self.registration.getNotifications();
+            notifications.forEach((notification) => {
+              try {
+                notification.close();
+              } catch (_) {}
+            });
+          }
+        } catch (_) {}
+      })(),
       caches.keys().then((keys) => {
         return Promise.all(
           keys.filter((key) => key !== SW_VERSION).map((key) => caches.delete(key))
@@ -23,7 +39,7 @@ let restTimerTargetTimestamp = 0;
 let activeResolve = null;
 
 self.addEventListener("message", (event) => {
-  if (!event.data) return;
+  if (!ENABLE_SYSTEM_NOTIFICATIONS || !event.data) return;
 
   const { type } = event.data;
 
@@ -35,7 +51,6 @@ self.addEventListener("message", (event) => {
       url = "/student/workout-session",
     } = event.data;
 
-    // Cancela imediatamente qualquer agendamento pendente anterior
     if (restTimerTimeoutId) {
       clearTimeout(restTimerTimeoutId);
       restTimerTimeoutId = null;
@@ -49,13 +64,11 @@ self.addEventListener("message", (event) => {
     const targetTimestamp = Date.now() + durationSeconds * 1000;
     restTimerTargetTimestamp = targetTimestamp;
 
-    // Mantém o Service Worker ativo pelo tempo necessário do temporizador
     event.waitUntil(
       new Promise((resolve) => {
         activeResolve = resolve;
 
         restTimerTimeoutId = setTimeout(async () => {
-          // Se o temporizador foi cancelado ou substituído, aborta a notificação
           if (restTimerTargetTimestamp !== targetTimestamp) {
             resolve();
             return;
@@ -116,6 +129,7 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("notificationclick", (event) => {
+  if (!ENABLE_SYSTEM_NOTIFICATIONS) return;
   event.notification.close();
   const targetUrl = event.notification.data?.url || "/student/workout-session";
 

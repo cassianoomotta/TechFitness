@@ -23,6 +23,7 @@ import {
   Sparkles,
   Crown,
   Camera,
+  Image as ImageIcon,
   GripHorizontal,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
@@ -85,6 +86,14 @@ export default function WorkoutSessionPlayer() {
 
   // Tempo de Treino Geral
   const [totalSeconds, setTotalSeconds] = useState(0);
+
+  // Chaves de armazenamento persistente para resiliência a reloads no mobile
+  const STORAGE_KEY_SETS = `workout_sets_${planId}`;
+  const STORAGE_KEY_REST = `workout_rest_end_${planId}`;
+  const STORAGE_KEY_PLAN_CACHE = `workout_plan_cache_${planId}`;
+  const STORAGE_KEY_FINISH_MODAL = `workout_finish_modal_${planId}`;
+  const STORAGE_KEY_PHOTO = `workout_finish_photo_${planId}`;
+  const STORAGE_KEY_SATISFACTION = `workout_finish_satisfaction_${planId}`;
 
   // Estado das séries: Record<exerciseIndex, SetState[]>
   const [setsData, setSetsData] = useState<Record<number, SetState[]>>({});
@@ -155,10 +164,28 @@ export default function WorkoutSessionPlayer() {
 
   // Respeita o tempo de tela nativo do dispositivo (sem manter a tela ligada permanentemente)
 
-  // Solicitar permissão oficial de notificações nativas para a sessão de treino
+  // Solicitar permissão de notificações nativas para a sessão de treino (desativado quando ENABLE_SYSTEM_NOTIFICATIONS = false)
   useEffect(() => {
     requestNotificationPermission().catch(() => {});
   }, []);
+
+  // Restaurar estado do modal de finalização caso o navegador tenha recarregado (ex: app de câmera no Android)
+  useEffect(() => {
+    try {
+      const savedModal = localStorage.getItem(STORAGE_KEY_FINISH_MODAL);
+      if (savedModal === "true") {
+        setIsFinishModalOpen(true);
+      }
+      const savedPhoto = sessionStorage.getItem(STORAGE_KEY_PHOTO);
+      if (savedPhoto) {
+        setWorkoutPhoto(savedPhoto);
+      }
+      const savedSat = localStorage.getItem(STORAGE_KEY_SATISFACTION);
+      if (savedSat) {
+        setSatisfaction(Number(savedSat) || 6);
+      }
+    } catch {}
+  }, [STORAGE_KEY_FINISH_MODAL, STORAGE_KEY_PHOTO, STORAGE_KEY_SATISFACTION]);
 
   // Posição flutuante móvel do cronômetro de descanso (Draggable)
   const [timerPos, setTimerPos] = useState<{ x: number; y: number } | null>(null);
@@ -267,11 +294,6 @@ export default function WorkoutSessionPlayer() {
       window.removeEventListener("touchcancel", handlePointerEnd);
     };
   }, [isDraggingTimer]);
-
-  // Chaves do localStorage para persistência do treino
-  const STORAGE_KEY_SETS = `workout_sets_${planId}`;
-  const STORAGE_KEY_REST = `workout_rest_end_${planId}`;
-  const STORAGE_KEY_PLAN_CACHE = `workout_plan_cache_${planId}`;
 
   // Persistir setsData no localStorage sempre que mudar
   const updateSetsData = useCallback((newData: Record<number, SetState[]> | ((prev: Record<number, SetState[]>) => Record<number, SetState[]>)) => {
@@ -473,6 +495,28 @@ export default function WorkoutSessionPlayer() {
   const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
 
+  // Abertura e fechamento resiliente do modal de conclusão
+  const handleOpenFinishModal = useCallback(() => {
+    setIsFinishModalOpen(true);
+    try {
+      localStorage.setItem(STORAGE_KEY_FINISH_MODAL, "true");
+    } catch {}
+  }, [STORAGE_KEY_FINISH_MODAL]);
+
+  const handleCloseFinishModal = useCallback(() => {
+    setIsFinishModalOpen(false);
+    try {
+      localStorage.removeItem(STORAGE_KEY_FINISH_MODAL);
+    } catch {}
+  }, [STORAGE_KEY_FINISH_MODAL]);
+
+  const handleSetSatisfaction = (val: number) => {
+    setSatisfaction(val);
+    try {
+      localStorage.setItem(STORAGE_KEY_SATISFACTION, String(val));
+    } catch {}
+  };
+
   // Grupos do aluno para compartilhamento do check-in
   const [userGroups, setUserGroups] = useState<UserGroupOption[]>([]);
   const [userGroupsLoading, setUserGroupsLoading] = useState(false);
@@ -492,14 +536,19 @@ export default function WorkoutSessionPlayer() {
       localStorage.removeItem(STORAGE_KEY_SETS);
       localStorage.removeItem(STORAGE_KEY_REST);
       localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
+      localStorage.removeItem(STORAGE_KEY_FINISH_MODAL);
+      localStorage.removeItem(STORAGE_KEY_SATISFACTION);
+      sessionStorage.removeItem(STORAGE_KEY_PHOTO);
     } catch {}
     router.push("/student/dashboard");
   };
 
-  const photoInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -507,12 +556,17 @@ export default function WorkoutSessionPlayer() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new window.Image();
-      img.onload = () => {
+    setFinishLoading(true);
+    setFinishError("");
+
+    // Usar URL.createObjectURL para evitar alocar strings base64 gigantes na memória do Android
+    const objectUrl = URL.createObjectURL(file);
+    const img = new window.Image();
+
+    img.onload = () => {
+      try {
         const canvas = document.createElement("canvas");
-        const MAX_SIZE = 600;
+        const MAX_SIZE = 720;
         let width = img.width;
         let height = img.height;
 
@@ -533,14 +587,30 @@ export default function WorkoutSessionPlayer() {
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL("image/jpeg", 0.75);
+          const compressed = canvas.toDataURL("image/jpeg", 0.72);
           setWorkoutPhoto(compressed);
+          try {
+            sessionStorage.setItem(STORAGE_KEY_PHOTO, compressed);
+            localStorage.setItem(STORAGE_KEY_FINISH_MODAL, "true");
+          } catch {}
           setFinishError("");
         }
-      };
-      img.src = event.target?.result as string;
+      } catch (err) {
+        console.error("Erro ao comprimir imagem:", err);
+        setFinishError("Não foi possível processar a imagem. Tente escolher da galeria.");
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+        setFinishLoading(false);
+      }
     };
-    reader.readAsDataURL(file);
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      setFinishLoading(false);
+      setFinishError("Falha ao carregar a imagem. Tente selecionar da galeria.");
+    };
+
+    img.src = objectUrl;
   };
 
   // Cronômetro Geral do Treino (Timestamp-based)
@@ -785,7 +855,7 @@ export default function WorkoutSessionPlayer() {
     // Cancelar qualquer agendamento anterior
     cancelScheduledWhistles();
 
-    // Agendar notificação oficial de término exclusivamente no Service Worker (único emissor)
+    // Agendar notificação de término via Service Worker (se ativado nas configurações)
     scheduleRestNotification(
       validSeconds,
       "TechFitness — Hora do Show! 🏋️‍♂️",
@@ -793,7 +863,6 @@ export default function WorkoutSessionPlayer() {
       typeof window !== "undefined" ? window.location.pathname : "/student/workout-session"
     );
 
-    // Solicitar permissão de notificação se ainda não solicitou
     requestNotificationPermission().catch(() => {});
   };
 
@@ -844,6 +913,27 @@ export default function WorkoutSessionPlayer() {
         try { audioCtxRef.current.resume().catch(() => {}); } catch {}
       }
       startRestTimer(restSeconds || 60);
+
+      // Se todas as séries do treino foram concluídas, abrir automaticamente o modal de conclusão
+      if (plan && plan.exercises) {
+        const willBeAllCompleted = plan.exercises.every((ex, exI) => {
+          const setsCount = ex.sets || 1;
+          const currentSetsForEx = (setsDataRef.current[exI] || setsData[exI] || []).map((s: SetState, sI: number) =>
+            exI === exIndex && sI === setIndex ? { ...s, completed: true } : s
+          );
+          let done = 0;
+          for (let i = 0; i < setsCount; i++) {
+            if (currentSetsForEx[i]?.completed) done++;
+          }
+          return done >= setsCount;
+        });
+
+        if (willBeAllCompleted) {
+          setTimeout(() => {
+            handleOpenFinishModal();
+          }, 800);
+        }
+      }
     }
   };
 
@@ -958,7 +1048,10 @@ export default function WorkoutSessionPlayer() {
       localStorage.removeItem(STORAGE_KEY_SETS);
       localStorage.removeItem(STORAGE_KEY_REST);
       localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
+      localStorage.removeItem(STORAGE_KEY_FINISH_MODAL);
+      localStorage.removeItem(STORAGE_KEY_SATISFACTION);
       try {
+        sessionStorage.removeItem(STORAGE_KEY_PHOTO);
         localStorage.setItem("tf_last_completed_plan_id", planId);
 
         // Registrar no cache local da semana atual para feedback visual instantâneo
@@ -992,7 +1085,7 @@ export default function WorkoutSessionPlayer() {
         setUnlockedAchievements(data.newAchievements);
       }
 
-      setIsFinishModalOpen(false);
+      handleCloseFinishModal();
       setIsVictoryModalOpen(true);
     } catch {
       setFinishError("Erro de conexão ao salvar.");
@@ -1336,7 +1429,7 @@ export default function WorkoutSessionPlayer() {
         {/* Barra de Ação na Base */}
         <footer className="border-t border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#151D2F]/95 backdrop-blur-md p-4 pb-[calc(1.0rem+safe-area-inset-bottom)] flex gap-3 z-30 flex-none">
           <button
-            onClick={() => setIsFinishModalOpen(true)}
+            onClick={handleOpenFinishModal}
             className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/20 active:scale-[0.98]"
           >
             Finalizar Treino
@@ -1519,7 +1612,7 @@ export default function WorkoutSessionPlayer() {
           <div className="w-full max-w-md bg-white dark:bg-[#151D2F] rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] dark:border-slate-800 text-center max-h-[90vh] overflow-y-auto">
             
             <button
-              onClick={() => setIsFinishModalOpen(false)}
+              onClick={handleCloseFinishModal}
               className="absolute right-4 top-4 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -1547,11 +1640,21 @@ export default function WorkoutSessionPlayer() {
                   1. Foto de Comprovação (Obrigatória):
                 </label>
 
+                {/* Input dedicado para Câmera nativa */}
                 <input
-                  ref={photoInputRef}
+                  ref={cameraInputRef}
                   type="file"
                   accept="image/*"
                   capture="environment"
+                  className="hidden"
+                  onChange={handlePhotoCapture}
+                />
+
+                {/* Input dedicado para Galeria / Arquivos */}
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
                   className="hidden"
                   onChange={handlePhotoCapture}
                 />
@@ -1566,28 +1669,53 @@ export default function WorkoutSessionPlayer() {
                     <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold flex items-center gap-1 shadow-md">
                       <Check className="w-3 h-3" /> Foto Anexada
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => photoInputRef.current?.click()}
-                      className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-sm text-white text-[10px] font-bold transition-all cursor-pointer"
-                    >
-                      Tirar Outra
-                    </button>
+                    <div className="absolute bottom-2.5 inset-x-2.5 flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="flex-1 py-1.5 px-2 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-sm text-white text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                      >
+                        <Camera className="w-3 h-3" /> Tirar Outra
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        className="flex-1 py-1.5 px-2 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-sm text-white text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                      >
+                        <ImageIcon className="w-3 h-3" /> Trocar Foto
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => photoInputRef.current?.click()}
-                    className="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-[#2563EB]/40 dark:border-[#2563EB]/50 bg-[#2563EB]/5 dark:bg-[#2563EB]/10 hover:bg-[#2563EB]/10 dark:hover:bg-[#2563EB]/20 transition-all flex flex-col items-center justify-center gap-2 text-center cursor-pointer group"
-                  >
-                    <div className="p-3 rounded-full bg-[#2563EB]/10 dark:bg-blue-500/20 text-[#2563EB] dark:text-[#38BDF8] group-hover:scale-110 transition-transform">
-                      <Camera className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-[#0F172A] dark:text-white">Tirar Selfie / Foto do Treino</p>
-                      <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 mt-0.5">Formato vertical • Câmera ou galeria</p>
-                    </div>
-                  </button>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="py-4 px-3 rounded-2xl border-2 border-dashed border-[#2563EB]/40 dark:border-[#2563EB]/50 bg-[#2563EB]/5 dark:bg-[#2563EB]/10 hover:bg-[#2563EB]/10 dark:hover:bg-[#2563EB]/20 transition-all flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95"
+                    >
+                      <div className="p-2.5 rounded-full bg-[#2563EB]/10 dark:bg-blue-500/20 text-[#2563EB] dark:text-[#38BDF8] group-hover:scale-110 transition-transform">
+                        <Camera className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#0F172A] dark:text-white">Tirar Foto</p>
+                        <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 mt-0.5">Abrir câmera</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="py-4 px-3 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer group active:scale-95"
+                    >
+                      <div className="p-2.5 rounded-full bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 group-hover:scale-110 transition-transform">
+                        <ImageIcon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#0F172A] dark:text-white">Galeria</p>
+                        <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 mt-0.5">Escolher arquivo</p>
+                      </div>
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -1608,7 +1736,7 @@ export default function WorkoutSessionPlayer() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() => setSatisfaction(option.value)}
+                        onClick={() => handleSetSatisfaction(option.value)}
                         className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                           isSelected
                             ? option.value === 3

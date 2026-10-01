@@ -1,4 +1,12 @@
-// Utilitário para gerenciamento do Service Worker e Notificações Oficiais de Sistema
+// Utilitário para gerenciamento do Service Worker do TechFitness
+// Notificações de sistema operacional mantidas com chave de desativação global (ENABLE_SYSTEM_NOTIFICATIONS)
+
+/**
+ * Chave de controle global para notificações de sistema operacional no celular.
+ * Mantida desativada (false) por padrão para evitar instabilidades e bugs em navegadores móveis.
+ * Altere para true caso deseje reativar notificações de sistema nativas no futuro.
+ */
+export const ENABLE_SYSTEM_NOTIFICATIONS = false;
 
 /**
  * Registra o Service Worker oficial do TechFitness se suportado pelo navegador
@@ -22,9 +30,13 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 }
 
 /**
- * Solicita permissão nativa de notificações ao usuário
+ * Solicita permissão nativa de notificações ao usuário (desativado quando ENABLE_SYSTEM_NOTIFICATIONS = false)
  */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  if (!ENABLE_SYSTEM_NOTIFICATIONS) {
+    return "denied";
+  }
+
   if (typeof window === "undefined" || !("Notification" in window)) {
     return "denied";
   }
@@ -50,6 +62,10 @@ export async function scheduleRestNotification(
   body: string = "Tempo de descanso encerrado! Bora para a próxima série!",
   url: string = "/student/workout-session"
 ): Promise<boolean> {
+  if (!ENABLE_SYSTEM_NOTIFICATIONS) {
+    return false;
+  }
+
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
     return false;
   }
@@ -73,9 +89,13 @@ export async function scheduleRestNotification(
 }
 
 /**
- * Cancela a notificação de descanso agendada (ex: se o aluno pular o descanso)
+ * Cancela a notificação de descanso agendada
  */
 export async function cancelRestNotification(): Promise<boolean> {
+  if (!ENABLE_SYSTEM_NOTIFICATIONS) {
+    return false;
+  }
+
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
     return false;
   }
@@ -106,6 +126,10 @@ export async function showNativeNotification(
   title: string = "TechFitness — Hora do Show! 🏋️‍♂️",
   options?: ExtendedNotificationOptions
 ): Promise<boolean> {
+  if (!ENABLE_SYSTEM_NOTIFICATIONS) {
+    return false;
+  }
+
   if (typeof window === "undefined" || !("Notification" in window)) {
     return false;
   }
@@ -132,7 +156,6 @@ export async function showNativeNotification(
       }
     }
 
-    // Fallback para construtor de Notificação nativo em navegadores desktop
     new Notification(title, {
       icon: "/logo.png",
       badge: "/logo.png",
