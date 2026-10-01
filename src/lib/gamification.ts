@@ -429,13 +429,28 @@ export function getAchievementStatusHint(achievement: AchievementWithProgress): 
   }
 }
 
-// ── Volume de Carga & Tonelagem (Dopamina do Treino) ──
+// ── Volume de Carga e Tonelagem (Dopamina do Treino) ──
+
+export type TonnageCuriosityCategory = "animal" | "veiculo" | "construcao" | "epico" | "ciencia" | "espaco";
+
+export interface TonnageCuriosity {
+  label: string;
+  icon: string;
+  comparisonText: string;
+  category: TonnageCuriosityCategory;
+  funFact: string;
+}
 
 export interface TonnageComparison {
   tonnageKg: number;
   label: string;
   icon: string;
   comparisonText: string;
+  category?: string;
+  funFact?: string;
+  curiosities?: TonnageCuriosity[];
+  workJoules?: number;
+  workKcal?: number;
 }
 
 export function calculateSessionVolume(
@@ -450,50 +465,295 @@ export function calculateSessionVolume(
 
 export function getTonnageComparison(tonnageKg: number): TonnageComparison {
   const rounded = Math.round(tonnageKg);
+
+  // Estimativa biomecânica: W = m * g * h (~0.65m de amplitude média de movimento)
+  const workJoules = Math.round(rounded * 9.81 * 0.65);
+  // Eficiência mecânica humana ~22%, logo queima calórica muscular real estimada
+  const workKcal = Math.round(workJoules / 930);
+
+  let pool: TonnageCuriosity[] = [];
+
   if (rounded < 1000) {
-    return {
-      tonnageKg: rounded,
-      label: "Moto Esportiva",
-      icon: "🏍️",
-      comparisonText: "Você levantou o peso de uma moto esportiva inteira hoje!",
-    };
+    pool = [
+      {
+        label: "Moto Esportiva",
+        icon: "🏍️",
+        comparisonText: "Você ergueu o peso de uma moto esportiva de alta cilindrada hoje!",
+        category: "veiculo",
+        funFact: "Essa carga equivale a suspender mais de 30 caixas pesadas de livros de uma só vez.",
+      },
+      {
+        label: "Cavalo Puro-Sangue",
+        icon: "🐎",
+        comparisonText: "Você movimentou o equivalente a um cavalo puro-sangue campeão!",
+        category: "animal",
+        funFact: "Seus músculos geraram força suficiente para tracionar um equino de corrida em pleno galope.",
+      },
+      {
+        label: "Piano de Cauda",
+        icon: "🎹",
+        comparisonText: "Você ergueu o peso de um piano de cauda de concerto clássico inteiro!",
+        category: "construcao",
+        funFact: "Pianos de cauda possuem uma armação maciça de ferro fundido para suportar mais de 20 toneladas de tensão nas cordas.",
+      },
+      {
+        label: "Família de Leões",
+        icon: "🦁",
+        comparisonText: "Você ergueu o peso combinado de uma leoa e seus filhotes na savana!",
+        category: "animal",
+        funFact: "Grandes felinos contam com fibras de explosão rápida, e você sustentou essa carga com esforço muscular contínuo.",
+      },
+      {
+        label: "Satélite Starlink",
+        icon: "🛰️",
+        comparisonText: "Você movimentou a massa de um satélite orbital de telecomunicações Starlink!",
+        category: "espaco",
+        funFact: "Cada satélite desse tipo pesa de 300 a 800 kg e orbita a Terra a mais de 27.000 km por hora.",
+      },
+    ];
+  } else if (rounded < 2500) {
+    pool = [
+      {
+        label: "Carro Popular",
+        icon: "🚗",
+        comparisonText: "Você levantou o peso de um carro popular inteiro hoje!",
+        category: "veiculo",
+        funFact: "Se enfileirássemos as anilhas desse treino, daria a altura de um prédio de 3 andares!",
+      },
+      {
+        label: "40 Sacos de Cimento",
+        icon: "🏗️",
+        comparisonText: "Você ergueu o equivalente a 40 sacos de cimento de obras da construção civil!",
+        category: "construcao",
+        funFact: "Trabalhadores da construção civil levariam horas para manusear essa carga. Você fez isso em uma única sessão!",
+      },
+      {
+        label: "Dois Ursos Polares",
+        icon: "🐻‍❄️",
+        comparisonText: "Você movimentou o peso de dois dos maiores ursos polares da Terra!",
+        category: "animal",
+        funFact: "A força gerada nas suas séries superou a massa combinada dos maiores predadores terrestres do Ártico.",
+      },
+      {
+        label: "Cápsula de Retorno Espacial",
+        icon: "🚀",
+        comparisonText: "Você ergueu a massa de uma cápsula espacial projetada para reentrar na atmosfera!",
+        category: "espaco",
+        funFact: "Cápsulas espaciais suportam forças térmicas e gravitacionais extremas, e sua musculatura suportou uma carga de engenharia aeroespacial.",
+      },
+      {
+        label: "Grande Tubarão-Branco",
+        icon: "🦈",
+        comparisonText: "Você moveu o peso colossal de um grande tubarão-branco dos oceanos!",
+        category: "animal",
+        funFact: "Tubarões-brancos adultos pesam entre 1.100 e 2.000 kg. Seus músculos enfrentaram o peso do soberano dos mares.",
+      },
+    ];
+  } else if (rounded < 5000) {
+    pool = [
+      {
+        label: "Caminhonete 4x4",
+        icon: "🛻",
+        comparisonText: "Você levantou o peso de uma caminhonete 4x4 bruta hoje!",
+        category: "veiculo",
+        funFact: "O estresse tensional do treino envia sinais químicos para aumentar a densidade mineral dos seus ossos e tendões.",
+      },
+      {
+        label: "Rinoceronte Branco",
+        icon: "🦏",
+        comparisonText: "Você movimentou o peso de um rinoceronte branco gigante!",
+        category: "animal",
+        funFact: "Rinocerontes são os segundos maiores mamíferos terrestres. Seus músculos agiram como verdadeiras blindagens hoje.",
+      },
+      {
+        label: "Veículo Militar Blindado",
+        icon: "🛡️",
+        comparisonText: "Você ergueu o equivalente a um veículo militar blindado de transporte tático!",
+        category: "epico",
+        funFact: "Essa sobrecarga estimulou a liberação de miocinas protetoras que aceleram a taxa metabólica basal por até 36 horas.",
+      },
+      {
+        label: "Rover Marciano Perseverance",
+        icon: "🪐",
+        comparisonText: "Você ergueu mais de três vezes a massa do robô Perseverance em Marte!",
+        category: "espaco",
+        funFact: "O rover marciano da NASA pesa cerca de 1.025 kg e viajou mais de 470 milhões de quilômetros pelo espaço.",
+      },
+      {
+        label: "Dois Hipopótamos Adultos",
+        icon: "🦛",
+        comparisonText: "Você sustentou a massa combinada de dois hipopótamos adultos africanos!",
+        category: "animal",
+        funFact: "Hipopótamos possuem ossos extremamente densos para caminhar no fundo dos rios. Seu treino estimulou adaptação óssea semelhante.",
+      },
+    ];
+  } else if (rounded < 10000) {
+    pool = [
+      {
+        label: "Elefante Africano",
+        icon: "🐘",
+        comparisonText: "Impressionante! Você ergueu o peso de um elefante africano macho adulto!",
+        category: "animal",
+        funFact: "O elefante africano é o maior animal terrestre vivo da Terra. Você moveu esse gigante série por série!",
+      },
+      {
+        label: "T-Rex Jovem",
+        icon: "🦖",
+        comparisonText: "Força pré-histórica! Você movimentou o peso estimado de um Tiranossauro Rex jovem!",
+        category: "epico",
+        funFact: "A energia gasta pelo seu metabolismo durante esse treino seria suficiente para manter uma residência com luz acesa por dezenas de horas.",
+      },
+      {
+        label: "Helicóptero de Resgate",
+        icon: "🚁",
+        comparisonText: "Você ergueu a tonelagem inteira de um helicóptero bimotor de resgate!",
+        category: "veiculo",
+        funFact: "Seu coração bombeou dezenas de litros de sangue oxigenado para suportar cada contração muscular máxima.",
+      },
+      {
+        label: "Blocos da Grande Pirâmide",
+        icon: "🏛️",
+        comparisonText: "Você moveu o equivalente a 3 blocos maciços de pedra da Grande Pirâmide de Gizé!",
+        category: "construcao",
+        funFact: "Cada bloco de pedra das pirâmides egípcias pesava em média 2,5 toneladas e exigiu milhares de pessoas para ser transportado.",
+      },
+      {
+        label: "Caça Militar Supersônico",
+        icon: "✈️",
+        comparisonText: "Você levantou o peso a seco de um caça militar supersônico a jato!",
+        category: "veiculo",
+        funFact: "A tensão muscular que você imprimiu nas séries é comparável às forças G que pilotos de caça enfrentam em curvas extremas.",
+      },
+    ];
+  } else if (rounded < 20000) {
+    pool = [
+      {
+        label: "Caminhão de Carga Pesada",
+        icon: "🚛",
+        comparisonText: "Força de titã! Você movimentou o peso de um caminhão de carga pesada!",
+        category: "veiculo",
+        funFact: "Menos de 1% das pessoas no mundo conseguem movimentar mais de 10 toneladas em um único treino. Consistência de aço.",
+      },
+      {
+        label: "Ônibus Urbano Sanfonado",
+        icon: "🚌",
+        comparisonText: "Você levantou o peso equivalente a um ônibus urbano de transporte metropolitano!",
+        category: "veiculo",
+        funFact: "O estresse mecânico desse treino é o estímulo padrão ouro da ciência esportiva para hipertrofia e longevidade neuromuscular.",
+      },
+      {
+        label: "Vigas de Aço da Torre Eiffel",
+        icon: "🗼",
+        comparisonText: "Você ergueu o equivalente a 3 vigas mestras de aço puro da Torre Eiffel de Paris!",
+        category: "construcao",
+        funFact: "Sob cargas monumentais de mais de 10 toneladas, o sistema nervoso central recruta unidades motoras de altíssimo limiar com máxima eficiência.",
+      },
+      {
+        label: "Estátua Moai da Ilha de Páscoa",
+        icon: "🗿",
+        comparisonText: "Você moveu o peso de uma estátua colossal Moai esculpida em rocha vulcânica!",
+        category: "construcao",
+        funFact: "Os Moais da Ilha de Páscoa têm alturas que chegam a 10 metros e desafiaram gerações de arqueólogos pelo peso titânico.",
+      },
+      {
+        label: "Sino do Big Ben",
+        icon: "🔔",
+        comparisonText: "Você ergueu a massa inteira do famoso sino Great Bell da torre do Big Ben em Londres!",
+        category: "construcao",
+        funFact: "O famoso sino inglês pesa cerca de 13,7 toneladas e seu som reverbera por quilômetros. Sua força hoje reverberou no ginásio!",
+      },
+    ];
+  } else if (rounded < 35000) {
+    pool = [
+      {
+        label: "Avião Comercial a Jato",
+        icon: "✈️",
+        comparisonText: "Nível lendário! Você movimentou a tonelagem de um avião comercial a jato com passageiros!",
+        category: "veiculo",
+        funFact: "Isso equivale a erguer 1.400 anilhas olímpicas de 20 kg. Uma sessão colossal que entra para a sua história pessoal.",
+      },
+      {
+        label: "Baleia Jubarte dos Oceanos",
+        icon: "🐋",
+        comparisonText: "Você moveu o peso monumental de uma baleia jubarte nadando pelos oceanos!",
+        category: "animal",
+        funFact: "Com essa tonelagem, o consumo de oxigênio pós-treino (EPOC) manterá sua queima calórica e regeneração celular aceleradas até amanhã.",
+      },
+      {
+        label: "Carreta Bi-Trem Carregada",
+        icon: "🚚",
+        comparisonText: "Potência brutal! Você deslocou o peso de uma carreta rodoviária bi-trem inteira!",
+        category: "veiculo",
+        funFact: "Treinos com esse volume de trabalho são marcas de atletas de elite de levantamento de peso e fisiculturismo de alta performance.",
+      },
+      {
+        label: "Módulo Lunar Apollo",
+        icon: "🌕",
+        comparisonText: "Você sustentou a massa de dois módulos lunares que pousaram astronautas na Lua!",
+        category: "espaco",
+        funFact: "O módulo de descida da missão Apollo pesava cerca de 15 toneladas com combustível. Você superou essa façanha com pura contração muscular.",
+      },
+      {
+        label: "Vagão de Trem Metropolitano",
+        icon: "🚃",
+        comparisonText: "Você moveu o peso estrutural de um vagão inteiro de trem de passageiros moderno!",
+        category: "veiculo",
+        funFact: "O trabalho físico que você executou hoje exigiu uma cascata metabólica que eleva o reparo muscular e a síntese proteica por 48 horas.",
+      },
+    ];
+  } else {
+    pool = [
+      {
+        label: "Armadura Hulkbuster Maciça",
+        icon: "⚡",
+        comparisonText: "Força Divina! Você superou o peso de uma armadura mecânica Hulkbuster maciça!",
+        category: "epico",
+        funFact: "Você atingiu o ápice absoluto da capacidade física humana em um único treino. Um verdadeiro Titã do Olimpo.",
+      },
+      {
+        label: "Fração da Estátua da Liberdade",
+        icon: "🗽",
+        comparisonText: "Treino histórico! Você movimentou uma fração expressiva do peso da Estátua da Liberdade!",
+        category: "construcao",
+        funFact: "A densidade desse treino é lendária. Descanse, se alimente bem e hidrate-se: seu corpo fez história hoje.",
+      },
+      {
+        label: "Foguete Orbital Falcon 9",
+        icon: "🚀",
+        comparisonText: "Você ergueu a massa estrutural inteira de um primeiro estágio de foguete orbital Falcon 9!",
+        category: "espaco",
+        funFact: "O primeiro estágio desse foguete sem combustível pesa cerca de 25 toneladas. Você superou esse marco aeroespacial com fibra muscular pura.",
+      },
+      {
+        label: "Tubarão Megalodonte",
+        icon: "🌊",
+        comparisonText: "Você movimentou o peso estimado do maior predador marinho de todos os tempos: o Megalodonte!",
+        category: "animal",
+        funFact: "Com mais de 40 toneladas de força, sua sessão de treino colocou seu nome no hall dos guerreiros mais dedicados da plataforma.",
+      },
+      {
+        label: "Colosso de Rodes do Mundo Antigo",
+        icon: "🏛️",
+        comparisonText: "Você sustentou a massa das fundações de bronze do lendário Colosso de Rodes!",
+        category: "epico",
+        funFact: "Uma das Sete Maravilhas do Mundo Antigo, essa estátua lendária simbolizava a vitória da persistência e da força humana inabalável.",
+      },
+    ];
   }
-  if (rounded < 2500) {
-    return {
-      tonnageKg: rounded,
-      label: "Carro Popular",
-      icon: "🚗",
-      comparisonText: "Você levantou o peso de um carro popular inteiro hoje!",
-    };
-  }
-  if (rounded < 5000) {
-    return {
-      tonnageKg: rounded,
-      label: "Caminhonete 4x4",
-      icon: "🛻",
-      comparisonText: "Você levantou o peso de uma caminhonete 4x4 bruta hoje!",
-    };
-  }
-  if (rounded < 10000) {
-    return {
-      tonnageKg: rounded,
-      label: "Elefante Africano",
-      icon: "🐘",
-      comparisonText: "Impressionante! Você ergueu o peso de um elefante africano hoje!",
-    };
-  }
-  if (rounded < 20000) {
-    return {
-      tonnageKg: rounded,
-      label: "Caminhão de Carga",
-      icon: "🚛",
-      comparisonText: "Força de titã! Você movimentou o peso de um caminhão carregado!",
-    };
-  }
+
+  // Selecionar o item principal e disponibilizar todos do pool para alternância
+  const selectedIndex = Math.abs(rounded) % pool.length;
+  const primary = pool[selectedIndex] || pool[0];
+
   return {
     tonnageKg: rounded,
-    label: "Avião Comercial",
-    icon: "✈️",
-    comparisonText: "Nível lendário! Você movimentou a tonelagem de um avião comercial!",
+    label: primary.label,
+    icon: primary.icon,
+    comparisonText: primary.comparisonText,
+    category: primary.category,
+    funFact: primary.funFact,
+    curiosities: pool,
+    workJoules,
+    workKcal,
   };
 }

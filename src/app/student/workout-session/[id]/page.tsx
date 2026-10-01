@@ -27,14 +27,13 @@ import {
   GripHorizontal,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
+import type { TonnageComparison } from "@/lib/gamification";
 import {
   scheduleRestNotification,
   cancelRestNotification,
   requestNotificationPermission,
 } from "@/lib/sw-utils";
 import { usePictureInPictureTimer } from "@/hooks/usePictureInPictureTimer";
-
-
 
 interface Exercise {
   id: string;
@@ -74,6 +73,25 @@ interface UserGroupOption {
   name: string;
   icon: string;
   membersCount: number;
+}
+
+interface VictoryDataState {
+  volumeKg: number;
+  tonnageComparison: TonnageComparison;
+  photoUrl?: string | null;
+  xpEarned: number;
+  totalXp?: number;
+  level: number;
+  levelTitle: string;
+  prsBeaten: Array<{ exerciseName: string; weight: number; previousWeight: number }>;
+  newAchievements: Array<{
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    xpReward: number;
+    tier: number;
+  }>;
 }
 
 export default function WorkoutSessionPlayer() {
@@ -525,7 +543,7 @@ export default function WorkoutSessionPlayer() {
 
   // Modal de Vitória Épica
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
-  const [victoryData, setVictoryData] = useState<any | null>(null);
+  const [victoryData, setVictoryData] = useState<VictoryDataState | null>(null);
 
   // Modal de Cancelamento de Treino
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
