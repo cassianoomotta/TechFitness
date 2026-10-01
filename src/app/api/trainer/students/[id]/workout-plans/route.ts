@@ -114,7 +114,77 @@ export async function POST(
       });
     }
 
-    // Função interna para criar um plano com seus exercícios
+    // 1. Pré-processar e resolver todos os exercícios em lote (fora da transação para performance máxima)
+    const incomingPlans: SavePlanItem[] = Array.isArray(body.plans) && body.plans.length > 0
+      ? body.plans
+      : [body];
+
+    const allExercisesList: SaveExerciseItem[] = incomingPlans.flatMap((p) => p.exercises || []);
+
+    const idList = allExercisesList
+      .map((e) => e.exerciseId)
+      .filter((id): id is string => Boolean(id && typeof id === "string" && id.trim()));
+
+    const nameList = Array.from(
+      new Set(
+        allExercisesList
+          .map((e) => (e.name || e.customName || "").trim())
+          .filter(Boolean)
+      )
+    );
+
+    // Buscar todos os exercícios existentes em uma única query
+    const existingInDb = await prisma.exercise.findMany({
+      where: {
+        OR: [
+          ...(idList.length > 0 ? [{ id: { in: idList } }] : []),
+          ...(nameList.length > 0 ? [{ name: { in: nameList, mode: "insensitive" as const } }] : []),
+        ],
+      },
+    });
+
+    const exerciseIdMap = new Map<string, string>();
+
+    for (const ex of existingInDb) {
+      exerciseIdMap.set(ex.id, ex.id);
+      exerciseIdMap.set(ex.name.toLowerCase().trim(), ex.id);
+    }
+
+    // Identificar exercícios que não existem no banco para criá-los em lote
+    const missingToCreate = new Map<string, SaveExerciseItem>();
+    for (const ex of allExercisesList) {
+      const name = (ex.name || ex.customName || "Exercício").trim();
+      const hasId = ex.exerciseId && exerciseIdMap.has(ex.exerciseId);
+      const hasName = exerciseIdMap.has(name.toLowerCase());
+      if (!hasId && !hasName && !missingToCreate.has(name.toLowerCase())) {
+        missingToCreate.set(name.toLowerCase(), ex);
+      }
+    }
+
+    if (missingToCreate.size > 0) {
+      await prisma.exercise.createMany({
+        data: Array.from(missingToCreate.values()).map((ex) => ({
+          name: (ex.name || ex.customName || "Exercício").trim(),
+          muscleGroup: ex.muscleGroup || "Geral",
+          equipment: ex.equipment || "Livre",
+          description: "Exercício cadastrado no treino",
+        })),
+        skipDuplicates: true,
+      });
+
+      const newlyCreated = await prisma.exercise.findMany({
+        where: {
+          name: { in: Array.from(missingToCreate.keys()), mode: "insensitive" as const },
+        },
+      });
+
+      for (const ne of newlyCreated) {
+        exerciseIdMap.set(ne.id, ne.id);
+        exerciseIdMap.set(ne.name.toLowerCase().trim(), ne.id);
+      }
+    }
+
+    // Função interna para criar um plano com seus exercícios usando o mapa em memória
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createSinglePlanRecord = async (tx: any, planData: SavePlanItem) => {
       let formattedWeekDays: string[] | undefined = undefined;
@@ -139,37 +209,14 @@ export async function POST(
       for (let i = 0; i < planData.exercises.length; i++) {
         const ex = planData.exercises[i];
         const exerciseName = (ex.name || ex.customName || "Exercício").trim();
-        let targetId: string;
-        let existingEx = null;
-        if (ex.exerciseId && typeof ex.exerciseId === "string" && ex.exerciseId.trim()) {
-          existingEx = await tx.exercise.findUnique({ where: { id: ex.exerciseId.trim() } });
-        }
+        let targetId = (ex.exerciseId && exerciseIdMap.get(ex.exerciseId))
+          || exerciseIdMap.get(exerciseName.toLowerCase());
 
-        if (existingEx) {
-          targetId = existingEx.id;
-        } else {
-          // Tentar encontrar por nome case-insensitive
-          const foundByName = await tx.exercise.findFirst({
+        if (!targetId) {
+          const fallback = await tx.exercise.findFirst({
             where: { name: { equals: exerciseName, mode: "insensitive" } },
           });
-
-          if (foundByName) {
-            targetId = foundByName.id;
-          } else {
-            const createdOrFound = await tx.exercise.upsert({
-              where: { name: exerciseName },
-              update: {},
-              create: {
-                name: exerciseName,
-                muscleGroup: ex.muscleGroup || "Geral",
-                equipment: ex.equipment || "Livre",
-                description: "Exercício cadastrado no treino",
-                gifUrl: null,
-                videoUrl: null,
-              },
-            });
-            targetId = createdOrFound.id;
-          }
+          targetId = fallback?.id || (existingInDb[0]?.id || "");
         }
 
         exercisesPayload.push({
@@ -196,27 +243,31 @@ export async function POST(
 
     // Caso 1: Salvamento em lote (múltiplas fichas A, B, C...)
     if (Array.isArray(body.plans) && body.plans.length > 0) {
-      const createdPlans = await prisma.$transaction(async (tx) => {
-        const results = [];
-        for (const p of body.plans) {
-          if (p.name && Array.isArray(p.exercises) && p.exercises.length > 0) {
-            const created = await createSinglePlanRecord(tx, p);
-            results.push(created);
+      const createdPlans = await prisma.$transaction(
+        async (tx) => {
+          const results = [];
+          for (const p of body.plans) {
+            if (p.name && Array.isArray(p.exercises) && p.exercises.length > 0) {
+              const created = await createSinglePlanRecord(tx, p);
+              results.push(created);
+            }
           }
-        }
 
-        if (results.length > 0) {
-          await tx.notification.create({
-            data: {
-              userId: student.userId,
-              title: "Novos Treinos Cadastrados 🏋️‍♂️",
-              message: `Seu treinador ${session.user.name} cadastrou ${results.length} novas fichas de treino para você.`,
-            },
-          });
-        }
+          if (results.length > 0 && student.userId) {
+            const trainerName = session.user.name || "Seu treinador";
+            await tx.notification.create({
+              data: {
+                userId: student.userId,
+                title: "Novos Treinos Cadastrados 🏋️‍♂️",
+                message: `${trainerName} cadastrou ${results.length} novas fichas de treino para você.`,
+              },
+            });
+          }
 
-        return results;
-      });
+          return results;
+        },
+        { timeout: 35000, maxWait: 10000 }
+      );
 
       return NextResponse.json(
         { success: true, count: createdPlans.length, plans: createdPlans },
@@ -232,25 +283,32 @@ export async function POST(
       );
     }
 
-    const newPlan = await prisma.$transaction(async (tx) => {
-      const plan = await createSinglePlanRecord(tx, body);
+    const newPlan = await prisma.$transaction(
+      async (tx) => {
+        const plan = await createSinglePlanRecord(tx, body);
 
-      await tx.notification.create({
-        data: {
-          userId: student.userId,
-          title: "Novo Treino Cadastrado 🏋️‍♂️",
-          message: `Seu treinador ${session.user.name} cadastrou uma nova ficha: ${plan.name} (Divisão ${plan.division}).`,
-        },
-      });
+        if (student.userId) {
+          const trainerName = session.user.name || "Seu treinador";
+          await tx.notification.create({
+            data: {
+              userId: student.userId,
+              title: "Novo Treino Cadastrado 🏋️‍♂️",
+              message: `${trainerName} cadastrou uma nova ficha: ${plan.name} (Divisão ${plan.division}).`,
+            },
+          });
+        }
 
-      return plan;
-    });
+        return plan;
+      },
+      { timeout: 35000, maxWait: 10000 }
+    );
 
     return NextResponse.json(newPlan, { status: 201 });
-  } catch (error) {
-    console.error("ERRO AO CRIAR PLANO DE TREINO:", error);
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("ERRO AO CRIAR PLANO DE TREINO:", errorMsg, error);
     return NextResponse.json(
-      { error: "Ocorreu um erro interno ao salvar o plano de treino." },
+      { error: `Erro ao salvar plano de treino: ${errorMsg}` },
       { status: 500 }
     );
   }
