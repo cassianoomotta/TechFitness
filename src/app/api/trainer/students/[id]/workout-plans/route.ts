@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
+
 const workoutPlanSchema = z.object({
   name: z.string().min(2, "O nome do treino deve ter pelo menos 2 caracteres"),
   description: z.string().optional().nullable(),
@@ -10,13 +12,16 @@ const workoutPlanSchema = z.object({
   weekDays: z.string().optional().nullable(),
   exercises: z.array(
     z.object({
-      exerciseId: z.string().min(1, "Selecione um exercício válido"),
-      sets: z.number().int().min(1, "Mínimo 1 série"),
+      exerciseId: z.string().optional().nullable(),
+      name: z.string().optional().nullable(),
+      muscleGroup: z.string().optional().nullable(),
+      equipment: z.string().optional().nullable(),
+      sets: z.coerce.number().int().min(1, "Mínimo 1 série"),
       reps: z.string().min(1, "Defina a faixa de repetições"),
-      restSeconds: z.number().int().min(0),
+      restSeconds: z.coerce.number().int().min(0),
       method: z.string().default("Normal"),
-      recommendedRpe: z.number().int().min(1).max(10).optional().nullable(),
-      recommendedWeight: z.number().optional().nullable(),
+      recommendedRpe: z.coerce.number().int().min(1).max(10).optional().nullable(),
+      recommendedWeight: z.coerce.number().optional().nullable(),
       notes: z.string().optional().nullable(),
       customName: z.string().optional().nullable(),
     })
@@ -25,10 +30,10 @@ const workoutPlanSchema = z.object({
 
 interface SaveExerciseItem {
   exerciseId?: string | null;
-  name: string;
+  name?: string | null;
   customName?: string | null;
-  muscleGroup?: string;
-  equipment?: string;
+  muscleGroup?: string | null;
+  equipment?: string | null;
   sets: number;
   reps: string;
   restSeconds: number;
@@ -133,28 +138,38 @@ export async function POST(
       const exercisesPayload = [];
       for (let i = 0; i < planData.exercises.length; i++) {
         const ex = planData.exercises[i];
+        const exerciseName = (ex.name || ex.customName || "Exercício").trim();
         let targetId: string;
         let existingEx = null;
-        if (ex.exerciseId) {
-          existingEx = await tx.exercise.findUnique({ where: { id: ex.exerciseId } });
+        if (ex.exerciseId && typeof ex.exerciseId === "string" && ex.exerciseId.trim()) {
+          existingEx = await tx.exercise.findUnique({ where: { id: ex.exerciseId.trim() } });
         }
 
         if (existingEx) {
           targetId = existingEx.id;
         } else {
-          const createdOrFound = await tx.exercise.upsert({
-            where: { name: ex.name },
-            update: {},
-            create: {
-              name: ex.name,
-              muscleGroup: ex.muscleGroup || "Geral",
-              equipment: ex.equipment || "Livre",
-              description: "Exercício cadastrado via importação de treino",
-              gifUrl: null,
-              videoUrl: null,
-            },
+          // Tentar encontrar por nome case-insensitive
+          const foundByName = await tx.exercise.findFirst({
+            where: { name: { equals: exerciseName, mode: "insensitive" } },
           });
-          targetId = createdOrFound.id;
+
+          if (foundByName) {
+            targetId = foundByName.id;
+          } else {
+            const createdOrFound = await tx.exercise.upsert({
+              where: { name: exerciseName },
+              update: {},
+              create: {
+                name: exerciseName,
+                muscleGroup: ex.muscleGroup || "Geral",
+                equipment: ex.equipment || "Livre",
+                description: "Exercício cadastrado no treino",
+                gifUrl: null,
+                videoUrl: null,
+              },
+            });
+            targetId = createdOrFound.id;
+          }
         }
 
         exercisesPayload.push({
@@ -332,19 +347,56 @@ export async function PUT(
       });
 
       // 3. Criar os novos exercícios da ficha
-      const exercisesPayload = exercises.map((ex, index) => ({
-        workoutPlanId: planId,
-        exerciseId: ex.exerciseId,
-        sets: Number(ex.sets),
-        reps: ex.reps,
-        restSeconds: Number(ex.restSeconds),
-        method: ex.method,
-        recommendedRpe: ex.recommendedRpe || null,
-        recommendedWeight: ex.recommendedWeight || null,
-        notes: ex.notes || null,
-        customName: ex.customName || null,
-        order: index,
-      }));
+      const exercisesPayload = [];
+      for (let i = 0; i < exercises.length; i++) {
+        const ex = exercises[i];
+        const exerciseName = (ex.name || ex.customName || "Exercício").trim();
+        let targetId: string;
+        let existingEx = null;
+        if (ex.exerciseId && typeof ex.exerciseId === "string" && ex.exerciseId.trim()) {
+          existingEx = await tx.exercise.findUnique({ where: { id: ex.exerciseId.trim() } });
+        }
+
+        if (existingEx) {
+          targetId = existingEx.id;
+        } else {
+          const foundByName = await tx.exercise.findFirst({
+            where: { name: { equals: exerciseName, mode: "insensitive" } },
+          });
+
+          if (foundByName) {
+            targetId = foundByName.id;
+          } else {
+            const createdOrFound = await tx.exercise.upsert({
+              where: { name: exerciseName },
+              update: {},
+              create: {
+                name: exerciseName,
+                muscleGroup: ex.muscleGroup || "Geral",
+                equipment: ex.equipment || "Livre",
+                description: "Exercício cadastrado no treino",
+                gifUrl: null,
+                videoUrl: null,
+              },
+            });
+            targetId = createdOrFound.id;
+          }
+        }
+
+        exercisesPayload.push({
+          workoutPlanId: planId,
+          exerciseId: targetId,
+          sets: Number(ex.sets),
+          reps: ex.reps,
+          restSeconds: Number(ex.restSeconds),
+          method: ex.method,
+          recommendedRpe: ex.recommendedRpe || null,
+          recommendedWeight: ex.recommendedWeight || null,
+          notes: ex.notes || null,
+          customName: ex.customName || null,
+          order: i,
+        });
+      }
 
       await tx.workoutPlanExercise.createMany({
         data: exercisesPayload,
@@ -401,18 +453,9 @@ export async function PUT(
           });
 
           // Inserir os novos exercícios
-          const lpExercisesPayload = exercises.map((ex, index) => ({
+          const lpExercisesPayload = exercisesPayload.map((ep) => ({
+            ...ep,
             workoutPlanId: lp.id,
-            exerciseId: ex.exerciseId,
-            sets: Number(ex.sets),
-            reps: ex.reps,
-            restSeconds: Number(ex.restSeconds),
-            method: ex.method,
-            recommendedRpe: ex.recommendedRpe || null,
-            recommendedWeight: ex.recommendedWeight || null,
-            notes: ex.notes || null,
-            customName: ex.customName || null,
-            order: index,
           }));
           await tx.workoutPlanExercise.createMany({
             data: lpExercisesPayload,

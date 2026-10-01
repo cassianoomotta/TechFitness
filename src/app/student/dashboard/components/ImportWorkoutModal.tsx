@@ -337,8 +337,14 @@ export default function ImportWorkoutModal({
       }
 
       setSuccess(true);
+      if (onPlanImported) {
+        try {
+          await onPlanImported();
+        } catch (e) {
+          console.error("Erro ao atualizar lista:", e);
+        }
+      }
       setTimeout(() => {
-        if (onPlanImported) onPlanImported();
         handleResetAndClose();
       }, 1200);
     } catch (err: unknown) {

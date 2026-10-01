@@ -145,7 +145,10 @@ export default function NewPlanPage() {
   // Carregar dados do aluno
   const fetchStudentDetails = async () => {
     try {
-      const response = await fetch(`/api/trainer/students/${studentId}`);
+      const response = await fetch(`/api/trainer/students/${studentId}?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       if (!response.ok) {
         router.push("/trainer/dashboard");
         return;
@@ -390,7 +393,11 @@ export default function NewPlanPage() {
           weekDays: weekDays.length > 0 ? weekDays.join(",") : null,
           updateLinked,
           exercises: selectedExercises.map((ex) => ({
-            exerciseId: ex.exerciseId,
+            exerciseId: ex.exerciseId || null,
+            name: ex.name,
+            customName: ex.customName || null,
+            muscleGroup: ex.muscleGroup || "Geral",
+            equipment: ex.equipment || "Livre",
             sets: Number(ex.sets),
             reps: ex.reps,
             restSeconds: Number(ex.restSeconds),
@@ -398,7 +405,6 @@ export default function NewPlanPage() {
             recommendedRpe: ex.recommendedRpe ? Number(ex.recommendedRpe) : null,
             recommendedWeight: ex.recommendedWeight ? Number(ex.recommendedWeight) : null,
             notes: ex.notes || null,
-            customName: ex.customName || null,
           })),
         }),
       });

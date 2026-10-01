@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 // GET: Buscar dados de um aluno específico se ele for vinculado ao personal logado
 export async function GET(
   request: Request,
