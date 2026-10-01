@@ -17,6 +17,8 @@ import {
   ArrowLeft,
   Plus,
   Search,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 export interface ParsedExercise {
@@ -103,6 +105,10 @@ export default function ImportWorkoutModal({
   const [pickerSearch, setPickerSearch] = useState("");
   const [pickerMuscle, setPickerMuscle] = useState("Todos");
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
+  // Estados de Ordenação e Animação Deslizante
+  const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
+  const [animatingDirection, setAnimatingDirection] = useState<"up" | "down" | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -359,6 +365,8 @@ export default function ImportWorkoutModal({
     setPickerSearch("");
     setPickerMuscle("Todos");
     setRecentlyAddedId(null);
+    setAnimatingIndex(null);
+    setAnimatingDirection(null);
     onClose();
   };
 
@@ -442,6 +450,90 @@ export default function ImportWorkoutModal({
     setTimeout(() => {
       setRecentlyAddedId(null);
     }, 1500);
+  };
+
+  const handleMoveExerciseUp = (index: number) => {
+    if (parsedPlans.length === 0 || index === 0 || animatingIndex !== null) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current) return;
+
+    setAnimatingIndex(index);
+    setAnimatingDirection("up");
+
+    setTimeout(() => {
+      const updatedExercises = [...current.exercises];
+      const temp = updatedExercises[index];
+      updatedExercises[index] = updatedExercises[index - 1];
+      updatedExercises[index - 1] = temp;
+
+      const reordered = updatedExercises.map((ex, i) => ({
+        ...ex,
+        order: i + 1,
+      }));
+
+      const updatedPlans = [...parsedPlans];
+      updatedPlans[activePlanIndex] = {
+        ...current,
+        exercises: reordered,
+      };
+      setParsedPlans(updatedPlans);
+      setAnimatingIndex(null);
+      setAnimatingDirection(null);
+    }, 250);
+  };
+
+  const handleMoveExerciseDown = (index: number) => {
+    if (parsedPlans.length === 0 || animatingIndex !== null) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current || index === current.exercises.length - 1) return;
+
+    setAnimatingIndex(index);
+    setAnimatingDirection("down");
+
+    setTimeout(() => {
+      const updatedExercises = [...current.exercises];
+      const temp = updatedExercises[index];
+      updatedExercises[index] = updatedExercises[index + 1];
+      updatedExercises[index + 1] = temp;
+
+      const reordered = updatedExercises.map((ex, i) => ({
+        ...ex,
+        order: i + 1,
+      }));
+
+      const updatedPlans = [...parsedPlans];
+      updatedPlans[activePlanIndex] = {
+        ...current,
+        exercises: reordered,
+      };
+      setParsedPlans(updatedPlans);
+      setAnimatingIndex(null);
+      setAnimatingDirection(null);
+    }, 250);
+  };
+
+  const getItemTransform = (index: number) => {
+    if (animatingIndex === null || animatingDirection === null) return "none";
+
+    if (animatingDirection === "up") {
+      if (index === animatingIndex) {
+        return "translateY(calc(-100% - 10px))";
+      }
+      if (index === animatingIndex - 1) {
+        return "translateY(calc(100% + 10px))";
+      }
+    }
+
+    if (animatingDirection === "down") {
+      if (index === animatingIndex) {
+        return "translateY(calc(100% + 10px))";
+      }
+      if (index === animatingIndex + 1) {
+        return "translateY(calc(-100% - 10px))";
+      }
+    }
+
+    return "none";
   };
 
   const handleRemoveExercise = (index: number) => {
@@ -792,12 +884,29 @@ export default function ImportWorkoutModal({
               <div className="space-y-2.5 pb-2">
                 {parsedPlan.exercises.map((ex, idx) => {
                   const isSelected = ex.selected !== false;
+                  const isCurrentlyMoving = animatingIndex === idx;
+                  const isSwapTarget =
+                    animatingDirection === "up"
+                      ? animatingIndex !== null && idx === animatingIndex - 1
+                      : animatingDirection === "down"
+                      ? animatingIndex !== null && idx === animatingIndex + 1
+                      : false;
 
                   return (
                     <div
                       key={idx}
-                      className={`p-3.5 rounded-2xl border transition-all flex items-start gap-3 ${
-                        isSelected
+                      style={{
+                        transform: getItemTransform(idx),
+                        transition:
+                          isCurrentlyMoving || isSwapTarget
+                            ? "transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms ease"
+                            : "none",
+                        zIndex: isCurrentlyMoving || isSwapTarget ? 20 : 1,
+                      }}
+                      className={`p-3.5 rounded-2xl border transition-all flex items-start gap-3 relative ${
+                        isCurrentlyMoving || isSwapTarget
+                          ? "shadow-lg border-blue-400 bg-blue-50/20"
+                          : isSelected
                           ? "bg-white border-slate-200/90 shadow-sm hover:border-slate-300"
                           : "bg-slate-50/70 border-slate-200/60 opacity-60 hover:opacity-90"
                       }`}
@@ -835,23 +944,60 @@ export default function ImportWorkoutModal({
 
                       {/* Dados do Exercício */}
                       <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex items-center justify-between gap-1">
-                          <input
-                            type="text"
-                            value={ex.name}
-                            onChange={(e) => handleUpdateExercise(idx, "name", e.target.value)}
-                            className={`text-xs sm:text-sm font-bold bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none w-full truncate transition-colors ${
-                              isSelected ? "text-slate-800" : "text-slate-500 line-through"
-                            }`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveExercise(idx)}
-                            className="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer"
-                            title="Remover exercício"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">
+                              #{idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={ex.name}
+                              onChange={(e) => handleUpdateExercise(idx, "name", e.target.value)}
+                              className={`text-xs sm:text-sm font-bold bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none w-full truncate transition-colors ${
+                                isSelected ? "text-slate-800" : "text-slate-500 line-through"
+                              }`}
+                            />
+                          </div>
+
+                          {/* Ações: Setas Deslizantes e Excluir */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center bg-slate-100/90 rounded-xl p-0.5 border border-slate-200/80">
+                              <button
+                                type="button"
+                                disabled={idx === 0 || animatingIndex !== null}
+                                onClick={() => handleMoveExerciseUp(idx)}
+                                className="p-1 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-white transition-all cursor-pointer disabled:opacity-25 disabled:pointer-events-none active:scale-90"
+                                title="Mover exercício para cima"
+                                aria-label="Mover exercício para cima"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
+                              <button
+                                type="button"
+                                disabled={
+                                  idx === parsedPlan.exercises.length - 1 ||
+                                  animatingIndex !== null
+                                }
+                                onClick={() => handleMoveExerciseDown(idx)}
+                                className="p-1 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-white transition-all cursor-pointer disabled:opacity-25 disabled:pointer-events-none active:scale-90"
+                                title="Mover exercício para baixo"
+                                aria-label="Mover exercício para baixo"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExercise(idx)}
+                              className="p-1 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Remover exercício"
+                              aria-label="Remover exercício"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
