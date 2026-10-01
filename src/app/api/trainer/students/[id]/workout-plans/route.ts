@@ -23,7 +23,30 @@ const workoutPlanSchema = z.object({
   ).min(1, "Adicione pelo menos 1 exercício ao treino"),
 });
 
-// POST: Salvar um novo plano de treino para um aluno
+interface SaveExerciseItem {
+  exerciseId?: string | null;
+  name: string;
+  customName?: string | null;
+  muscleGroup?: string;
+  equipment?: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  method?: string;
+  recommendedRpe?: number | null;
+  recommendedWeight?: number | null;
+  notes?: string | null;
+}
+
+interface SavePlanItem {
+  name: string;
+  description?: string | null;
+  division?: string;
+  weekDays?: string[] | string | null;
+  exercises: SaveExerciseItem[];
+}
+
+// POST: Salvar novo(s) plano(s) de treino para um aluno (individual ou em lote)
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -40,14 +63,6 @@ export async function POST(
 
     const { id: studentId } = await params;
     const body = await request.json();
-    const validation = workoutPlanSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { errors: validation.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
 
     // Buscar perfil do personal logado
     const trainerProfile = await prisma.trainerProfile.findUnique({
@@ -80,45 +95,137 @@ export async function POST(
       );
     }
 
-    const { name, description, division, weekDays, exercises } = validation.data;
+    // Se o professor optou por arquivar automaticamente os treinos anteriores
+    if (body.archivePrevious) {
+      await prisma.workoutPlan.updateMany({
+        where: {
+          studentId,
+          isArchived: false,
+        },
+        data: {
+          isArchived: true,
+          deletionStatus: "ARCHIVED",
+        },
+      });
+    }
 
-    // Transação para persistir o plano de treino e os exercícios associados de forma atômica
-    const newPlan = await prisma.$transaction(async (tx) => {
+    // Função interna para criar um plano com seus exercícios
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const createSinglePlanRecord = async (tx: any, planData: SavePlanItem) => {
+      let formattedWeekDays: string[] | undefined = undefined;
+      if (Array.isArray(planData.weekDays)) {
+        formattedWeekDays = planData.weekDays;
+      } else if (typeof planData.weekDays === "string" && planData.weekDays) {
+        formattedWeekDays = planData.weekDays.split(",").map((d: string) => d.trim());
+      }
+
       const plan = await tx.workoutPlan.create({
         data: {
           studentId,
-          name,
-          description,
-          division,
-          weekDays: weekDays ? weekDays.split(",") : undefined,
+          name: String(planData.name),
+          description: planData.description ? String(planData.description) : null,
+          division: planData.division ? String(planData.division) : "A",
+          weekDays: formattedWeekDays,
+          createdByType: "TRAINER",
         },
       });
-      // Mapear exercícios
-      const exercisesPayload = exercises.map((ex, index) => ({
-        workoutPlanId: plan.id,
-        exerciseId: ex.exerciseId,
-        sets: ex.sets,
-        reps: ex.reps,
-        restSeconds: ex.restSeconds,
-        method: ex.method,
-        recommendedRpe: ex.recommendedRpe || null,
-        recommendedWeight: ex.recommendedWeight || null,
-        notes: ex.notes || null,
-        customName: ex.customName || null,
-        order: index,
-      }));
+
+      const exercisesPayload = [];
+      for (let i = 0; i < planData.exercises.length; i++) {
+        const ex = planData.exercises[i];
+        let targetId: string;
+        let existingEx = null;
+        if (ex.exerciseId) {
+          existingEx = await tx.exercise.findUnique({ where: { id: ex.exerciseId } });
+        }
+
+        if (existingEx) {
+          targetId = existingEx.id;
+        } else {
+          const createdOrFound = await tx.exercise.upsert({
+            where: { name: ex.name },
+            update: {},
+            create: {
+              name: ex.name,
+              muscleGroup: ex.muscleGroup || "Geral",
+              equipment: ex.equipment || "Livre",
+              description: "Exercício cadastrado via importação de treino",
+              gifUrl: null,
+              videoUrl: null,
+            },
+          });
+          targetId = createdOrFound.id;
+        }
+
+        exercisesPayload.push({
+          workoutPlanId: plan.id,
+          exerciseId: targetId,
+          sets: Number(ex.sets) || 4,
+          reps: String(ex.reps || "10-12"),
+          restSeconds: Number(ex.restSeconds) || 60,
+          method: ex.method || "Normal",
+          recommendedRpe: ex.recommendedRpe ? Number(ex.recommendedRpe) : null,
+          recommendedWeight: ex.recommendedWeight ? Number(ex.recommendedWeight) : null,
+          notes: ex.notes || null,
+          customName: ex.customName || null,
+          order: i,
+        });
+      }
 
       await tx.workoutPlanExercise.createMany({
         data: exercisesPayload,
       });
 
-      // Notificar o aluno sobre o novo treino
+      return plan;
+    };
+
+    // Caso 1: Salvamento em lote (múltiplas fichas A, B, C...)
+    if (Array.isArray(body.plans) && body.plans.length > 0) {
+      const createdPlans = await prisma.$transaction(async (tx) => {
+        const results = [];
+        for (const p of body.plans) {
+          if (p.name && Array.isArray(p.exercises) && p.exercises.length > 0) {
+            const created = await createSinglePlanRecord(tx, p);
+            results.push(created);
+          }
+        }
+
+        if (results.length > 0) {
+          await tx.notification.create({
+            data: {
+              userId: student.userId,
+              title: "Novos Treinos Cadastrados 🏋️‍♂️",
+              message: `Seu treinador ${session.user.name} cadastrou ${results.length} novas fichas de treino para você.`,
+            },
+          });
+        }
+
+        return results;
+      });
+
+      return NextResponse.json(
+        { success: true, count: createdPlans.length, plans: createdPlans },
+        { status: 201 }
+      );
+    }
+
+    // Caso 2: Salvamento de um único plano
+    if (!body.name || !Array.isArray(body.exercises) || body.exercises.length === 0) {
+      return NextResponse.json(
+        { error: "Informe o nome do treino e ao menos um exercício." },
+        { status: 400 }
+      );
+    }
+
+    const newPlan = await prisma.$transaction(async (tx) => {
+      const plan = await createSinglePlanRecord(tx, body);
+
       await tx.notification.create({
         data: {
           userId: student.userId,
           title: "Novo Treino Cadastrado 🏋️‍♂️",
-          message: `Seu treinador ${session.user.name} cadastrou uma nova ficha: ${name} (Divisão ${division}).`,
-        }
+          message: `Seu treinador ${session.user.name} cadastrou uma nova ficha: ${plan.name} (Divisão ${plan.division}).`,
+        },
       });
 
       return plan;

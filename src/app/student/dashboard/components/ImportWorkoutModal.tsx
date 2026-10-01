@@ -247,6 +247,11 @@ export default function ImportWorkoutModal({
     }
   };
 
+  const totalSelectedAcrossAll = parsedPlans.reduce(
+    (sum, p) => sum + p.exercises.filter((ex) => ex.selected !== false).length,
+    0
+  );
+
   const handleSavePlan = async () => {
     if (parsedPlans.length === 0) return;
     const current = parsedPlans[activePlanIndex];
@@ -257,21 +262,14 @@ export default function ImportWorkoutModal({
 
     // Filtrar apenas os exercícios que estão marcados para importação
     const exercisesToSave = current.exercises.filter((ex) => ex.selected !== false);
-    if (exercisesToSave.length === 0) {
+    const hasAnySelected = parsedPlans.length > 1
+      ? totalSelectedAcrossAll > 0
+      : exercisesToSave.length > 0;
+
+    if (!hasAnySelected) {
       setError("Selecione ao menos um exercício marcado antes de salvar.");
       return;
     }
-
-    // Se for o Treinador preenchendo o formulário de novo treino
-    if (onPlanSelectedForTrainer) {
-      onPlanSelectedForTrainer({
-        ...current,
-        exercises: exercisesToSave,
-      });
-      handleResetAndClose();
-      return;
-    }
-
     setSaving(true);
     setError(null);
 
@@ -368,6 +366,22 @@ export default function ImportWorkoutModal({
     setAnimatingIndex(null);
     setAnimatingDirection(null);
     onClose();
+  };
+
+  const handleFillInForm = () => {
+    if (parsedPlans.length === 0 || !onPlanSelectedForTrainer) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current) return;
+    const exercisesToSave = current.exercises.filter((ex) => ex.selected !== false);
+    if (exercisesToSave.length === 0) {
+      setError("Selecione ao menos um exercício marcado para preencher no construtor.");
+      return;
+    }
+    onPlanSelectedForTrainer({
+      ...current,
+      exercises: exercisesToSave,
+    });
+    handleResetAndClose();
   };
 
   const handleUpdateExercise = (
@@ -1049,201 +1063,69 @@ export default function ImportWorkoutModal({
             </div>
           )}
 
-          {/* Sub-tela: Seletor de Exercícios da Biblioteca */}
-          {isPickerOpen && (
-            <div className="absolute inset-0 z-30 bg-white rounded-3xl flex flex-col overflow-hidden animate-fade-in">
-              {/* Header do Seletor */}
-              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                    <Dumbbell className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">
-                      Adicionar da Biblioteca
-                    </h4>
-                    <p className="text-[11px] text-slate-500">
-                      Mais de 300 exercícios com GIFs para adicionar ao treino
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPickerOpen(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Filtros e Busca */}
-              <div className="p-3 sm:p-4 border-b border-slate-100 space-y-3 bg-slate-50/50 shrink-0">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={pickerSearch}
-                    onChange={(e) => setPickerSearch(e.target.value)}
-                    placeholder="Buscar por nome (ex: Supino, Rosca, Puxada)..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-base md:text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none transition-colors shadow-2xs"
-                  />
-                  {pickerSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setPickerSearch("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Pílulas de Grupos Musculares */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-                  {MUSCLE_FILTER_OPTIONS.map((muscle) => (
-                    <button
-                      key={muscle}
-                      type="button"
-                      onClick={() => setPickerMuscle(muscle)}
-                      className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer text-xs ${
-                        pickerMuscle === muscle
-                          ? "bg-blue-600 text-white shadow-xs"
-                          : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
-                      }`}
-                    >
-                      {muscle}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Lista de Resultados da Biblioteca */}
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2">
-                {libraryLoading ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-slate-400 space-y-2">
-                    <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                    <span className="text-xs font-medium">Buscando exercícios...</span>
-                  </div>
-                ) : libraryExercises.length === 0 ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-center text-slate-400 space-y-2">
-                    <Dumbbell className="w-8 h-8 opacity-40" />
-                    <p className="text-xs font-semibold text-slate-600">Nenhum exercício encontrado.</p>
-                    <p className="text-[11px] text-slate-400">Tente buscar por outro termo ou grupo muscular.</p>
-                  </div>
-                ) : (
-                  libraryExercises.map((libEx) => {
-                    const isJustAdded = recentlyAddedId === libEx.id;
-
-                    return (
-                      <div
-                        key={libEx.id}
-                        className="p-3 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 transition-all flex items-center justify-between gap-3 shadow-2xs"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-11 h-11 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200">
-                            {libEx.gifUrl ? (
-                              <img
-                                src={`/api/media/${libEx.gifUrl}`}
-                                alt={libEx.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Dumbbell className="w-5 h-5 text-slate-400" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs sm:text-sm font-bold text-slate-800 truncate">
-                              {libEx.name}
-                            </p>
-                            <p className="text-[11px] text-slate-500 truncate">
-                              {libEx.muscleGroup} • {libEx.equipment}
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleAddExerciseFromLibrary(libEx)}
-                          className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
-                            isJustAdded
-                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                              : "bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 active:scale-95"
-                          }`}
-                        >
-                          {isJustAdded ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                              <span>Adicionado!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                              <span>Adicionar</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Rodapé do Seletor */}
-              <div className="p-3 sm:p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between shrink-0">
-                <span className="text-xs text-slate-500 font-medium">
-                  {parsedPlan?.exercises.length || 0} exercícios na ficha ativa
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsPickerOpen(false)}
-                  className="py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
-                >
-                  Concluir e Voltar
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Rodapé Fixo com Efeito Vidro (Sticky Glassmorphic Footer) - Etapa 2 */}
         {parsedPlan && !success && !isPickerOpen && (
           <div className="bg-white/95 backdrop-blur-xl border-t border-slate-100/90 shadow-[0_-8px_25px_rgba(0,0,0,0.06)] shrink-0 z-10">
-            {!onPlanSelectedForTrainer && !targetStudentId && (
-              <div className="px-4 py-2 border-b border-slate-100/80 bg-slate-50/60 flex items-center justify-between">
-                <label className="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={archivePrevious}
-                    onChange={(e) => setArchivePrevious(e.target.checked)}
-                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
-                  />
-                  <span>Arquivar treinos anteriores automaticamente para não poluir a tela</span>
-                </label>
+            <div className="px-4 py-2 border-b border-slate-100/80 bg-slate-50/60 flex items-center justify-between">
+              <label className="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={archivePrevious}
+                  onChange={(e) => setArchivePrevious(e.target.checked)}
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+                />
+                <span>Arquivar treinos anteriores automaticamente para não poluir a tela</span>
+              </label>
+            </div>
+            <div className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setParsedPlans([])}
+                  disabled={saving}
+                  className="py-3 px-3.5 sm:px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 min-h-[44px]"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Voltar</span>
+                </button>
+
+                {onPlanSelectedForTrainer && (
+                  <button
+                    type="button"
+                    onClick={handleFillInForm}
+                    disabled={saving || currentSelected === 0}
+                    className="py-3 px-3.5 sm:px-4 rounded-2xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 min-h-[44px]"
+                    title="Preencher divisão ativa no construtor de treino ao lado"
+                  >
+                    <span>Preencher no Construtor</span>
+                  </button>
+                )}
               </div>
-            )}
-            <div className="p-3.5 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setParsedPlans([])}
-                disabled={saving}
-                className="py-3 px-3.5 sm:px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 min-h-[44px]"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Voltar</span>
-              </button>
 
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>
-                  {currentSelected} {currentSelected === 1 ? "exercício selecionado" : "exercícios selecionados"}
-                  {currentSelected !== currentTotal && ` (de ${currentTotal})`}
+                  {parsedPlans.length > 1 ? (
+                    <>
+                      <strong className="text-slate-700">{totalSelectedAcrossAll}</strong> exercícios selecionados em{" "}
+                      <strong className="text-slate-700">{parsedPlans.length}</strong> treinos
+                    </>
+                  ) : (
+                    <>
+                      {currentSelected}{" "}
+                      {currentSelected === 1 ? "exercício selecionado" : "exercícios selecionados"}
+                      {currentSelected !== currentTotal && ` (de ${currentTotal})`}
+                    </>
+                  )}
                 </span>
               </div>
 
               <button
                 type="button"
                 onClick={handleSavePlan}
-                disabled={saving || currentSelected === 0}
+                disabled={saving || (parsedPlans.length > 1 ? totalSelectedAcrossAll === 0 : currentSelected === 0)}
                 className="flex-1 sm:flex-initial sm:min-w-[240px] py-3 px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
               >
                 {saving ? (
@@ -1251,25 +1133,185 @@ export default function ImportWorkoutModal({
                     <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                     <span>
                       {parsedPlans.length > 1
-                        ? `Salvando ${parsedPlans.length} fichas...`
-                        : "Salvando ficha..."}
+                        ? `Salvando ${parsedPlans.length} fichas no aluno...`
+                        : "Salvando ficha no aluno..."}
                     </span>
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
                     <span>
-                      {onPlanSelectedForTrainer
-                        ? "Preencher no Treino"
+                      {targetStudentId
+                        ? parsedPlans.length > 1
+                          ? `Salvar ${parsedPlans.length} Fichas no Aluno`
+                          : "Salvar Ficha no Aluno"
                         : parsedPlans.length > 1
                         ? `Confirmar e Salvar ${parsedPlans.length} Fichas`
                         : "Confirmar e Salvar Ficha"}
                     </span>
                     <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black shrink-0">
-                      {currentSelected}
+                      {parsedPlans.length > 1 ? totalSelectedAcrossAll : currentSelected}
                     </span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Sub-tela Isolada: Seletor de Exercícios da Biblioteca */}
+        {isPickerOpen && (
+          <div className="absolute inset-0 z-50 bg-white rounded-3xl flex flex-col overflow-hidden animate-fade-in shadow-2xl">
+            {/* Header do Seletor */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <Dumbbell className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">
+                    Adicionar da Biblioteca
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Mais de 300 exercícios com GIFs para adicionar ao treino
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Filtros e Busca */}
+            <div className="p-3 sm:p-4 border-b border-slate-100 space-y-3 bg-slate-50/50 shrink-0">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder="Buscar por nome (ex: Supino, Rosca, Puxada)..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-base md:text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none transition-colors shadow-2xs"
+                />
+                {pickerSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setPickerSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Pílulas de Grupos Musculares */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                {MUSCLE_FILTER_OPTIONS.map((muscle) => (
+                  <button
+                    key={muscle}
+                    type="button"
+                    onClick={() => setPickerMuscle(muscle)}
+                    className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer text-xs ${
+                      pickerMuscle === muscle
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
+                    }`}
+                  >
+                    {muscle}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Lista de Resultados da Biblioteca */}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 min-h-0">
+              {libraryLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400 space-y-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                  <span className="text-xs font-medium">Buscando exercícios...</span>
+                </div>
+              ) : libraryExercises.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center text-slate-400 space-y-2">
+                  <Dumbbell className="w-8 h-8 opacity-40" />
+                  <p className="text-xs font-semibold text-slate-600">Nenhum exercício encontrado.</p>
+                  <p className="text-[11px] text-slate-400">Tente buscar por outro termo ou grupo muscular.</p>
+                </div>
+              ) : (
+                libraryExercises.map((libEx) => {
+                  const isJustAdded = recentlyAddedId === libEx.id;
+
+                  return (
+                    <div
+                      key={libEx.id}
+                      className="p-3 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 transition-all flex items-center justify-between gap-3 shadow-2xs"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-11 h-11 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200">
+                          {libEx.gifUrl ? (
+                            <img
+                              src={`/api/media/${libEx.gifUrl}`}
+                              alt={libEx.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Dumbbell className="w-5 h-5 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                            {libEx.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {libEx.muscleGroup} • {libEx.equipment}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddExerciseFromLibrary(libEx)}
+                        className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                          isJustAdded
+                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                            : "bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 active:scale-95"
+                        }`}
+                      >
+                        {isJustAdded ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Adicionado!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Adicionar</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Rodapé Fixo do Seletor */}
+            <div className="p-3.5 sm:p-4 border-t border-slate-200/80 bg-slate-50/95 backdrop-blur-md flex items-center justify-between shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                <span className="text-xs text-slate-600 font-semibold">
+                  {parsedPlan?.exercises.length || 0} exercícios na ficha ativa
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(false)}
+                className="py-2.5 px-5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-blue-500/25 cursor-pointer min-h-[44px] flex items-center justify-center active:scale-95"
+              >
+                Concluir e Voltar
               </button>
             </div>
           </div>

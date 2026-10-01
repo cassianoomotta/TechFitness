@@ -1196,6 +1196,9 @@ export default function NewPlanPage() {
       <ImportWorkoutModal
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
+        onPlanImported={async () => {
+          await fetchStudentDetails();
+        }}
         onPlanSelectedForTrainer={handleImportedPlanForTrainer}
         targetStudentId={studentId}
       />

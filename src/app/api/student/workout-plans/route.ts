@@ -339,9 +339,15 @@ export async function POST(request: Request) {
 
       for (let i = 0; i < exercisesPayload.length; i++) {
         const ex = exercisesPayload[i];
-        let targetId = ex.exerciseId;
+        let targetId: string;
+        let existingEx = null;
+        if (ex.exerciseId) {
+          existingEx = await prisma.exercise.findUnique({ where: { id: ex.exerciseId } });
+        }
 
-        if (!targetId) {
+        if (existingEx) {
+          targetId = existingEx.id;
+        } else {
           const createdOrFound = await prisma.exercise.upsert({
             where: { name: ex.name },
             update: {},
