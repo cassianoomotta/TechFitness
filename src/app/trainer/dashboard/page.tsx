@@ -44,6 +44,21 @@ interface Student {
   sessionsCount: number;
 }
 
+interface ExistingStudentSearchResult {
+  id: string;
+  name: string;
+  email: string;
+  currentTrainer?: string | null;
+}
+
+interface DuplicateWorkoutPlan {
+  id: string;
+  name: string;
+  division: string;
+  weekDays?: string | null;
+  exercises?: { id: string }[];
+}
+
 export default function TrainerDashboard() {
   const { resolvedTheme, setTheme } = useTheme();
   const { data: session } = useSession();
@@ -84,14 +99,14 @@ export default function TrainerDashboard() {
   // Busca e Vinculação de Alunos Existentes
   const [activeTab, setActiveTab] = useState<"create" | "link">("create");
   const [searchExistingQuery, setSearchExistingQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<ExistingStudentSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [linkingId, setLinkingId] = useState<string | null>(null);
 
   // Estados de Duplicar Treino
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [duplicateSourceStudent, setDuplicateSourceStudent] = useState<Student | null>(null);
-  const [duplicateSourcePlans, setDuplicateSourcePlans] = useState<any[]>([]);
+  const [duplicateSourcePlans, setDuplicateSourcePlans] = useState<DuplicateWorkoutPlan[]>([]);
   const [duplicateSelectedPlanId, setDuplicateSelectedPlanId] = useState<string>("");
   const [duplicateTargetIds, setDuplicateTargetIds] = useState<string[]>([]);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
@@ -106,7 +121,6 @@ export default function TrainerDashboard() {
     notifications,
     unreadCount,
     markAllAsRead: handleMarkNotificationsRead,
-    refresh: fetchNotifications,
   } = useNotificationSync({ userId: session?.user?.id });
 
   // Ref para fechar notificações ao clicar fora
@@ -424,37 +438,37 @@ export default function TrainerDashboard() {
                     handleMarkNotificationsRead();
                   }
                 }}
-                className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#00C2FF]/5 text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer relative"
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/30 text-slate-600 dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer relative shadow-2xs"
                 title="Notificações"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#151D2F] animate-pulse">
                     {unreadCount}
                   </span>
                 )}
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl z-50 p-4 space-y-3">
-                  <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
-                    <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Notificações</h4>
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#151D2F] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-4 space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <h4 className="text-xs font-bold text-[#0F172A] dark:text-white uppercase tracking-wider">Notificações</h4>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className="text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold"
+                      className="text-slate-500 dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white text-xs font-semibold"
                     >
                       Fechar
                     </button>
                   </div>
                   <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
                     {notifications.length === 0 ? (
-                      <p className="text-[11px] text-[#94A3B8] text-center py-4">Nenhuma notificação por enquanto.</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center py-4">Nenhuma notificação por enquanto.</p>
                     ) : (
                       notifications.map((n) => (
-                        <div key={n.id} className={`p-2.5 rounded-xl border text-[11px] space-y-1 transition-all ${n.read ? "bg-zinc-50 border-transparent text-[#94A3B8]" : "bg-blue-50/50 border-[#2563EB]/10 text-[#0F172A] font-semibold"}`}>
+                        <div key={n.id} className={`p-2.5 rounded-xl border text-[11px] space-y-1 transition-all ${n.read ? "bg-slate-50 dark:bg-[#0B0F19] border-transparent text-slate-500 dark:text-slate-400" : "bg-blue-50/50 dark:bg-blue-950/30 border-[#2563EB]/20 text-[#0F172A] dark:text-white font-semibold"}`}>
                           <div className="flex justify-between items-start gap-2">
-                            <span className="font-bold text-[#2563EB]">{n.title}</span>
-                            <span className="text-[9px] text-[#94A3B8] font-normal whitespace-nowrap">
+                            <span className="font-bold text-[#2563EB] dark:text-[#38BDF8]">{n.title}</span>
+                            <span className="text-[9px] text-slate-500 dark:text-slate-400 font-normal whitespace-nowrap">
                               {new Date(n.createdAt).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                             </span>
                           </div>
@@ -469,8 +483,8 @@ export default function TrainerDashboard() {
 
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-600 transition-all cursor-pointer"
-              title="Sair"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-red-500/30 hover:bg-red-500/5 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer shadow-2xs"
+              title="Sair da Conta"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -484,98 +498,98 @@ export default function TrainerDashboard() {
         <div className="flex md:hidden gap-2 mb-6">
           <Link
             href="/trainer/dashboard"
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-white text-[#2563EB] border border-[#E2E8F0]"
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-center bg-white dark:bg-[#151D2F] text-[#2563EB] dark:text-[#38BDF8] border border-slate-200 dark:border-slate-800 shadow-2xs"
           >
             Alunos
           </Link>
           <Link
             href="/trainer/exercises"
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-transparent text-[#94A3B8] border border-[#E2E8F0]"
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-transparent text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800"
           >
             Exercícios
           </Link>
         </div>
 
         {/* Info Cards */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <div className="glass-card p-6 rounded-2xl bg-white border border-[#E2E8F0]/85">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[#94A3B8] text-sm font-medium">Alunos Ativos</span>
-              <div className="bg-[#2563EB]/10 p-2.5 rounded-xl text-[#2563EB]">
+              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Alunos Ativos</span>
+              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold text-[#0F172A]">
-              {loading ? <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" /> : students.length}
+            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
+              {loading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400" /> : students.length}
             </p>
-            <p className="text-xs text-[#94A3B8] mt-2">Vagas ocupadas no plano</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Vagas ocupadas no plano</p>
           </div>
 
-          <div className="glass-card p-6 rounded-2xl bg-white border border-[#E2E8F0]/85">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[#94A3B8] text-sm font-medium">Fichas Prescritas</span>
-              <div className="bg-[#2563EB]/10 p-2.5 rounded-xl text-[#2563EB]">
+              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Fichas Prescritas</span>
+              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
                 <BookOpen className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold text-[#0F172A]">
+            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
               {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" />
+                <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
               ) : (
                 students.reduce((acc, curr) => acc + curr.workoutPlansCount, 0)
               )}
             </p>
-            <p className="text-xs text-[#94A3B8] mt-2">Planos de treino ativos</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Planos de treino ativos</p>
           </div>
 
-          <div className="glass-card p-6 rounded-2xl bg-white border border-[#E2E8F0]/85">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[#94A3B8] text-sm font-medium">Frequência Mensal</span>
-              <div className="bg-[#2563EB]/10 p-2.5 rounded-xl text-[#2563EB]">
+              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Frequência Mensal</span>
+              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
                 <Activity className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold text-[#0F172A]">
-              {monthlyFrequency === null ? <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" /> : `${monthlyFrequency}%`}
+            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
+              {monthlyFrequency === null ? <Loader2 className="w-6 h-6 animate-spin text-slate-400" /> : `${monthlyFrequency}%`}
             </p>
-            <p className="text-xs text-[#94A3B8] mt-2">Presença geral dos alunos</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Presença geral dos alunos</p>
           </div>
 
-          <div className="glass-card p-6 rounded-2xl bg-white border border-[#E2E8F0]/85">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[#94A3B8] text-sm font-medium">Recordes Batidos</span>
-              <div className="bg-[#2563EB]/10 p-2.5 rounded-xl text-[#2563EB]">
+              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Recordes Batidos</span>
+              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
                 <Award className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-display font-bold text-[#0F172A]">
-              {weeklyPRs === null ? <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" /> : weeklyPRs}
+            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
+              {weeklyPRs === null ? <Loader2 className="w-6 h-6 animate-spin text-slate-400" /> : weeklyPRs}
             </p>
-            <p className="text-xs text-[#94A3B8] mt-2">PRs superados esta semana</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">PRs superados esta semana</p>
           </div>
         </section>
 
         {/* Section Header & Search */}
         <section className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
           <div>
-            <h2 className="font-display text-2xl font-bold text-[#0F172A]">Seus Alunos</h2>
-            <p className="text-sm text-[#94A3B8] mt-1">Gerencie a evolução e fichas de seus atletas.</p>
+            <h2 className="font-display text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Seus Alunos</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gerencie a evolução e fichas de seus atletas.</p>
           </div>
 
           <div className="flex w-full sm:w-auto items-center gap-3">
             <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#94A3B8]" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
                 placeholder="Buscar por nome ou email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9.5 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-sm text-[#0F172A] placeholder-zinc-400 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#151D2F] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/10 dark:focus:ring-cyan-500/10 outline-none text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-2xs"
               />
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="py-2.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10"
+              className="py-2.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/15 active:scale-95 shrink-0"
             >
               <Plus className="w-4.5 h-4.5 stroke-[3px]" />
               <span className="hidden sm:inline">Novo Aluno</span>
@@ -587,43 +601,43 @@ export default function TrainerDashboard() {
         {loading ? (
           <DumbbellLoading text="Carregando lista de alunos..." subtext="Sincronizando frequências e prontuários" />
         ) : filteredStudents.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center text-[#94A3B8] bg-white">
-            <Users className="w-12 h-12 mx-auto text-[#475569] mb-4" />
-            <p className="text-base font-semibold text-[#0F172A]">Nenhum aluno encontrado</p>
-            <p className="text-xs mt-1">Busque por outro termo ou cadastre um novo aluno no botão acima.</p>
+          <div className="rounded-2xl p-12 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Users className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-500 mb-4" />
+            <p className="text-base font-bold text-slate-900 dark:text-white">Nenhum aluno encontrado</p>
+            <p className="text-xs mt-1 text-slate-500 dark:text-slate-400">Busque por outro termo ou cadastre um novo aluno no botão acima.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {filteredStudents.map((student) => (
-              <div key={student.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between group transition-all duration-300 bg-white border border-[#E2E8F0]/80 hover:border-[#2563EB]/30">
+              <div key={student.id} className="rounded-2xl p-5 sm:p-6 flex flex-col justify-between group transition-all duration-300 bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40">
                   <div>
                     {/* Aluno Header */}
-                    <div className="flex items-center gap-4 mb-5">
+                    <div className="flex items-center gap-3.5 mb-5">
                       <UserAvatar
                         name={student.name}
                         image={student.image}
                         size="lg"
-                        className="rounded-xl border border-blue-100 shadow-sm"
+                        className="rounded-xl border border-blue-100 dark:border-blue-900/60 shadow-sm shrink-0"
                       />
-                      <div className="overflow-hidden">
-                        <h4 className="text-base font-semibold text-[#0F172A] truncate leading-tight group-hover:text-[#2563EB] transition-colors">
+                      <div className="overflow-hidden min-w-0">
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white truncate leading-tight group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors">
                           {student.name}
                         </h4>
-                        <p className="text-xs text-[#94A3B8] truncate mt-0.5">{student.email}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{student.email}</p>
                       </div>
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#E2E8F0] mb-6">
+                    <div className="grid grid-cols-2 gap-4 py-3.5 border-y border-slate-200/80 dark:border-slate-800 mb-5">
                       <div>
-                        <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider block font-semibold">Treinos Criados</span>
-                        <span className="text-lg font-bold text-[#0F172A] mt-1 block">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-bold">Treinos Criados</span>
+                        <span className="text-lg font-black text-slate-900 dark:text-white mt-0.5 block">
                           {student.workoutPlansCount}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider block font-semibold">Sessões Feitas</span>
-                        <span className="text-lg font-bold text-[#0F172A] mt-1 block">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider block font-bold">Sessões Feitas</span>
+                        <span className="text-lg font-black text-slate-900 dark:text-white mt-0.5 block">
                           {student.sessionsCount}
                         </span>
                       </div>
@@ -634,27 +648,27 @@ export default function TrainerDashboard() {
                   <div className="flex gap-2">
                     <Link
                       href={`/trainer/students/${student.id}/new-plan`}
-                      className="flex-1 py-2 px-3 rounded-lg bg-white border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-zinc-200/50 text-[#1E40AF] text-xs font-semibold text-center transition-all cursor-pointer"
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/50 text-[#2563EB] dark:text-[#38BDF8] text-xs font-bold text-center transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
                     >
                       Montar Treino
                     </Link>
                     <button
                       onClick={() => handleOpenDuplicate(student)}
-                      className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#2563EB]/5 text-[#94A3B8] hover:text-[#2563EB] text-xs font-semibold flex items-center justify-center transition-all cursor-pointer"
+                      className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-[#2563EB] dark:hover:text-[#38BDF8] text-xs font-semibold flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                       title="Duplicar Treino"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
                     <Link
                       href={`/trainer/students/${student.id}/measurements`}
-                      className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-zinc-300 hover:bg-white text-[#94A3B8] hover:text-[#2563EB] text-xs font-semibold flex items-center justify-center transition-all"
-                      title="Avaliação Física / Medidas"
+                      className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-[#2563EB] dark:hover:text-[#38BDF8] text-xs font-semibold flex items-center justify-center transition-all shadow-2xs active:scale-95"
+                      title="Avaliação Física e Medidas"
                     >
                       <Activity className="w-4 h-4" />
                     </Link>
                     <Link
                       href={`/trainer/students/${student.id}/progress`}
-                      className="py-2 px-3 rounded-lg bg-transparent border border-[#E2E8F0] hover:border-zinc-300 hover:bg-white text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold flex items-center justify-center transition-all"
+                      className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-[#2563EB] dark:hover:text-[#38BDF8] text-xs font-semibold flex items-center justify-center transition-all shadow-2xs active:scale-95"
                       title="Ver Progresso"
                     >
                       <TrendingUp className="w-4 h-4" />
@@ -668,27 +682,27 @@ export default function TrainerDashboard() {
 
       {/* Modal Novo Aluno */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-white dark:bg-[#151D2F] rounded-2xl p-6 shadow-2xl relative border border-slate-200 dark:border-slate-800">
             {/* Fechar */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-white text-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer"
+              className="absolute right-4 top-4 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2 mb-4">
-              <div className="bg-[#00C2FF]/10 p-2 rounded-lg text-[#2563EB]">
+              <div className="bg-cyan-50 dark:bg-cyan-950/40 p-2 rounded-lg text-[#2563EB] dark:text-[#38BDF8] border border-cyan-100 dark:border-cyan-900/40">
                 <Users className="w-5 h-5" />
               </div>
-              <h3 className="font-display font-semibold text-lg text-[#0F172A]">
+              <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white">
                 {activeTab === "create" ? "Cadastrar Novo Aluno" : "Vincular Aluno Existente"}
               </h3>
             </div>
 
             {/* Abas */}
-            <div className="flex border-b border-[#E2E8F0] mb-5">
+            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-5">
               <button
                 type="button"
                 onClick={() => {
@@ -698,8 +712,8 @@ export default function TrainerDashboard() {
                 }}
                 className={`flex-1 pb-2 text-xs font-semibold text-center border-b-2 transition-all cursor-pointer ${
                   activeTab === "create"
-                    ? "border-[#2563EB] text-[#2563EB]"
-                    : "border-transparent text-[#94A3B8] hover:text-[#0F172A]"
+                    ? "border-[#2563EB] text-[#2563EB] dark:border-[#38BDF8] dark:text-[#38BDF8]"
+                    : "border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white"
                 }`}
               >
                 Cadastrar Novo
@@ -713,8 +727,8 @@ export default function TrainerDashboard() {
                 }}
                 className={`flex-1 pb-2 text-xs font-semibold text-center border-b-2 transition-all cursor-pointer ${
                   activeTab === "link"
-                    ? "border-[#2563EB] text-[#2563EB]"
-                    : "border-transparent text-[#94A3B8] hover:text-[#0F172A]"
+                    ? "border-[#2563EB] text-[#2563EB] dark:border-[#38BDF8] dark:text-[#38BDF8]"
+                    : "border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white"
                 }`}
               >
                 Buscar no Sistema
@@ -722,14 +736,14 @@ export default function TrainerDashboard() {
             </div>
 
             {modalError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-750 text-xs text-center">
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs text-center">
                 {modalError}
               </div>
             )}
 
             {modalSuccess && (
-              <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs text-center font-medium flex items-center justify-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600" />
+              <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs text-center font-medium flex items-center justify-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 {activeTab === "create"
                   ? "Aluno cadastrado! Convite com link de confirmação enviado por e-mail."
                   : "Aluno vinculado com sucesso!"}
@@ -738,60 +752,60 @@ export default function TrainerDashboard() {
 
             {activeTab === "create" ? (
               <>
-                <p className="text-xs text-[#64748B] mb-5 leading-relaxed bg-blue-50/60 border border-blue-100 rounded-xl p-3">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mb-5 leading-relaxed bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl p-3">
                   ✉️ <strong>Convite Automático:</strong> O aluno receberá um e-mail com botão para confirmar seus dados e definir a senha definitiva dele.
                 </p>
                 <form onSubmit={handleCreateStudent} className="space-y-4">
                   {/* Nome */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       Nome do Aluno
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                       <input
                         type="text"
                         required
                         value={newStudentName}
                         onChange={(e) => setNewStudentName(e.target.value)}
                         placeholder="Ex: Pedro Henrique"
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Email */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       E-mail de Login
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                       <input
                         type="email"
                         required
                         value={newStudentEmail}
                         onChange={(e) => setNewStudentEmail(e.target.value)}
                         placeholder="aluno@exemplo.com"
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Senha */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       Senha Temporária (Mínimo 6 caracteres)
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                       <input
                         type="text"
                         required
                         value={newStudentPassword}
                         onChange={(e) => setNewStudentPassword(e.target.value)}
                         placeholder="Defina a senha"
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all"
                       />
                     </div>
                   </div>
@@ -799,7 +813,7 @@ export default function TrainerDashboard() {
                   <button
                     type="submit"
                     disabled={modalLoading || modalSuccess}
-                    className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-blue-500/20 active:scale-95"
                   >
                     {modalLoading ? (
                       <Loader2 className="w-4.5 h-4.5 animate-spin" />
@@ -814,11 +828,11 @@ export default function TrainerDashboard() {
               </>
             ) : (
               <div className="space-y-4">
-                <p className="text-xs text-[#94A3B8] mb-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1 leading-relaxed">
                   Busque pelo nome ou e-mail de um aluno que já possui cadastro no TechFitness.
                 </p>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                   <input
                     type="text"
                     placeholder="Buscar por nome ou e-mail..."
@@ -827,29 +841,29 @@ export default function TrainerDashboard() {
                       setSearchExistingQuery(e.target.value);
                       handleSearchExisting(e.target.value);
                     }}
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-400 transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all"
                   />
                 </div>
 
                 {searchLoading && (
                   <div className="flex justify-center py-4">
-                    <Loader2 className="w-5 h-5 animate-spin text-[#2563EB]" />
+                    <Loader2 className="w-5 h-5 animate-spin text-[#2563EB] dark:text-[#38BDF8]" />
                   </div>
                 )}
 
                 {!searchLoading && searchResults.length === 0 && searchExistingQuery.trim().length >= 2 && (
-                  <p className="text-center text-xs text-[#94A3B8] py-4">Nenhum aluno encontrado no sistema.</p>
+                  <p className="text-center text-xs text-slate-500 dark:text-slate-400 py-4">Nenhum aluno encontrado no sistema.</p>
                 )}
 
                 {!searchLoading && searchResults.length > 0 && (
                   <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                     {searchResults.map((student) => (
-                      <div key={student.id} className="flex items-center justify-between p-3 rounded-xl border border-[#E2E8F0] hover:bg-slate-50 transition-colors">
+                      <div key={student.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                         <div className="overflow-hidden mr-2">
-                          <p className="text-xs font-semibold text-[#0F172A] truncate">{student.name}</p>
-                          <p className="text-[10px] text-[#94A3B8] truncate">{student.email}</p>
+                          <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{student.name}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{student.email}</p>
                           {student.currentTrainer && (
-                            <p className="text-[9px] text-[#2563EB] font-medium mt-0.5 truncate">
+                            <p className="text-[9px] text-[#2563EB] dark:text-[#38BDF8] font-medium mt-0.5 truncate">
                               Treinador atual: {student.currentTrainer}
                             </p>
                           )}
@@ -858,7 +872,7 @@ export default function TrainerDashboard() {
                           type="button"
                           disabled={linkingId === student.id}
                           onClick={() => handleLinkStudent(student.id)}
-                          className="py-1.5 px-3 rounded-lg bg-[#2563EB] hover:bg-[#1E40AF] disabled:bg-slate-350 disabled:pointer-events-none text-white text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1"
+                          className="py-1.5 px-3 rounded-lg bg-[#2563EB] hover:bg-[#1E40AF] disabled:bg-slate-350 disabled:pointer-events-none text-white text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
                         >
                           {linkingId === student.id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -878,25 +892,25 @@ export default function TrainerDashboard() {
 
       {/* Modal Duplicar Treino */}
       {isDuplicateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[85vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg bg-white dark:bg-[#151D2F] rounded-2xl p-6 shadow-2xl relative border border-slate-200 dark:border-slate-800 max-h-[85vh] flex flex-col">
             {/* Header */}
             <button
               onClick={() => setIsDuplicateModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-white text-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer z-10"
+              className="absolute right-4 top-4 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all cursor-pointer z-10"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2 mb-2">
-              <div className="bg-[#2563EB]/10 p-2 rounded-lg text-[#2563EB]">
+              <div className="bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
                 <Copy className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-display font-semibold text-lg text-[#0F172A]">
+                <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white">
                   Duplicar Treino
                 </h3>
-                <p className="text-[10px] text-[#94A3B8] font-medium">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                   De: {duplicateSourceStudent?.name}
                 </p>
               </div>
@@ -907,16 +921,16 @@ export default function TrainerDashboard() {
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
                 duplicateStep === 1
                   ? "bg-[#2563EB] text-white"
-                  : "bg-[#2563EB]/10 text-[#2563EB]"
+                  : "bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] dark:text-[#38BDF8]"
               }`}>
                 <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[9px]">1</span>
                 Escolher Treino
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8]" />
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
                 duplicateStep === 2
                   ? "bg-[#2563EB] text-white"
-                  : "bg-zinc-100 text-[#94A3B8]"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
               }`}>
                 <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[9px]">2</span>
                 Selecionar Alunos
@@ -924,13 +938,13 @@ export default function TrainerDashboard() {
             </div>
 
             {duplicateError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs text-center">
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs text-center">
                 {duplicateError}
               </div>
             )}
 
             {duplicateSuccess && (
-              <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs text-center flex items-center justify-center gap-2">
+              <div className="mb-4 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs text-center flex items-center justify-center gap-2">
                 <Check className="w-4 h-4" />
                 {duplicateSuccess}
               </div>
@@ -940,20 +954,20 @@ export default function TrainerDashboard() {
             {duplicateStep === 1 && (
               <div className="flex-1 overflow-y-auto">
                 {duplicatePlansLoading ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-[#94A3B8]">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] mb-2" />
+                  <div className="flex flex-col items-center justify-center py-10 text-slate-400 dark:text-slate-500">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#2563EB] dark:text-[#38BDF8] mb-2" />
                     <p className="text-xs">Carregando treinos...</p>
                   </div>
                 ) : duplicateSourcePlans.length === 0 ? (
                   <div className="text-center py-10">
-                    <BookOpen className="w-10 h-10 mx-auto text-[#94A3B8] mb-3" />
-                    <p className="text-sm font-semibold text-[#0F172A]">Nenhum treino encontrado</p>
-                    <p className="text-xs text-[#94A3B8] mt-1">Este aluno ainda não possui fichas de treino.</p>
+                    <BookOpen className="w-10 h-10 mx-auto text-slate-400 dark:text-slate-500 mb-3" />
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Nenhum treino encontrado</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Este aluno ainda não possui fichas de treino.</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-xs text-[#94A3B8] mb-3">Selecione a ficha de treino que deseja duplicar:</p>
-                    {duplicateSourcePlans.map((plan: any) => (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Selecione a ficha de treino que deseja duplicar:</p>
+                    {duplicateSourcePlans.map((plan: DuplicateWorkoutPlan) => (
                       <button
                         key={plan.id}
                         type="button"
@@ -963,26 +977,26 @@ export default function TrainerDashboard() {
                         }}
                         className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer group ${
                           duplicateSelectedPlanId === plan.id
-                            ? "border-[#2563EB] bg-[#2563EB]/5 shadow-sm"
-                            : "border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-slate-50"
+                            ? "border-[#2563EB] dark:border-[#38BDF8] bg-blue-50/50 dark:bg-blue-950/30 shadow-sm"
+                            : "border-slate-200 dark:border-slate-800 hover:border-[#2563EB]/30 dark:hover:border-[#38BDF8]/30 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] text-xs font-bold">
+                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40 text-xs font-bold">
                                 {plan.division}
                               </span>
                               <div>
-                                <p className="text-sm font-semibold text-[#0F172A]">{plan.name}</p>
-                                <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{plan.name}</p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                                   {plan.exercises?.length || 0} exercícios
                                   {plan.weekDays && ` · ${plan.weekDays}`}
                                 </p>
                               </div>
                             </div>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#2563EB] transition-colors" />
+                          <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors" />
                         </div>
                       </button>
                     ))}
@@ -998,14 +1012,14 @@ export default function TrainerDashboard() {
                   <button
                     type="button"
                     onClick={() => setDuplicateStep(1)}
-                    className="text-xs text-[#2563EB] font-semibold hover:text-[#1E40AF] transition-colors cursor-pointer flex items-center gap-1"
+                    className="text-xs text-[#2563EB] dark:text-[#38BDF8] font-semibold hover:text-[#1E40AF] dark:hover:text-sky-300 transition-colors cursor-pointer flex items-center gap-1"
                   >
                     ← Voltar
                   </button>
                   <button
                     type="button"
                     onClick={handleSelectAllTargets}
-                    className="text-[10px] text-[#94A3B8] hover:text-[#2563EB] font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+                    className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-[#2563EB] dark:hover:text-[#38BDF8] font-semibold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     {duplicateTargetIds.length === students.filter(s => s.id !== duplicateSourceStudent?.id).length
                       ? "Desmarcar Todos"
@@ -1013,8 +1027,8 @@ export default function TrainerDashboard() {
                   </button>
                 </div>
 
-                <p className="text-xs text-[#94A3B8] mb-3">
-                  Treino selecionado: <span className="font-semibold text-[#0F172A]">{duplicateSourcePlans.find((p: any) => p.id === duplicateSelectedPlanId)?.name}</span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Treino selecionado: <span className="font-semibold text-slate-900 dark:text-white">{duplicateSourcePlans.find((p: DuplicateWorkoutPlan) => p.id === duplicateSelectedPlanId)?.name}</span>
                 </p>
 
                 <div className="space-y-2 flex-1 overflow-y-auto pr-1 mb-4">
@@ -1036,23 +1050,23 @@ export default function TrainerDashboard() {
                           onClick={() => handleToggleTarget(student.id)}
                           className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                             isSelected
-                              ? "border-[#2563EB] bg-[#2563EB]/5"
-                              : "border-[#E2E8F0] hover:border-[#2563EB]/20 hover:bg-slate-50"
+                              ? "border-[#2563EB] dark:border-[#38BDF8] bg-blue-50/50 dark:bg-blue-950/30"
+                              : "border-slate-200 dark:border-slate-800 hover:border-[#2563EB]/20 dark:hover:border-[#38BDF8]/20 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                           }`}
                         >
                           <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                             isSelected
                               ? "bg-[#2563EB] border-[#2563EB]"
-                              : "border-[#CBD5E1]"
+                              : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
                           }`}>
                             {isSelected && <Check className="w-3 h-3 text-white stroke-[3px]" />}
                           </div>
-                          <div className="w-9 h-9 rounded-lg bg-[#00C2FF]/10 border border-cyan-900/30 flex items-center justify-center font-display font-extrabold text-[#2563EB] text-[10px] tracking-wider flex-shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-900/40 flex items-center justify-center font-display font-extrabold text-[#2563EB] dark:text-[#38BDF8] text-[10px] tracking-wider flex-shrink-0">
                             {initials}
                           </div>
                           <div className="text-left overflow-hidden">
-                            <p className="text-xs font-semibold text-[#0F172A] truncate">{student.name}</p>
-                            <p className="text-[10px] text-[#94A3B8] truncate">{student.email}</p>
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{student.name}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{student.email}</p>
                           </div>
                         </button>
                       );
@@ -1060,8 +1074,8 @@ export default function TrainerDashboard() {
 
                   {students.filter((s) => s.id !== duplicateSourceStudent?.id).length === 0 && (
                     <div className="text-center py-8">
-                      <Users className="w-8 h-8 mx-auto text-[#94A3B8] mb-2" />
-                      <p className="text-xs text-[#94A3B8]">Não há outros alunos para duplicar o treino.</p>
+                      <Users className="w-8 h-8 mx-auto text-slate-400 dark:text-slate-500 mb-2" />
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Não há outros alunos para duplicar o treino.</p>
                     </div>
                   )}
                 </div>
@@ -1070,7 +1084,7 @@ export default function TrainerDashboard() {
                   type="button"
                   onClick={handleDuplicate}
                   disabled={duplicateLoading || duplicateTargetIds.length === 0 || !!duplicateSuccess}
-                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-blue-500/20 active:scale-95"
                 >
                   {duplicateLoading ? (
                     <Loader2 className="w-4.5 h-4.5 animate-spin" />

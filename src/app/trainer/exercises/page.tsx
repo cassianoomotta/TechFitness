@@ -14,8 +14,11 @@ import {
   Edit2,
   Trash2,
   Tv,
+  Sun,
+  Moon,
 } from "lucide-react";
 import DumbbellLoading from "@/components/DumbbellLoading";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 
 interface Exercise {
@@ -52,6 +55,7 @@ const EQUIPMENTS = [
 
 export default function ExercisesPage() {
   const { data: session } = useSession();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,15 +111,15 @@ export default function ExercisesPage() {
 
   const getMuscleGroupStyle = (group: string) => {
     switch (group) {
-      case "Peito": return "bg-rose-50 text-rose-600 border-rose-200/50";
-      case "Costas": return "bg-indigo-50 text-indigo-600 border-indigo-200/50";
-      case "Pernas": return "bg-emerald-50 text-emerald-600 border-emerald-200/50";
-      case "Ombros": return "bg-amber-50 text-amber-600 border-amber-200/50";
-      case "Braços": return "bg-violet-50 text-violet-600 border-violet-200/50";
-      case "Core": return "bg-orange-50 text-orange-600 border-orange-200/50";
-      case "Cardio": return "bg-cyan-50 text-cyan-600 border-cyan-200/50";
-      case "Aquecimento e Mobilidade": return "bg-teal-50 text-teal-600 border-teal-200/50";
-      default: return "bg-slate-50 text-slate-600 border-slate-200/50";
+      case "Peito": return "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200/50 dark:border-rose-900/40";
+      case "Costas": return "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-200/50 dark:border-indigo-900/40";
+      case "Pernas": return "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/40";
+      case "Ombros": return "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/40";
+      case "Braços": return "bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border-violet-200/50 dark:border-violet-900/40";
+      case "Core": return "bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border-orange-200/50 dark:border-orange-900/40";
+      case "Cardio": return "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 border-cyan-200/50 dark:border-cyan-900/40";
+      case "Aquecimento e Mobilidade": return "bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border-teal-200/50 dark:border-teal-900/40";
+      default: return "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200/50 dark:border-slate-700";
     }
   };
 
@@ -230,10 +234,10 @@ export default function ExercisesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-[#0F172A]">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] flex flex-col text-[#0F172A] dark:text-[#F8FAFC] transition-colors duration-200">
       {/* Header com suporte a Safe Area */}
       <header 
-        className="border-b border-[#E2E8F0]/80 bg-white/80 backdrop-blur-md sticky top-0 z-40 pt-safe"
+        className="border-b border-[#E2E8F0]/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md sticky top-0 z-40 pt-safe transition-colors"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -243,31 +247,47 @@ export default function ExercisesPage() {
             <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/trainer/dashboard"
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-[#94A3B8] hover:text-zinc-950 transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-[#94A3B8] dark:text-slate-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
               >
                 Alunos
               </Link>
               <Link
                 href="/trainer/exercises"
-                className="px-4 py-2 rounded-xl text-sm font-semibold bg-white text-[#2563EB] border border-[#E2E8F0]"
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#151D2F] text-[#2563EB] dark:text-[#38BDF8] border border-[#E2E8F0] dark:border-slate-700"
               >
                 Exercícios
               </Link>
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-[#0F172A]">
+              <p className="text-sm font-semibold text-[#0F172A] dark:text-white">
                 {session?.user?.name || "Professor"}
               </p>
-              <p className="text-[10px] text-[#2563EB] font-bold uppercase tracking-wider">
+              <p className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold uppercase tracking-wider">
                 Personal Trainer
               </p>
             </div>
+
+            {/* Alternância Rápida de Tema */}
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 text-[#64748B] dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
+              title={resolvedTheme === "dark" ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
+              aria-label="Alternar tema de cores"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600" />
+              )}
+            </button>
+
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-red-500/30 hover:bg-red-500/5 text-[#94A3B8] hover:text-red-650 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-red-500/30 hover:bg-red-500/5 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer shadow-2xs"
               title="Sair"
             >
               <LogOut className="w-5 h-5" />
@@ -282,13 +302,13 @@ export default function ExercisesPage() {
         <div className="flex md:hidden gap-2 mb-6">
           <Link
             href="/trainer/dashboard"
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-transparent text-[#94A3B8] border border-[#E2E8F0]"
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-transparent text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800"
           >
             Alunos
           </Link>
           <Link
             href="/trainer/exercises"
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center bg-white text-[#2563EB] border border-[#E2E8F0]"
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-center bg-white dark:bg-[#151D2F] text-[#2563EB] dark:text-[#38BDF8] border border-slate-200 dark:border-slate-800 shadow-2xs"
           >
             Exercícios
           </Link>
@@ -297,15 +317,15 @@ export default function ExercisesPage() {
         {/* Section Title & Add Button */}
         <section className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
           <div>
-            <h2 className="font-display text-2xl font-bold text-[#0F172A]">Biblioteca de Exercícios</h2>
-            <p className="text-sm text-[#94A3B8] mt-1">
+            <h2 className="font-display text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Biblioteca de Exercícios</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Visualize, adicione ou edite os exercícios disponíveis para montagem de treino.
             </p>
           </div>
 
           <button
             onClick={handleOpenCreateModal}
-            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10"
+            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/15 active:scale-95"
           >
             <Plus className="w-4.5 h-4.5 stroke-[3px]" />
             Adicionar Exercício
@@ -313,16 +333,16 @@ export default function ExercisesPage() {
         </section>
 
         {/* Filter Bar */}
-        <section className="glass-card rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center bg-white border border-[#E2E8F0]">
+        <section className="rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm">
           {/* Search Input */}
           <div className="relative w-full md:flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#94A3B8]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder="Buscar por nome do exercício..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-2xs"
             />
           </div>
 
@@ -331,7 +351,7 @@ export default function ExercisesPage() {
             <select
               value={selectedMuscle}
               onChange={(e) => setSelectedMuscle(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 outline-none focus:border-[#2563EB] transition-all shadow-2xs"
             >
               <option value="todos">Todos os Músculos</option>
               {MUSCLE_GROUPS.map((group) => (
@@ -347,7 +367,7 @@ export default function ExercisesPage() {
             <select
               value={selectedEquipment}
               onChange={(e) => setSelectedEquipment(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 outline-none focus:border-[#2563EB] transition-all shadow-2xs"
             >
               <option value="todos">Todos Equipamentos</option>
               {EQUIPMENTS.map((eq) => (
@@ -363,21 +383,21 @@ export default function ExercisesPage() {
         {loading ? (
           <DumbbellLoading text="Carregando biblioteca de exercícios..." subtext="Acessando banco com +300 movimentos cadastrados" />
         ) : exercises.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center text-[#475569] bg-white border border-[#E2E8F0]">
-            <Dumbbell className="w-12 h-12 mx-auto text-[#475569] mb-4" />
-            <p className="text-base font-semibold text-[#0F172A]">Nenhum exercício encontrado</p>
-            <p className="text-xs mt-1">Tente ajustar seus filtros de busca ou crie um novo exercício.</p>
+          <div className="rounded-2xl p-12 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Dumbbell className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-500 mb-4" />
+            <p className="text-base font-bold text-slate-900 dark:text-white">Nenhum exercício encontrado</p>
+            <p className="text-xs mt-1 text-slate-500 dark:text-slate-400">Tente ajustar seus filtros de busca ou crie um novo exercício.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {exercises.map((exercise) => (
               <div
                 key={exercise.id}
-                className="glass-card rounded-2xl p-6 flex flex-col justify-between bg-white border border-[#E2E8F0] hover:border-[#2563EB]/30 transition-all duration-300"
+                className="rounded-2xl p-6 flex flex-col justify-between bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 transition-all duration-300 group"
               >
                 <div>
                   <div className="flex justify-between items-start gap-4 mb-3">
-                    <h3 className="font-display font-semibold text-[#0F172A] leading-snug group-hover:text-[#2563EB] transition-colors">
+                    <h3 className="font-display font-bold text-slate-900 dark:text-white leading-snug group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors">
                       {exercise.name}
                     </h3>
                   </div>
@@ -387,24 +407,24 @@ export default function ExercisesPage() {
                     <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${getMuscleGroupStyle(exercise.muscleGroup)}`}>
                       {exercise.muscleGroup}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-[#94A3B8] border border-[#E2E8F0]">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                       {exercise.equipment}
                     </span>
                   </div>
 
                   {exercise.description && (
-                    <p className="text-xs text-[#94A3B8] line-clamp-3 mb-6 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 mb-6 leading-relaxed">
                       {exercise.description}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-[#E2E8F0] mt-auto">
+                <div className="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-slate-800 mt-auto">
                   <div className="flex gap-2">
                     {(exercise.videoUrl || exercise.gifUrl) && (
                       <button
                         onClick={() => setActiveVideoUrl(exercise.gifUrl || exercise.videoUrl)}
-                        className="p-2 rounded-lg bg-white hover:bg-[#00C2FF]/10 text-[#475569] hover:text-[#2563EB] transition-all cursor-pointer"
+                        className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/80 hover:bg-[#00C2FF]/10 text-slate-600 dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer shadow-2xs active:scale-95"
                         title="Ver demonstração"
                       >
                         <Tv className="w-4 h-4" />
@@ -416,14 +436,14 @@ export default function ExercisesPage() {
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleOpenEditModal(exercise)}
-                      className="p-2 rounded-lg hover:bg-white text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer"
+                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer active:scale-95"
                       title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteExercise(exercise.id)}
-                      className="p-2 rounded-lg hover:bg-white text-[#94A3B8] hover:text-red-550 transition-all cursor-pointer"
+                      className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer active:scale-95"
                       title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -438,27 +458,27 @@ export default function ExercisesPage() {
 
       {/* Modal Criar/Editar */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-2xl p-6 shadow-2xl relative border border-[#E2E8F0] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-2xl bg-white dark:bg-[#151D2F] rounded-2xl p-6 shadow-2xl relative border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
             {/* Fechar */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-lg border border-[#E2E8F0] hover:bg-white text-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer"
+              className="absolute right-4 top-4 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2 mb-6">
-              <div className="bg-[#00C2FF]/10 p-2 rounded-lg text-[#2563EB]">
+              <div className="bg-cyan-50 dark:bg-cyan-950/40 p-2 rounded-lg text-[#2563EB] dark:text-[#38BDF8] border border-cyan-100 dark:border-cyan-900/40">
                 <Dumbbell className="w-5 h-5" />
               </div>
-              <h3 className="font-display font-semibold text-lg text-[#0F172A]">
+              <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white">
                 {editingExercise ? "Editar Exercício" : "Adicionar Novo Exercício"}
               </h3>
             </div>
 
             {modalError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-750 text-xs text-center">
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs text-center">
                 {modalError}
               </div>
             )}
@@ -468,7 +488,7 @@ export default function ExercisesPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Nome */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                     Nome do Exercício
                   </label>
                   <input
@@ -477,20 +497,20 @@ export default function ExercisesPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: Agachamento Livre, Supino Reto"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-2xs"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Grupo Muscular */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       Grupo Muscular Primário
                     </label>
                     <select
                       value={muscleGroup}
                       onChange={(e) => setMuscleGroup(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 outline-none focus:border-[#2563EB] transition-all shadow-2xs"
                     >
                       {MUSCLE_GROUPS.map((group) => (
                         <option key={group} value={group}>
@@ -502,13 +522,13 @@ export default function ExercisesPage() {
 
                   {/* Equipamento */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       Equipamento
                     </label>
                     <select
                       value={equipment}
                       onChange={(e) => setEquipment(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#E2E8F0] text-xs text-[#475569] outline-none focus:border-[#2563EB] transition-all"
+                      className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 outline-none focus:border-[#2563EB] transition-all shadow-2xs"
                     >
                       {EQUIPMENTS.map((eq) => (
                         <option key={eq} value={eq}>
@@ -521,7 +541,7 @@ export default function ExercisesPage() {
 
                 {/* Descrição */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                  <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                     Instruções de Execução (Opcional)
                   </label>
                   <textarea
@@ -529,14 +549,14 @@ export default function ExercisesPage() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Instruções para posicionamento, execução, respiração, etc."
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all resize-none shadow-2xs"
                   />
                 </div>
 
                 {/* URLs (Vídeo e GIF) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       URL do Vídeo Demonstrativo (Opcional)
                     </label>
                     <input
@@ -544,12 +564,12 @@ export default function ExercisesPage() {
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                       placeholder="https://youtube.com/watch?v=..."
-                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-2xs"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                       URL do GIF de Movimento (Opcional)
                     </label>
                     <input
@@ -557,7 +577,7 @@ export default function ExercisesPage() {
                       value={gifUrl}
                       onChange={(e) => setGifUrl(e.target.value)}
                       placeholder="https://exemplo.com/exercicio.gif"
-                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E8F0] focus:border-[#2563EB] outline-none text-xs text-[#0F172A] placeholder-zinc-450 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 focus:border-[#2563EB] dark:focus:border-[#00C2FF] outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all shadow-2xs"
                     />
                   </div>
                 </div>
@@ -565,7 +585,7 @@ export default function ExercisesPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4"
+                  className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-4 shadow-md shadow-blue-500/20 active:scale-95"
                 >
                   {modalLoading ? (
                     <Loader2 className="w-4.5 h-4.5 animate-spin" />
@@ -583,8 +603,8 @@ export default function ExercisesPage() {
 
       {/* Modal Player de Vídeo */}
       {activeVideoUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-2xl p-4 shadow-2xl relative border border-[#E2E8F0]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-2xl bg-white dark:bg-[#151D2F] rounded-2xl p-4 shadow-2xl relative border border-slate-200 dark:border-slate-800">
             <button
               onClick={() => setActiveVideoUrl(null)}
               className="absolute -top-12 right-0 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"

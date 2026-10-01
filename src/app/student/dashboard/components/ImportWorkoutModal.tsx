@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   UploadCloud,
   FileText,
@@ -15,6 +15,8 @@ import {
   Check,
   MessageSquare,
   ArrowLeft,
+  Plus,
+  Search,
 } from "lucide-react";
 
 export interface ParsedExercise {
@@ -33,6 +35,7 @@ export interface ParsedExercise {
   restSeconds: number;
   method: string;
   notes: string;
+  selected?: boolean;
 }
 
 export interface ParsedPlan {
@@ -43,6 +46,16 @@ export interface ParsedPlan {
   exercises: ParsedExercise[];
 }
 
+export interface LibraryExercise {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+  gifUrl: string | null;
+  videoUrl: string | null;
+  description?: string | null;
+}
+
 interface ImportWorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -50,6 +63,18 @@ interface ImportWorkoutModalProps {
   onPlanSelectedForTrainer?: (plan: ParsedPlan) => void;
   targetStudentId?: string;
 }
+
+const MUSCLE_FILTER_OPTIONS = [
+  "Todos",
+  "Peito",
+  "Costas",
+  "Pernas",
+  "Ombros",
+  "Braços",
+  "Core",
+  "Cardio",
+  "Outros",
+];
 
 export default function ImportWorkoutModal({
   isOpen,
@@ -71,10 +96,55 @@ export default function ImportWorkoutModal({
   const [success, setSuccess] = useState(false);
   const [archivePrevious, setArchivePrevious] = useState(false);
 
+  // Estados da Biblioteca de Exercícios
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [libraryExercises, setLibraryExercises] = useState<LibraryExercise[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [pickerMuscle, setPickerMuscle] = useState("Todos");
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const parsedPlan = parsedPlans[activePlanIndex] || null;
+
+  // Carregar exercícios da biblioteca quando o seletor for aberto ou filtros mudarem
+  useEffect(() => {
+    if (!isPickerOpen) return;
+
+    let isMounted = true;
+    const fetchLibrary = async () => {
+      setLibraryLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (pickerSearch.trim()) {
+          params.append("search", pickerSearch.trim());
+        }
+        if (pickerMuscle && pickerMuscle !== "Todos") {
+          params.append("muscle", pickerMuscle);
+        }
+        const res = await fetch(`/api/exercises?${params.toString()}`);
+        if (res.ok && isMounted) {
+          const data: LibraryExercise[] = await res.json();
+          setLibraryExercises(data);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar exercícios:", err);
+      } finally {
+        if (isMounted) setLibraryLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchLibrary();
+    }, 200);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [isPickerOpen, pickerSearch, pickerMuscle]);
 
   if (!isOpen) return null;
 
@@ -141,10 +211,24 @@ export default function ImportWorkoutModal({
       }
 
       if (data.plans && Array.isArray(data.plans) && data.plans.length > 0) {
-        setParsedPlans(data.plans);
+        const mappedPlans: ParsedPlan[] = data.plans.map((p: ParsedPlan) => ({
+          ...p,
+          exercises: (p.exercises || []).map((ex: ParsedExercise) => ({
+            ...ex,
+            selected: true,
+          })),
+        }));
+        setParsedPlans(mappedPlans);
         setActivePlanIndex(0);
       } else if (data.plan) {
-        setParsedPlans([data.plan]);
+        const mappedPlan: ParsedPlan = {
+          ...data.plan,
+          exercises: (data.plan.exercises || []).map((ex: ParsedExercise) => ({
+            ...ex,
+            selected: true,
+          })),
+        };
+        setParsedPlans([mappedPlan]);
         setActivePlanIndex(0);
       } else {
         throw new Error("Não foi possível extrair os exercícios fornecidos.");
@@ -165,9 +249,19 @@ export default function ImportWorkoutModal({
       return;
     }
 
+    // Filtrar apenas os exercícios que estão marcados para importação
+    const exercisesToSave = current.exercises.filter((ex) => ex.selected !== false);
+    if (exercisesToSave.length === 0) {
+      setError("Selecione ao menos um exercício marcado antes de salvar.");
+      return;
+    }
+
     // Se for o Treinador preenchendo o formulário de novo treino
     if (onPlanSelectedForTrainer) {
-      onPlanSelectedForTrainer(current);
+      onPlanSelectedForTrainer({
+        ...current,
+        exercises: exercisesToSave,
+      });
       handleResetAndClose();
       return;
     }
@@ -182,31 +276,35 @@ export default function ImportWorkoutModal({
 
       const payload = parsedPlans.length > 1 ? {
         archivePrevious,
-        plans: parsedPlans.map((p) => ({
-          name: p.name,
-          division: p.division,
-          description: p.description,
-          weekDays: p.weekDays,
-          exercises: p.exercises.map((ex) => ({
-            exerciseId: ex.exerciseId,
-            name: ex.name,
-            customName: ex.customName,
-            muscleGroup: ex.muscleGroup,
-            equipment: ex.equipment,
-            sets: ex.sets,
-            reps: ex.reps,
-            restSeconds: ex.restSeconds,
-            method: ex.method,
-            notes: ex.notes,
-          })),
-        }))
+        plans: parsedPlans
+          .map((p) => ({
+            name: p.name,
+            division: p.division,
+            description: p.description,
+            weekDays: p.weekDays,
+            exercises: p.exercises
+              .filter((ex) => ex.selected !== false)
+              .map((ex) => ({
+                exerciseId: ex.exerciseId,
+                name: ex.name,
+                customName: ex.customName,
+                muscleGroup: ex.muscleGroup,
+                equipment: ex.equipment,
+                sets: ex.sets,
+                reps: ex.reps,
+                restSeconds: ex.restSeconds,
+                method: ex.method,
+                notes: ex.notes,
+              })),
+          }))
+          .filter((p) => p.exercises.length > 0)
       } : {
         name: current.name,
         division: current.division,
         description: current.description,
         weekDays: current.weekDays,
         archivePrevious,
-        exercises: current.exercises.map((ex) => ({
+        exercises: exercisesToSave.map((ex) => ({
           exerciseId: ex.exerciseId,
           name: ex.name,
           customName: ex.customName,
@@ -257,13 +355,17 @@ export default function ImportWorkoutModal({
     setSaving(false);
     setSuccess(false);
     setArchivePrevious(false);
+    setIsPickerOpen(false);
+    setPickerSearch("");
+    setPickerMuscle("Todos");
+    setRecentlyAddedId(null);
     onClose();
   };
 
   const handleUpdateExercise = (
     index: number,
     field: keyof ParsedExercise,
-    value: string | number
+    value: string | number | boolean
   ) => {
     if (parsedPlans.length === 0) return;
     const current = parsedPlans[activePlanIndex];
@@ -278,6 +380,68 @@ export default function ImportWorkoutModal({
       exercises: updatedExercises,
     };
     setParsedPlans(updatedPlans);
+  };
+
+  const handleToggleExercise = (index: number) => {
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current) return;
+    const isSelected = current.exercises[index].selected !== false;
+    handleUpdateExercise(index, "selected", !isSelected);
+  };
+
+  const handleToggleSelectAll = (select: boolean) => {
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current) return;
+
+    const updatedExercises = current.exercises.map((ex) => ({
+      ...ex,
+      selected: select,
+    }));
+
+    const updatedPlans = [...parsedPlans];
+    updatedPlans[activePlanIndex] = {
+      ...current,
+      exercises: updatedExercises,
+    };
+    setParsedPlans(updatedPlans);
+  };
+
+  const handleAddExerciseFromLibrary = (exercise: LibraryExercise) => {
+    if (parsedPlans.length === 0) return;
+    const current = parsedPlans[activePlanIndex];
+    if (!current) return;
+
+    const newEx: ParsedExercise = {
+      order: current.exercises.length + 1,
+      extractedName: exercise.name,
+      exerciseId: exercise.id,
+      name: exercise.name,
+      customName: null,
+      muscleGroup: exercise.muscleGroup || "Geral",
+      equipment: exercise.equipment || "Livre",
+      gifUrl: exercise.gifUrl,
+      videoUrl: exercise.videoUrl,
+      confidence: 1,
+      sets: 3,
+      reps: "10-12",
+      restSeconds: 60,
+      method: "Normal",
+      notes: "",
+      selected: true,
+    };
+
+    const updatedPlans = [...parsedPlans];
+    updatedPlans[activePlanIndex] = {
+      ...current,
+      exercises: [...current.exercises, newEx],
+    };
+    setParsedPlans(updatedPlans);
+    setRecentlyAddedId(exercise.id);
+    setTimeout(() => {
+      setRecentlyAddedId(null);
+    }, 1500);
   };
 
   const handleRemoveExercise = (index: number) => {
@@ -302,6 +466,12 @@ export default function ImportWorkoutModal({
     };
     setParsedPlans(updatedPlans);
   };
+
+  const currentTotal = parsedPlan ? parsedPlan.exercises.length : 0;
+  const currentSelected = parsedPlan
+    ? parsedPlan.exercises.filter((ex) => ex.selected !== false).length
+    : 0;
+  const isAllSelected = currentTotal > 0 && currentSelected === currentTotal;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in overflow-y-auto">
@@ -332,7 +502,7 @@ export default function ImportWorkoutModal({
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 min-h-0">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 min-h-0 relative">
           {error && (
             <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-slide-down">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
@@ -581,90 +751,316 @@ export default function ImportWorkoutModal({
                 </div>
               </div>
 
+              {/* Barra de Ações: Seleção Rápida e Adicionar da Biblioteca */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 pb-0.5 px-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleToggleSelectAll(!isAllSelected)}
+                  className="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors cursor-pointer select-none py-1.5 px-2.5 rounded-xl hover:bg-slate-100 border border-transparent hover:border-slate-200"
+                >
+                  <div
+                    className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
+                      isAllSelected
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : currentSelected > 0
+                        ? "bg-blue-50 border-blue-400 text-blue-600"
+                        : "border-slate-300 bg-white"
+                    }`}
+                  >
+                    {isAllSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    {!isAllSelected && currentSelected > 0 && (
+                      <div className="w-2 h-0.5 bg-blue-600 rounded" />
+                    )}
+                  </div>
+                  <span>{isAllSelected ? "Desmarcar todos" : "Selecionar todos"}</span>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    ({currentSelected} de {currentTotal})
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPickerOpen(true)}
+                  className="py-2 px-3.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-blue-200/80 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <span>Adicionar Exercício</span>
+                </button>
+              </div>
+
               {/* Lista de Exercícios Extraídos */}
               <div className="space-y-2.5 pb-2">
-                {parsedPlan.exercises.map((ex, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-slate-300 transition-all flex items-start gap-3"
-                  >
-                    {/* Miniatura do GIF se houver */}
-                    <div className="w-12 h-12 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200 shadow-inner">
-                      {ex.gifUrl ? (
-                        <img
-                          src={`/api/media/${ex.gifUrl}`}
-                          alt={ex.name}
-                          className="w-full h-full object-cover"
+                {parsedPlan.exercises.map((ex, idx) => {
+                  const isSelected = ex.selected !== false;
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-3.5 rounded-2xl border transition-all flex items-start gap-3 ${
+                        isSelected
+                          ? "bg-white border-slate-200/90 shadow-sm hover:border-slate-300"
+                          : "bg-slate-50/70 border-slate-200/60 opacity-60 hover:opacity-90"
+                      }`}
+                    >
+                      {/* Checkbox de Seleção */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleExercise(idx)}
+                        aria-label={isSelected ? "Desmarcar exercício" : "Marcar exercício"}
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-all cursor-pointer mt-3 ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+                            : "bg-white border-slate-300 text-transparent hover:border-blue-400"
+                        }`}
+                      >
+                        <Check
+                          className={`w-3.5 h-3.5 stroke-[3] transition-transform ${
+                            isSelected ? "scale-100" : "scale-0"
+                          }`}
                         />
-                      ) : (
-                        <Dumbbell className="w-5 h-5 text-slate-400" />
-                      )}
-                    </div>
+                      </button>
 
-                    {/* Dados do Exercício */}
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      <div className="flex items-center justify-between gap-1">
-                        <input
-                          type="text"
-                          value={ex.name}
-                          onChange={(e) => handleUpdateExercise(idx, "name", e.target.value)}
-                          className="text-xs sm:text-sm font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none w-full truncate"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExercise(idx)}
-                          className="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer"
-                          title="Remover exercício"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 font-semibold text-slate-600">
-                          {ex.muscleGroup}
-                        </span>
-
-                        <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-                          <span>Séries:</span>
-                          <input
-                            type="number"
-                            value={ex.sets}
-                            min={1}
-                            max={20}
-                            onChange={(e) =>
-                              handleUpdateExercise(idx, "sets", Number(e.target.value))
-                            }
-                            className="w-8 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded px-0.5"
+                      {/* Miniatura do GIF se houver */}
+                      <div className="w-12 h-12 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200 shadow-inner">
+                        {ex.gifUrl ? (
+                          <img
+                            src={`/api/media/${ex.gifUrl}`}
+                            alt={ex.name}
+                            className="w-full h-full object-cover"
                           />
-                        </div>
-
-                        <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-                          <span>Reps:</span>
-                          <input
-                            type="text"
-                            value={ex.reps}
-                            onChange={(e) => handleUpdateExercise(idx, "reps", e.target.value)}
-                            className="w-16 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded px-1 text-[11px]"
-                          />
-                        </div>
-
-                        {ex.exerciseId && (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded">
-                            ✓ GIF Vinculado
-                          </span>
+                        ) : (
+                          <Dumbbell className="w-5 h-5 text-slate-400" />
                         )}
                       </div>
+
+                      {/* Dados do Exercício */}
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex items-center justify-between gap-1">
+                          <input
+                            type="text"
+                            value={ex.name}
+                            onChange={(e) => handleUpdateExercise(idx, "name", e.target.value)}
+                            className={`text-xs sm:text-sm font-bold bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none w-full truncate transition-colors ${
+                              isSelected ? "text-slate-800" : "text-slate-500 line-through"
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExercise(idx)}
+                            className="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer"
+                            title="Remover exercício"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 font-semibold text-slate-600">
+                            {ex.muscleGroup}
+                          </span>
+
+                          <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
+                            <span>Séries:</span>
+                            <input
+                              type="number"
+                              value={ex.sets}
+                              min={1}
+                              max={20}
+                              onChange={(e) =>
+                                handleUpdateExercise(idx, "sets", Number(e.target.value))
+                              }
+                              className="w-8 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded px-0.5"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
+                            <span>Reps:</span>
+                            <input
+                              type="text"
+                              value={ex.reps}
+                              onChange={(e) => handleUpdateExercise(idx, "reps", e.target.value)}
+                              className="w-16 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded px-1 text-[11px]"
+                            />
+                          </div>
+
+                          {ex.exerciseId && (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded">
+                              ✓ GIF Vinculado
+                            </span>
+                          )}
+
+                          {!isSelected && (
+                            <span className="text-[10px] font-semibold text-slate-400 bg-slate-200/70 px-1.5 py-0.5 rounded">
+                              Não será importado
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-tela: Seletor de Exercícios da Biblioteca */}
+          {isPickerOpen && (
+            <div className="absolute inset-0 z-30 bg-white rounded-3xl flex flex-col overflow-hidden animate-fade-in">
+              {/* Header do Seletor */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <Dumbbell className="w-4 h-4" />
                   </div>
-                ))}
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Adicionar da Biblioteca
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Mais de 300 exercícios com GIFs para adicionar ao treino
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPickerOpen(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Filtros e Busca */}
+              <div className="p-3 sm:p-4 border-b border-slate-100 space-y-3 bg-slate-50/50 shrink-0">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={pickerSearch}
+                    onChange={(e) => setPickerSearch(e.target.value)}
+                    placeholder="Buscar por nome (ex: Supino, Rosca, Puxada)..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-base md:text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none transition-colors shadow-2xs"
+                  />
+                  {pickerSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setPickerSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Pílulas de Grupos Musculares */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                  {MUSCLE_FILTER_OPTIONS.map((muscle) => (
+                    <button
+                      key={muscle}
+                      type="button"
+                      onClick={() => setPickerMuscle(muscle)}
+                      className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer text-xs ${
+                        pickerMuscle === muscle
+                          ? "bg-blue-600 text-white shadow-xs"
+                          : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
+                      }`}
+                    >
+                      {muscle}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lista de Resultados da Biblioteca */}
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2">
+                {libraryLoading ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-slate-400 space-y-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                    <span className="text-xs font-medium">Buscando exercícios...</span>
+                  </div>
+                ) : libraryExercises.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center text-slate-400 space-y-2">
+                    <Dumbbell className="w-8 h-8 opacity-40" />
+                    <p className="text-xs font-semibold text-slate-600">Nenhum exercício encontrado.</p>
+                    <p className="text-[11px] text-slate-400">Tente buscar por outro termo ou grupo muscular.</p>
+                  </div>
+                ) : (
+                  libraryExercises.map((libEx) => {
+                    const isJustAdded = recentlyAddedId === libEx.id;
+
+                    return (
+                      <div
+                        key={libEx.id}
+                        className="p-3 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 transition-all flex items-center justify-between gap-3 shadow-2xs"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-11 h-11 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200">
+                            {libEx.gifUrl ? (
+                              <img
+                                src={`/api/media/${libEx.gifUrl}`}
+                                alt={libEx.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Dumbbell className="w-5 h-5 text-slate-400" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+                              {libEx.name}
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {libEx.muscleGroup} • {libEx.equipment}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAddExerciseFromLibrary(libEx)}
+                          className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                            isJustAdded
+                              ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                              : "bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 active:scale-95"
+                          }`}
+                        >
+                          {isJustAdded ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>Adicionado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>Adicionar</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Rodapé do Seletor */}
+              <div className="p-3 sm:p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between shrink-0">
+                <span className="text-xs text-slate-500 font-medium">
+                  {parsedPlan?.exercises.length || 0} exercícios na ficha ativa
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsPickerOpen(false)}
+                  className="py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+                >
+                  Concluir e Voltar
+                </button>
               </div>
             </div>
           )}
         </div>
 
         {/* Rodapé Fixo com Efeito Vidro (Sticky Glassmorphic Footer) - Etapa 2 */}
-        {parsedPlan && !success && (
+        {parsedPlan && !success && !isPickerOpen && (
           <div className="bg-white/95 backdrop-blur-xl border-t border-slate-100/90 shadow-[0_-8px_25px_rgba(0,0,0,0.06)] shrink-0 z-10">
             {!onPlanSelectedForTrainer && !targetStudentId && (
               <div className="px-4 py-2 border-b border-slate-100/80 bg-slate-50/60 flex items-center justify-between">
@@ -680,50 +1076,55 @@ export default function ImportWorkoutModal({
               </div>
             )}
             <div className="p-3.5 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setParsedPlans([])}
-              disabled={saving}
-              className="py-3 px-3.5 sm:px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 min-h-[44px]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Voltar</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setParsedPlans([])}
+                disabled={saving}
+                className="py-3 px-3.5 sm:px-4 rounded-2xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 min-h-[44px]"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Voltar</span>
+              </button>
 
-            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>
-                {parsedPlan.exercises.length} {parsedPlan.exercises.length === 1 ? "exercício pronto" : "exercícios prontos"}
-              </span>
-            </div>
+              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>
+                  {currentSelected} {currentSelected === 1 ? "exercício selecionado" : "exercícios selecionados"}
+                  {currentSelected !== currentTotal && ` (de ${currentTotal})`}
+                </span>
+              </div>
 
-            <button
-              type="button"
-              onClick={handleSavePlan}
-              disabled={saving || parsedPlan.exercises.length === 0}
-              className="flex-1 sm:flex-initial sm:min-w-[240px] py-3 px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                  <span>{parsedPlans.length > 1 ? `Salvando ${parsedPlans.length} fichas...` : "Salvando ficha..."}</span>
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-                  <span>
-                    {onPlanSelectedForTrainer
-                      ? "Preencher no Treino"
-                      : parsedPlans.length > 1
-                      ? `Confirmar e Salvar ${parsedPlans.length} Fichas`
-                      : "Confirmar e Salvar Ficha"}
-                  </span>
-                  <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black shrink-0">
-                    {parsedPlan.exercises.length}
-                  </span>
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={handleSavePlan}
+                disabled={saving || currentSelected === 0}
+                className="flex-1 sm:flex-initial sm:min-w-[240px] py-3 px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                    <span>
+                      {parsedPlans.length > 1
+                        ? `Salvando ${parsedPlans.length} fichas...`
+                        : "Salvando ficha..."}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+                    <span>
+                      {onPlanSelectedForTrainer
+                        ? "Preencher no Treino"
+                        : parsedPlans.length > 1
+                        ? `Confirmar e Salvar ${parsedPlans.length} Fichas`
+                        : "Confirmar e Salvar Ficha"}
+                    </span>
+                    <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black shrink-0">
+                      {currentSelected}
+                    </span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         )}

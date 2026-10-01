@@ -153,27 +153,27 @@ export default function EditProfilePhotoModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-[#E2E8F0] text-center">
+      <div className="w-full max-w-sm bg-white dark:bg-[#151D2F] rounded-3xl p-6 shadow-2xl relative border border-slate-200 dark:border-slate-800 text-center">
         {/* Botão Fechar */}
         <button
           onClick={onClose}
           disabled={loading}
-          className="absolute right-4 top-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          className="absolute right-4 top-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           title="Fechar"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h3 className="font-display font-bold text-lg text-[#0F172A] mb-1">
+        <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white mb-1">
           Foto de Perfil
         </h3>
-        <p className="text-xs text-[#94A3B8] mb-6">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
           Sua foto ficará visível no ranking, treinos e no seu perfil.
         </p>
 
         {/* Visualizador de Foto */}
         <div className="relative inline-block mx-auto mb-6">
-          <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-[#2563EB]/20 shadow-lg mx-auto flex items-center justify-center bg-slate-50">
+          <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-[#2563EB]/20 shadow-lg mx-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800">
             {preview ? (
               <img
                 src={preview}
@@ -195,7 +195,7 @@ export default function EditProfilePhotoModal({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={loading}
-            className="absolute bottom-0 right-0 p-2.5 rounded-full bg-[#2563EB] hover:bg-[#1E40AF] text-white shadow-md border-2 border-white transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="absolute bottom-0 right-0 p-2.5 rounded-full bg-[#2563EB] hover:bg-[#1E40AF] text-white shadow-md border-2 border-white dark:border-[#151D2F] transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="Escolher nova foto"
           >
             <Camera className="w-4 h-4" />
@@ -211,13 +211,13 @@ export default function EditProfilePhotoModal({
         />
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-medium">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center justify-center gap-1.5">
+          <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5">
             <Check className="w-4 h-4" /> Foto atualizada com sucesso!
           </div>
         )}
@@ -227,9 +227,9 @@ export default function EditProfilePhotoModal({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl border border-[#E2E8F0] hover:border-[#2563EB]/40 bg-slate-50 hover:bg-white text-xs font-bold text-[#334155] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-[#2563EB]/40 bg-slate-50 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 text-xs font-bold text-[#334155] dark:text-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
           >
-            <Upload className="w-4 h-4 text-[#2563EB]" />
+            <Upload className="w-4 h-4 text-[#2563EB] dark:text-[#38BDF8]" />
             {preview ? "Escolher outra imagem" : "Carregar Foto da Galeria / Câmera"}
           </button>
 
@@ -238,7 +238,7 @@ export default function EditProfilePhotoModal({
               type="button"
               onClick={handleSave}
               disabled={loading || success}
-              className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none active:scale-95"
             >
               {loading ? (
                 <>
@@ -255,7 +255,7 @@ export default function EditProfilePhotoModal({
               type="button"
               onClick={() => setPreview(null)}
               disabled={loading}
-              className="w-full py-2.5 px-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               Cancelar seleção
             </button>
@@ -264,7 +264,7 @@ export default function EditProfilePhotoModal({
               type="button"
               onClick={handleRemovePhoto}
               disabled={loading}
-              className="w-full py-2.5 px-3 rounded-xl border border-red-200/80 text-red-600 hover:bg-red-50 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+              className="w-full py-2.5 px-3 rounded-xl border border-red-200/80 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Remover foto de perfil atual
