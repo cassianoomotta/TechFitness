@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Cloud, CloudRain, Sun, Moon, Wind, MapPin } from "lucide-react";
 
 interface WeatherData {
@@ -10,14 +10,18 @@ interface WeatherData {
   isDay: number;
 }
 
+const DEFAULT_WEATHER_LOCATION = {
+  latitude: -29.8248,
+  longitude: -50.5186,
+  city: "Sua Região",
+};
+
 export default function WeatherCard() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const fetchWeather = async (lat: number, lon: number, cityName: string) => {
-    setLoading(true);
-    setError(false);
+  const fetchWeather = useCallback(async (lat: number, lon: number, cityName: string) => {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         if (!res.ok) throw new Error("Erro na API");
@@ -45,27 +49,18 @@ export default function WeatherCard() {
       } finally {
         setLoading(false);
       }
-  };
+  }, []);
 
-  const requestWeather = () => {
-    setError(false);
-    if (!("geolocation" in navigator)) {
-      setError(true);
-      return;
-    }
-
-    setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        void fetchWeather(position.coords.latitude, position.coords.longitude, "Localização atual");
-      },
-      () => {
-        setLoading(false);
-        setError(true);
-      },
-      { timeout: 8000, maximumAge: 300000 }
-    );
-  };
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      void fetchWeather(
+        DEFAULT_WEATHER_LOCATION.latitude,
+        DEFAULT_WEATHER_LOCATION.longitude,
+        DEFAULT_WEATHER_LOCATION.city
+      );
+    }, 0);
+    return () => window.clearTimeout(timerId);
+  }, [fetchWeather]);
 
   if (loading) {
     return (
@@ -79,17 +74,25 @@ export default function WeatherCard() {
   if (error || !weather) {
     return (
       <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 backdrop-blur-md dark:border-slate-800 dark:bg-[#151D2F]">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Clima perto de você</h3>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Clima local</h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Sua localização só será solicitada quando você tocar no botão e será usada para consultar a previsão no Open-Meteo.
+          A previsão usa temporariamente uma localização padrão configurada no aplicativo.
         </p>
-        {error && <p role="status" className="mt-2 text-sm text-red-600 dark:text-red-400">Não foi possível consultar o clima. Verifique a permissão de localização e tente novamente.</p>}
+        {error && <p role="status" className="mt-2 text-sm text-red-600 dark:text-red-400">Não foi possível consultar o clima. Tente novamente.</p>}
         <button
           type="button"
-          onClick={requestWeather}
+          onClick={() => {
+            setLoading(true);
+            setError(false);
+            void fetchWeather(
+              DEFAULT_WEATHER_LOCATION.latitude,
+              DEFAULT_WEATHER_LOCATION.longitude,
+              DEFAULT_WEATHER_LOCATION.city
+            );
+          }}
           className="mt-3 min-h-[44px] rounded-xl bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white active:scale-95"
         >
-          Consultar clima
+          Tentar novamente
         </button>
       </section>
     );
