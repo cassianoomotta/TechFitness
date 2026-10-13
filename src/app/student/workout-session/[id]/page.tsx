@@ -1385,10 +1385,11 @@ export default function WorkoutSessionPlayer() {
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(true)}
-              className="min-h-[44px] px-3 rounded-xl border border-red-200/80 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-bold text-sm transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+              className="h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 justify-center rounded-xl border border-red-200/80 bg-red-50 p-0 text-sm font-bold text-red-600 shadow-xs transition-all hover:bg-red-100 active:scale-95 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-900/50 sm:h-auto sm:w-auto sm:min-w-0 sm:gap-1 sm:px-3 sm:py-1.5"
+              aria-label="Cancelar treino e descartar sessão"
               title="Cancelar treino e descartar sessão"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-4 w-4" />
               <span className="hidden sm:inline">Cancelar</span>
             </button>
 
