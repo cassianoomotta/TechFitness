@@ -495,14 +495,30 @@ export default function StudentDashboard() {
     setRankingLoading(true);
     setRankingError(false);
     try {
-      const response = await fetch("/api/student/ranking");
-      if (!response.ok) throw new Error("Falha ao buscar classificação e fotos.");
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          response = await fetch("/api/student/ranking", { cache: "no-store" });
+        } catch (error) {
+          if (attempt === 1) throw new Error("Falha de conexão ao buscar classificação e fotos.", { cause: error });
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
+          continue;
+        }
+
+        if (response.ok) break;
+        if ((response.status < 500 && response.status !== 429) || attempt === 1) {
+          throw new Error(`Falha ao buscar classificação e fotos (HTTP ${response?.status ?? "rede"}).`);
+        }
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
+      }
+
+      if (!response?.ok) throw new Error("Falha ao buscar classificação e fotos.");
       const data: RankingData = await response.json();
       setRanking(data);
       cachedRanking = data;
       setDashboardSessionCache("tf_st_ranking", data);
     } catch (error) {
-      console.error("Erro ao buscar ranking:", error);
+      console.error("Erro ao buscar ranking:", error instanceof Error ? error.message : "falha desconhecida");
       setRankingError(true);
     } finally {
       setRankingLoading(false);

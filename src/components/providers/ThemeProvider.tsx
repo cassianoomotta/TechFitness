@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export type Theme = "light" | "dark" | "system";
 
@@ -23,6 +24,7 @@ export default function ThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const [theme, setThemeState] = useState<Theme>("light");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
 
@@ -46,6 +48,11 @@ export default function ThemeProvider({
   // Aplicar tema
   useEffect(() => {
     const root = document.documentElement;
+    if (pathname === "/login") {
+      root.classList.remove("dark");
+      return;
+    }
+
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const applyTheme = () => {
@@ -77,7 +84,7 @@ export default function ThemeProvider({
 
     mediaQuery.addEventListener("change", handleSystemChange);
     return () => mediaQuery.removeEventListener("change", handleSystemChange);
-  }, [theme]);
+  }, [pathname, theme]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { z } from "zod";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 const updatePlanSchema = z.object({
   name: z.string().min(1, "O nome não pode ser vazio").max(100, "Nome muito longo").optional()
     .transform((val) => val ? val.replace(/<[^>]*>/g, "").trim() : val),
@@ -82,69 +82,69 @@ export async function GET(
       );
     }
 
-    // Para cada exercício, buscar os logs da última sessão que o aluno realizou
-    const formattedExercises = await Promise.all(
-      plan.exercises.map(async (pe) => {
-        const lastLog = await prisma.exerciseLog.findFirst({
-          where: {
-            studentId: studentProfile.id,
-            exerciseId: pe.exerciseId,
-          },
-          orderBy: {
-            session: {
-              date: "desc",
-            },
-          },
-          select: {
-            sessionId: true,
-          },
-        });
+    // Busca os últimos registros de todos os exercícios em lote para evitar 2 consultas por item.
+    const exerciseIds = Array.from(new Set(plan.exercises.map((exercise) => exercise.exerciseId)));
+    const [latestSessions, personalNotes] = await Promise.all([
+      exerciseIds.length > 0
+        ? prisma.$queryRaw<Array<{ exerciseId: string; sessionId: string }>>`
+            SELECT DISTINCT ON (log."exerciseId") log."exerciseId", log."sessionId"
+            FROM "ExerciseLog" AS log
+            INNER JOIN "WorkoutSession" AS session ON session."id" = log."sessionId"
+            WHERE log."studentId" = ${studentProfile.id}
+              AND log."exerciseId" IN (${Prisma.join(exerciseIds)})
+            ORDER BY log."exerciseId", session."date" DESC, log."setNumber" ASC
+          `
+        : Promise.resolve([]),
+      exerciseIds.length > 0
+        ? prisma.$queryRaw<Array<{ exerciseId: string; note: string }>>`
+            SELECT "exerciseId", "note"
+            FROM "StudentExerciseNote"
+            WHERE "studentProfileId" = ${studentProfile.id}
+              AND "exerciseId" IN (${Prisma.join(exerciseIds)})
+          `
+        : Promise.resolve([]),
+    ]);
 
-        let previousWorkoutSets: { setNumber: number; weightUsed: number; repsPerformed: number }[] = [];
+    const latestSessionByExercise = new Map<string, string>();
+    for (const item of latestSessions) {
+      latestSessionByExercise.set(item.exerciseId, item.sessionId);
+    }
+    const latestSessionIds = Array.from(new Set(latestSessionByExercise.values()));
+    const recentLogs = latestSessionIds.length > 0
+      ? await prisma.exerciseLog.findMany({
+          where: { studentId: studentProfile.id, sessionId: { in: latestSessionIds } },
+          orderBy: { setNumber: "asc" },
+          select: { exerciseId: true, sessionId: true, setNumber: true, weightUsed: true, repsPerformed: true },
+        })
+      : [];
+    const personalNoteByExercise = new Map(personalNotes.map((item) => [item.exerciseId, item.note]));
 
-        if (lastLog) {
-          const sets = await prisma.exerciseLog.findMany({
-            where: {
-              sessionId: lastLog.sessionId,
-              exerciseId: pe.exerciseId,
-            },
-            orderBy: {
-              setNumber: "asc",
-            },
-            select: {
-              setNumber: true,
-              weightUsed: true,
-              repsPerformed: true,
-            },
-          });
-          previousWorkoutSets = sets.map((s) => ({
-            setNumber: s.setNumber,
-            weightUsed: s.weightUsed,
-            repsPerformed: s.repsPerformed,
-          }));
-        }
-
-        return {
-          id: pe.id,
-          exerciseId: pe.exercise.id,
-          name: pe.customName || pe.exercise.name,
-          customName: pe.customName,
-          muscleGroup: pe.exercise.muscleGroup,
-          equipment: pe.exercise.equipment,
-          description: pe.exercise.description,
-          videoUrl: pe.exercise.videoUrl,
-          gifUrl: pe.exercise.gifUrl,
-          sets: pe.sets,
-          reps: pe.reps,
-          restSeconds: pe.restSeconds,
-          method: pe.method,
-          recommendedRpe: pe.recommendedRpe,
-          recommendedWeight: pe.recommendedWeight,
-          notes: pe.notes,
-          previousWorkoutSets,
-        };
-      })
-    );
+    const formattedExercises = plan.exercises.map((pe) => ({
+      id: pe.id,
+      exerciseId: pe.exercise.id,
+      name: pe.customName || pe.exercise.name,
+      customName: pe.customName,
+      muscleGroup: pe.exercise.muscleGroup,
+      equipment: pe.exercise.equipment,
+      description: pe.exercise.description,
+      videoUrl: pe.exercise.videoUrl,
+      gifUrl: pe.exercise.gifUrl,
+      sets: pe.sets,
+      reps: pe.reps,
+      restSeconds: pe.restSeconds,
+      method: pe.method,
+      recommendedRpe: pe.recommendedRpe,
+      recommendedWeight: pe.recommendedWeight,
+      notes: pe.notes,
+      personalNote: personalNoteByExercise.get(pe.exerciseId) ?? null,
+      previousWorkoutSets: recentLogs
+        .filter((log) => log.exerciseId === pe.exerciseId && log.sessionId === latestSessionByExercise.get(pe.exerciseId))
+        .map((log) => ({
+          setNumber: log.setNumber,
+          weightUsed: log.weightUsed,
+          repsPerformed: log.repsPerformed,
+        })),
+    }));
 
     const formattedPlan = {
       id: plan.id,

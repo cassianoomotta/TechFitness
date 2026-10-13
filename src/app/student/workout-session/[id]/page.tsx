@@ -28,6 +28,7 @@ import {
   GripHorizontal,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
+import PersonalExerciseNote from "./components/PersonalExerciseNote";
 import type { AchievementDef, TonnageComparison } from "@/lib/gamification";
 import {
   scheduleRestNotification,
@@ -53,6 +54,7 @@ interface Exercise {
   recommendedRpe: number | null;
   recommendedWeight: number | null;
   notes: string | null;
+  personalNote: string | null;
   previousWorkoutSets?: { setNumber: number; weightUsed: number; repsPerformed: number }[];
 }
 
@@ -844,6 +846,20 @@ export default function WorkoutSessionPlayer() {
     }
   };
 
+  const handlePersonalNoteSaved = (exerciseId: string, personalNote: string | null) => {
+    if (!plan) return;
+    const updatedPlan = {
+      ...plan,
+      exercises: plan.exercises.map((exercise) =>
+        exercise.exerciseId === exerciseId ? { ...exercise, personalNote } : exercise
+      ),
+    };
+    setPlan(updatedPlan);
+    try {
+      localStorage.setItem(STORAGE_KEY_PLAN_CACHE, JSON.stringify(updatedPlan));
+    } catch {}
+  };
+
   // Buscar plano de treino e mesclar de forma não-destrutiva com o progresso do aluno
   useEffect(() => {
     const fetchPlan = async () => {
@@ -1409,6 +1425,12 @@ export default function WorkoutSessionPlayer() {
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
+                    <PersonalExerciseNote
+                      exerciseId={exercise.exerciseId}
+                      exerciseName={exercise.name}
+                      note={exercise.personalNote}
+                      onSaved={(note) => handlePersonalNoteSaved(exercise.exerciseId, note)}
+                    />
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                     <span className="text-[9px] font-bold bg-blue-50 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-900/50 text-[#2563EB] dark:text-[#38BDF8] px-2 py-0.5 rounded-md">
@@ -2245,6 +2267,7 @@ export default function WorkoutSessionPlayer() {
           </div>
         </div>
       )}
+
 
       {/* Modal Player de Vídeo */}
       {activeVideoUrl && (

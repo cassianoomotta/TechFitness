@@ -53,41 +53,79 @@ export async function GET() {
     });
 
     if (expiredPlans.length > 0) {
-      for (const ep of expiredPlans) {
-        await prisma.workoutPlan.delete({ where: { id: ep.id } });
-        await prisma.notification.create({
-          data: {
+      await prisma.$transaction([
+        prisma.workoutPlan.deleteMany({ where: { id: { in: expiredPlans.map((plan) => plan.id) } } }),
+        prisma.notification.createMany({
+          data: expiredPlans.map((plan) => ({
             userId: session.user.id,
             title: "Ficha Excluída Automaticamente",
-            message: `A ficha '${ep.name}' foi excluída automaticamente após o prazo de 3 dias sem contestação do treinador.`,
-          },
-        });
-      }
+            message: `A ficha '${plan.name}' foi excluída automaticamente após o prazo de 3 dias sem contestação do treinador.`,
+          })),
+        }),
+      ]);
     }
 
-    // Buscar todos os planos de treino ativos do aluno
-    const plans = await prisma.workoutPlan.findMany({
-      where: { studentId: studentProfile.id },
-      include: {
-        exercises: {
-          orderBy: {
-            order: "asc",
-          },
-          include: {
-            exercise: {
-              select: {
-                name: true,
-                muscleGroup: true,
-                equipment: true,
-                description: true,
-                videoUrl: true,
-                gifUrl: true,
+    // Identificar o início da semana antes da leitura concorrente de sessões.
+    const now = new Date();
+    const tempDate = new Date(now);
+    tempDate.setHours(0, 0, 0, 0);
+    const currentDay = tempDate.getDay();
+    const diffToMonday = tempDate.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+    const startOfWeek = new Date(tempDate.setDate(diffToMonday));
+
+    // Carregar planos e sessões de forma concorrente após concluir a limpeza pendente.
+    const [plans, weekSessions, lastSessionFallback] = await Promise.all([
+      prisma.workoutPlan.findMany({
+        where: { studentId: studentProfile.id },
+        include: {
+          exercises: {
+            orderBy: {
+              order: "asc",
+            },
+            include: {
+              exercise: {
+                select: {
+                  name: true,
+                  muscleGroup: true,
+                  equipment: true,
+                  description: true,
+                  videoUrl: true,
+                  gifUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.workoutSession.findMany({
+        where: {
+          studentId: studentProfile.id,
+          completed: true,
+          date: { gte: startOfWeek },
+        },
+        orderBy: { date: "desc" },
+        select: {
+          id: true,
+          planId: true,
+          date: true,
+          durationMs: true,
+          logs: {
+            select: { exerciseId: true },
+          },
+        },
+      }),
+      prisma.workoutSession.findFirst({
+        where: { studentId: studentProfile.id, completed: true },
+        orderBy: { date: "desc" },
+        select: {
+          id: true,
+          planId: true,
+          date: true,
+          durationMs: true,
+          logs: { select: { exerciseId: true }, take: 10 },
+        },
+      }),
+    ]);
 
     const DAY_ORDER: Record<string, number> = {
       "Seg": 1,
@@ -127,33 +165,6 @@ export async function GET() {
       return 0;
     });
 
-    // Identificar sessões da semana atual (Segunda-feira 00:00:00) para status de conclusão semanal
-    const now = new Date();
-    const tempDate = new Date(now);
-    tempDate.setHours(0, 0, 0, 0);
-    const currentDay = tempDate.getDay();
-    const diffToMonday = tempDate.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-    const startOfWeek = new Date(tempDate.setDate(diffToMonday));
-
-    // Buscar sessões concluídas nesta semana pelo aluno
-    const weekSessions = await prisma.workoutSession.findMany({
-      where: {
-        studentId: studentProfile.id,
-        completed: true,
-        date: { gte: startOfWeek },
-      },
-      orderBy: { date: "desc" },
-      select: {
-        id: true,
-        planId: true,
-        date: true,
-        durationMs: true,
-        logs: {
-          select: { exerciseId: true },
-        },
-      },
-    });
-
     // Mapear quais fichas foram concluídas nesta semana
     interface WeeklyCompletedInfo {
       completedAt: string;
@@ -186,25 +197,7 @@ export async function GET() {
     }
 
     // Identificar qual ficha foi realizada na última sessão geral para ciclo de treino
-    const lastSession = weekSessions.length > 0
-      ? weekSessions[0]
-      : await prisma.workoutSession.findFirst({
-          where: {
-            studentId: studentProfile.id,
-            completed: true,
-          },
-          orderBy: { date: "desc" },
-          select: {
-            id: true,
-            planId: true,
-            date: true,
-            durationMs: true,
-            logs: {
-              select: { exerciseId: true },
-              take: 10,
-            },
-          },
-        });
+    const lastSession = weekSessions[0] ?? lastSessionFallback;
 
     const lastCompletedPlanId = lastSession
       ? resolveWorkoutPlanId({

@@ -64,7 +64,7 @@ export default function RootLayout({
             __html: `
               try {
                 const t = localStorage.getItem("tf_theme");
-                const isDark = t === "dark";
+                const isDark = window.location.pathname !== "/login" && t === "dark";
                 if (isDark) document.documentElement.classList.add("dark");
                 else document.documentElement.classList.remove("dark");
               } catch (_) {}

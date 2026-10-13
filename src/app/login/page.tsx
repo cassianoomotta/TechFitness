@@ -4,13 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
-import { Lock, Mail, LogIn, Loader2, Sun, Moon } from "lucide-react";
+import { Lock, Mail, LogIn, Loader2 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
-import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { resolvedTheme, setTheme } = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,24 +51,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-[#F8FAFC] dark:bg-[#0B0F19] relative overflow-hidden text-[#0F172A] dark:text-white min-h-screen transition-colors duration-200">
-      {/* Botão Flutuante de Alternância Rápida de Tema */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-        <button
-          type="button"
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#151D2F]/90 backdrop-blur-md hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 text-slate-600 dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-sm"
-          title={resolvedTheme === "dark" ? "Mudar para Modo Claro (Padrão)" : "Mudar para Modo Escuro"}
-          aria-label="Alternar tema de cores"
-        >
-          {resolvedTheme === "dark" ? (
-            <Sun className="w-4 h-4 text-amber-400" />
-          ) : (
-            <Moon className="w-4 h-4 text-slate-600" />
-          )}
-        </button>
-      </div>
-
+    <main className="[color-scheme:light] flex-1 flex items-center justify-center p-4 md:p-8 bg-[#F8FAFC] relative overflow-hidden text-[#0F172A] min-h-screen transition-colors duration-200">
       {/* Imagem de Fundo Premium */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 dark:opacity-[0.04] pointer-events-none transition-opacity"
