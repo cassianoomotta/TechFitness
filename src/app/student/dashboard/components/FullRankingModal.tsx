@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import { RankingItem, CheckinPhotoItem } from "./RankingLeaderboard";
+import { WeeklyCheckinFeedItem } from "@/components/StudentWorkoutInstagramCard";
 
 interface FullRankingModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface FullRankingModalProps {
   rankingList: RankingItem[];
   userPosition: number;
   totalParticipants: number;
+  weeklyFeed: WeeklyCheckinFeedItem[];
   onOpenCheckinPhoto: (photos: CheckinPhotoItem[], initialIndex?: number) => void;
 }
 
@@ -25,6 +27,7 @@ export default function FullRankingModal({
   rankingList,
   userPosition,
   totalParticipants,
+  weeklyFeed,
   onOpenCheckinPhoto,
 }: FullRankingModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,6 +137,7 @@ export default function FullRankingModal({
               // Posição real na lista geral
               const rankPos = rankingList.findIndex((s) => s.id === student.id) + 1;
               const isCurrentUser = rankPos === userPosition;
+              const studentPhotos = weeklyFeed.filter((checkin) => checkin.studentId === student.id);
 
               let rankBadge = (
                 <span className="w-7 text-center text-xs font-bold text-slate-400 dark:text-slate-500 font-mono">
@@ -194,13 +198,13 @@ export default function FullRankingModal({
                       </p>
 
                       {/* Check-ins com foto: botão consolidado para abrir galeria */}
-                      {student.weeklyCheckins && student.weeklyCheckins.length > 0 && (
+                      {studentPhotos.length > 0 && (
                         <div className="mt-1">
                           <button
                             type="button"
                             onClick={() => {
                               onOpenCheckinPhoto(
-                                student.weeklyCheckins!.map((chk) => ({
+                                studentPhotos.map((chk) => ({
                                   id: chk.id,
                                   photoUrl: chk.photoUrl,
                                   studentName: student.name,
@@ -214,12 +218,12 @@ export default function FullRankingModal({
                               );
                             }}
                             className="inline-flex items-center gap-1.5 px-2.5 py-0.75 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100 dark:hover:bg-blue-900/40 cursor-pointer transition-all active:scale-95 shadow-2xs"
-                            title={`Ver ${student.weeklyCheckins.length} ${student.weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                            title={`Ver ${studentPhotos.length} ${studentPhotos.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
                           >
                             <Camera className="w-3 h-3 text-[#2563EB] dark:text-blue-300" />
                             <span>
-                              {student.weeklyCheckins.length}{" "}
-                              {student.weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                              {studentPhotos.length}{" "}
+                              {studentPhotos.length === 1 ? "foto" : "fotos"}
                             </span>
                           </button>
                         </div>

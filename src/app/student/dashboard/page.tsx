@@ -240,7 +240,8 @@ let cachedPlans: WorkoutPlan[] | null = null;
 let cachedTrainer: TrainerInfo | null = null;
 let cachedPrs: PersonalRecord[] | null = null;
 let cachedGamification: GamificationData | null = null;
-let cachedRanking: RankingData | null = null;
+const cachedRankingByUser = new Map<string, RankingData>();
+const cachedPhotoFeedByUser = new Map<string, WeeklyCheckinFeedItem[]>();
 
 function getDashboardSessionCache<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
@@ -261,6 +262,9 @@ function setDashboardSessionCache<T>(key: string, data: T): void {
 
 export default function StudentDashboard() {
   const { data: session, update } = useSession();
+  const dashboardUserId = session?.user?.id ?? null;
+  const rankingCacheKey = dashboardUserId ? `tf_st_ranking:${dashboardUserId}` : null;
+  const photoFeedCacheKey = dashboardUserId ? `tf_st_photo_feed:${dashboardUserId}` : null;
 
   const [isProfilePhotoModalOpen, setIsProfilePhotoModalOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -481,18 +485,33 @@ export default function StudentDashboard() {
   );
 
   const [ranking, setRanking] = useState<RankingData | null>(
-    () => cachedRanking || getDashboardSessionCache<RankingData>("tf_st_ranking")
+    () => dashboardUserId
+      ? cachedRankingByUser.get(dashboardUserId) || getDashboardSessionCache<RankingData>(`tf_st_ranking:${dashboardUserId}`)
+      : null
   );
   const [rankingLoading, setRankingLoading] = useState<boolean>(
-    () => !cachedRanking && !getDashboardSessionCache("tf_st_ranking")
+    () => !dashboardUserId || (!cachedRankingByUser.has(dashboardUserId) && !getDashboardSessionCache(`tf_st_ranking:${dashboardUserId}`))
   );
   const [rankingError, setRankingError] = useState(false);
+  const [photoFeed, setPhotoFeed] = useState<WeeklyCheckinFeedItem[]>(
+    () => dashboardUserId
+      ? cachedPhotoFeedByUser.get(dashboardUserId) || getDashboardSessionCache<WeeklyCheckinFeedItem[]>(`tf_st_photo_feed:${dashboardUserId}`) || []
+      : []
+  );
+  const [photoFeedLoading, setPhotoFeedLoading] = useState<boolean>(
+    () => !dashboardUserId || (!cachedPhotoFeedByUser.has(dashboardUserId) && !getDashboardSessionCache(`tf_st_photo_feed:${dashboardUserId}`))
+  );
+  const [photoFeedError, setPhotoFeedError] = useState(false);
   const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const fetchRanking = useCallback(async () => {
-    setRankingLoading(true);
+    const cached = dashboardUserId
+      ? cachedRankingByUser.get(dashboardUserId) || getDashboardSessionCache<RankingData>(`tf_st_ranking:${dashboardUserId}`)
+      : null;
+    setRanking(cached);
+    setRankingLoading(!cached);
     setRankingError(false);
     try {
       let response: Response | null = null;
@@ -500,30 +519,72 @@ export default function StudentDashboard() {
         try {
           response = await fetch("/api/student/ranking", { cache: "no-store" });
         } catch (error) {
-          if (attempt === 1) throw new Error("Falha de conexão ao buscar classificação e fotos.", { cause: error });
+          if (attempt === 1) throw new Error("Falha de conexão ao buscar classificação.", { cause: error });
           await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
           continue;
         }
 
         if (response.ok) break;
         if ((response.status < 500 && response.status !== 429) || attempt === 1) {
-          throw new Error(`Falha ao buscar classificação e fotos (HTTP ${response?.status ?? "rede"}).`);
+          throw new Error(`Falha ao buscar classificação (HTTP ${response?.status ?? "rede"}).`);
         }
         await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
       }
 
-      if (!response?.ok) throw new Error("Falha ao buscar classificação e fotos.");
+      if (!response?.ok) throw new Error("Falha ao buscar classificação.");
       const data: RankingData = await response.json();
       setRanking(data);
-      cachedRanking = data;
-      setDashboardSessionCache("tf_st_ranking", data);
+      if (dashboardUserId && rankingCacheKey) {
+        cachedRankingByUser.set(dashboardUserId, data);
+        setDashboardSessionCache(rankingCacheKey, data);
+      }
     } catch (error) {
       console.error("Erro ao buscar ranking:", error instanceof Error ? error.message : "falha desconhecida");
       setRankingError(true);
     } finally {
       setRankingLoading(false);
     }
-  }, []);
+  }, [dashboardUserId, rankingCacheKey]);
+
+  const fetchPhotoFeed = useCallback(async () => {
+    const cached = dashboardUserId
+      ? cachedPhotoFeedByUser.get(dashboardUserId) || getDashboardSessionCache<WeeklyCheckinFeedItem[]>(`tf_st_photo_feed:${dashboardUserId}`)
+      : null;
+    setPhotoFeed(cached || []);
+    setPhotoFeedLoading(!cached);
+    setPhotoFeedError(false);
+    try {
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          response = await fetch("/api/student/photo-feed", { cache: "no-store" });
+        } catch (error) {
+          if (attempt === 1) throw new Error("Falha de conexão ao buscar mural de fotos.", { cause: error });
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
+          continue;
+        }
+
+        if (response.ok) break;
+        if ((response.status < 500 && response.status !== 429) || attempt === 1) {
+          throw new Error(`Falha ao buscar mural de fotos (HTTP ${response.status}).`);
+        }
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
+      }
+
+      if (!response?.ok) throw new Error("Falha ao buscar mural de fotos.");
+      const data: { weeklyFeed: WeeklyCheckinFeedItem[] } = await response.json();
+      setPhotoFeed(data.weeklyFeed);
+      if (dashboardUserId && photoFeedCacheKey) {
+        cachedPhotoFeedByUser.set(dashboardUserId, data.weeklyFeed);
+        setDashboardSessionCache(photoFeedCacheKey, data.weeklyFeed);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar mural de fotos:", error instanceof Error ? error.message : "falha desconhecida");
+      setPhotoFeedError(true);
+    } finally {
+      setPhotoFeedLoading(false);
+    }
+  }, [dashboardUserId, photoFeedCacheKey]);
 
   // Navegação por teclado para galeria de fotos (ArrowLeft, ArrowRight, Escape)
   useEffect(() => {
@@ -554,7 +615,7 @@ export default function StudentDashboard() {
   }, [gamification]);
 
   // Agrupamento de fotos por aluno no estilo Instagram (1 card por aluno com carrossel se houver múltiplas fotos)
-  const weeklyFeed = ranking?.weeklyFeed;
+  const weeklyFeed = photoFeed;
   const groupedStudentFeeds: StudentGroupedFeed[] = React.useMemo(() => {
     if (!weeklyFeed) return [];
     const map = new Map<string, StudentGroupedFeed>();
@@ -601,13 +662,12 @@ export default function StudentDashboard() {
           }
         }
 
-        setRanking((prev) => {
-          if (!prev || !prev.weeklyFeed) return prev;
-          return {
-            ...prev,
-            weeklyFeed: prev.weeklyFeed.filter((p) => p.id !== photoId),
-          };
-        });
+        const updatedFeed = photoFeed.filter((photo) => photo.id !== photoId);
+        setPhotoFeed(updatedFeed);
+        if (dashboardUserId && photoFeedCacheKey) {
+          cachedPhotoFeedByUser.set(dashboardUserId, updatedFeed);
+          setDashboardSessionCache(photoFeedCacheKey, updatedFeed);
+        }
       } else {
         showToast("Não foi possível remover a foto do treino.", "error");
       }
@@ -860,10 +920,11 @@ export default function StudentDashboard() {
     const timerId = window.setTimeout(() => {
       void fetchPlans();
       void fetchGamification();
-      void fetchRanking();
+      if (rankingCacheKey) void fetchRanking();
+      if (photoFeedCacheKey) void fetchPhotoFeed();
     }, 0);
     return () => window.clearTimeout(timerId);
-  }, [fetchRanking]);
+  }, [fetchPhotoFeed, fetchRanking, photoFeedCacheKey, rankingCacheKey]);
 
   // Buscar PRs sob demanda somente quando a aba de Conquistas for aberta (otimização de TTFB na Home)
   useEffect(() => {
@@ -1468,7 +1529,7 @@ export default function StudentDashboard() {
                 className="mb-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200 sm:flex-row sm:items-center sm:justify-between"
               >
                 <p>
-                  Não foi possível carregar a classificação e o mural de fotos agora.
+                  Não foi possível carregar a classificação agora.
                   {ranking ? " Os dados exibidos podem estar desatualizados." : ""}
                 </p>
                 <button
@@ -1483,6 +1544,7 @@ export default function StudentDashboard() {
             )}
             <RankingLeaderboard
               ranking={ranking}
+              weeklyFeed={weeklyFeed}
               loading={rankingLoading}
               onOpenGamificationGuide={() => setIsGamificationGuideOpen(true)}
               onOpenCheckinPhoto={(photos, initialIndex = 0) => {
@@ -1504,8 +1566,7 @@ export default function StudentDashboard() {
             />
 
             {/* Seção de Fotos do Dia e da Semana dos Concorrentes na Tela Inicial */}
-            {!rankingLoading && ranking && (
-              <section className="bg-white dark:bg-[#151D2F] border border-[#E2E8F0] dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-sm">
+            <section className="bg-white dark:bg-[#151D2F] border border-[#E2E8F0] dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-900/60">
@@ -1528,7 +1589,25 @@ export default function StudentDashboard() {
                   )}
                 </div>
 
-                {groupedStudentFeeds && groupedStudentFeeds.length > 0 ? (
+                {photoFeedError && (
+                  <div role="alert" className="mb-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200 sm:flex-row sm:items-center sm:justify-between">
+                    <span>Não foi possível carregar o mural de fotos.</span>
+                    <button
+                      type="button"
+                      onClick={() => void fetchPhotoFeed()}
+                      disabled={photoFeedLoading}
+                      className="min-h-[44px] rounded-lg border border-amber-300 bg-white px-3 py-2 font-bold disabled:opacity-60 dark:border-amber-800 dark:bg-amber-950/50"
+                    >
+                      {photoFeedLoading ? "Carregando..." : "Tentar novamente"}
+                    </button>
+                  </div>
+                )}
+
+                {photoFeedLoading ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">
+                    Carregando fotos da turma...
+                  </div>
+                ) : groupedStudentFeeds.length > 0 ? (
                   <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin">
                     {groupedStudentFeeds.map((group) => (
                       <StudentWorkoutInstagramCard
@@ -1541,7 +1620,7 @@ export default function StudentDashboard() {
                       />
                     ))}
                   </div>
-                ) : (
+                ) : !photoFeedError ? (
                   <div className="p-6 rounded-2xl bg-slate-50 dark:bg-[#1E293B]/60 border border-dashed border-slate-200 dark:border-slate-800 text-center">
                     <p className="text-xs text-[#64748B] dark:text-slate-300 font-semibold">
                       Nenhum colega postou foto de treino hoje ainda.
@@ -1550,9 +1629,8 @@ export default function StudentDashboard() {
                       Conclua seu treino com foto para liderar o mural da assessoria!
                     </p>
                   </div>
-                )}
+                ) : null}
               </section>
-            )}
           </div>
         )}
 

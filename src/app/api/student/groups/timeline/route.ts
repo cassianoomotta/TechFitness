@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { calculateLevel, calculateStreak, calculateTier } from "@/lib/gamification";
+import {
+  filterVisibleTimelineGroups,
+  type TimelineGroupMembership,
+} from "@/lib/group-timeline-visibility";
 
 interface GroupSummary {
   id: string;
@@ -22,6 +26,7 @@ export async function GET(req: NextRequest) {
 
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
+      select: { id: true },
     });
 
     if (!studentProfile) {
@@ -31,12 +36,14 @@ export async function GET(req: NextRequest) {
     // Obter todos os grupos aos quais o usuário logado pertence
     const myMemberships = await prisma.groupMember.findMany({
       where: { studentId: studentProfile.id },
-      include: {
+      select: {
         group: {
-          include: {
-            _count: {
-              select: { members: true },
-            },
+          select: {
+            id: true,
+            name: true,
+            icon: true,
+            code: true,
+            _count: { select: { members: true } },
           },
         },
       },
@@ -80,7 +87,9 @@ export async function GET(req: NextRequest) {
     // Buscar todos os membros dos grupos alvo
     const groupMembers = await prisma.groupMember.findMany({
       where: { groupId: { in: targetGroupIds } },
-      include: {
+      select: {
+        studentId: true,
+        joinedAt: true,
         group: {
           select: {
             id: true,
@@ -92,19 +101,18 @@ export async function GET(req: NextRequest) {
     });
 
     // Mapear grupos em comum para cada atleta e suas respectivas datas de ingresso
-    const mutualGroupsMap = new Map<string, Array<{ id: string; name: string; icon: string }>>();
-    const memberJoinDateMap = new Map<string, Date>(); // Chave: `${studentId}_${groupId}`
+    const mutualGroupsMap = new Map<string, TimelineGroupMembership[]>();
     const targetStudentIdsSet = new Set<string>();
 
     groupMembers.forEach((member) => {
       targetStudentIdsSet.add(member.studentId);
-      memberJoinDateMap.set(`${member.studentId}_${member.group.id}`, new Date(member.joinedAt));
       const existing = mutualGroupsMap.get(member.studentId) || [];
       if (!existing.some((g) => g.id === member.group.id)) {
         existing.push({
           id: member.group.id,
           name: member.group.name,
           icon: member.group.icon || "🏋️",
+          joinedAt: member.joinedAt,
         });
       }
       mutualGroupsMap.set(member.studentId, existing);
@@ -113,24 +121,55 @@ export async function GET(req: NextRequest) {
     const targetStudentIds = Array.from(targetStudentIdsSet);
 
     // Buscar estatísticas de gamificação dos atletas participantes apenas 1 vez (redução massiva de overhead)
-    const authorProfiles = await prisma.studentProfile.findMany({
-      where: { id: { in: targetStudentIds } },
-      select: {
-        id: true,
-        _count: {
-          select: {
-            sessions: true,
-            measurements: true,
-            logs: true,
+    const [authorProfiles, sessions] = await Promise.all([
+      prisma.studentProfile.findMany({
+        where: { id: { in: targetStudentIds } },
+        select: {
+          id: true,
+          _count: {
+            select: {
+              sessions: true,
+              measurements: true,
+              logs: true,
+            },
+          },
+          sessions: {
+            select: { date: true },
+            orderBy: { date: "desc" },
+            take: 45,
           },
         },
-        sessions: {
-          select: { date: true },
-          orderBy: { date: "desc" },
-          take: 45,
+      }),
+      prisma.workoutSession.findMany({
+        where: {
+          studentId: { in: targetStudentIds },
+          completed: true,
         },
-      },
-    });
+        select: {
+          id: true,
+          date: true,
+          durationMs: true,
+          satisfaction: true,
+          photoUrl: true,
+          studentId: true,
+          targetGroupIds: true,
+          student: {
+            select: {
+              id: true,
+              user: { select: { id: true, name: true, image: true } },
+            },
+          },
+          logs: {
+            select: {
+              exercise: { select: { name: true } },
+              weightUsed: true,
+            },
+          },
+        },
+        orderBy: { date: "desc" },
+        take: 40,
+      }),
+    ]);
 
     const athleteStatsMap = new Map<
       string,
@@ -155,43 +194,6 @@ export async function GET(req: NextRequest) {
         tierName: tierInfo.name,
         tierBadge: tierInfo.badge,
       });
-    });
-
-    // Buscar as sessões dos membros (limitado às últimas 40 para alta velocidade)
-    const sessions = await prisma.workoutSession.findMany({
-      where: {
-        studentId: { in: targetStudentIds },
-        completed: true,
-      },
-      include: {
-        student: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-          },
-        },
-        logs: {
-          select: {
-            exercise: {
-              select: {
-                id: true,
-                name: true,
-                muscleGroup: true,
-              },
-            },
-            weightUsed: true,
-          },
-        },
-      },
-      orderBy: {
-        date: "desc",
-      },
-      take: 40,
     });
 
     // Formatar cada item da timeline respeitando os grupos selecionados pelo autor (targetGroupIds)
@@ -223,32 +225,13 @@ export async function GET(req: NextRequest) {
         // Grupos em comum entre o autor da postagem e o usuário logado
         const mutualGroups = mutualGroupsMap.get(sess.studentId) || [];
 
-        // Filtrar de acordo com os grupos selecionados pelo autor na postagem (targetGroupIds)
-        let rawTargetIds: string[] = [];
-        if (Array.isArray(sess.targetGroupIds)) {
-          rawTargetIds = sess.targetGroupIds as string[];
-        } else if (typeof sess.targetGroupIds === "string") {
-          try {
-            const parsed = JSON.parse(sess.targetGroupIds);
-            if (Array.isArray(parsed)) rawTargetIds = parsed;
-          } catch {}
-        }
-
-        const isAllGroups = rawTargetIds.length === 0 || rawTargetIds.includes("ALL");
-        const sessDate = new Date(sess.date);
-
         // Regra de Isolamento: Apenas exibe o post para grupos onde o atleta já era membro no momento do treino.
         // Ao entrar em um novo grupo, o atleta começa do zero e não carrega postagens anteriores realizadas em outros grupos.
-        const visibleGroups = mutualGroups.filter((g) => {
-          const joinDate = memberJoinDateMap.get(`${sess.studentId}_${g.id}`);
-          if (!joinDate || sessDate < joinDate) {
-            return false;
-          }
-          if (!isAllGroups && !rawTargetIds.includes(g.id)) {
-            return false;
-          }
-          return true;
-        });
+        const visibleGroups = filterVisibleTimelineGroups(
+          mutualGroups,
+          sess.date,
+          sess.targetGroupIds
+        );
 
         // Se o treino foi realizado antes de ingressar no grupo ou não foi direcionado a ele, não exibe
         if (visibleGroups.length === 0) {

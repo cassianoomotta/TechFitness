@@ -27,16 +27,6 @@ export interface RankingItem {
   monthlyXp?: number;
   weeklyGoal?: number;
   totalSessions: number;
-  weeklyCheckins?: Array<{
-    id: string;
-    date: string;
-    dayOfWeek: string;
-    dayOfWeekFull: string;
-    formattedDate: string;
-    photoUrl: string;
-    durationMinutes: number;
-    satisfaction?: number;
-  }>;
 }
 
 export interface RankingPeriodData {
@@ -50,7 +40,6 @@ export interface RankingData {
   allRanked?: RankingItem[];
   userPosition: number;
   totalParticipants: number;
-  weeklyFeed?: WeeklyCheckinFeedItem[];
   periods?: {
     weekly: RankingPeriodData;
     monthly: RankingPeriodData;
@@ -71,6 +60,7 @@ export interface CheckinPhotoItem {
 
 interface RankingLeaderboardProps {
   ranking: RankingData | null;
+  weeklyFeed: WeeklyCheckinFeedItem[];
   loading: boolean;
   onOpenCheckinPhoto: (photos: CheckinPhotoItem[], initialIndex?: number) => void;
   onOpenGamificationGuide?: () => void;
@@ -78,6 +68,7 @@ interface RankingLeaderboardProps {
 
 export default function RankingLeaderboard({
   ranking,
+  weeklyFeed,
   loading,
   onOpenCheckinPhoto,
   onOpenGamificationGuide,
@@ -119,14 +110,17 @@ export default function RankingLeaderboard({
     activeTop5.length
   );
   const hasMoreThan5 = totalParticipants > 5 || activeAllRanked.length > 5;
+  const getPhotoCount = (studentId: string) =>
+    weeklyFeed.filter((checkin) => checkin.studentId === studentId).length;
 
   const handleToggleFullRanking = () => {
     setShowFullRanking((prev) => !prev);
   };
 
   const handleOpenAthletePhotos = (athlete: RankingItem) => {
-    if (!athlete.weeklyCheckins || athlete.weeklyCheckins.length === 0) return;
-    const photos: CheckinPhotoItem[] = athlete.weeklyCheckins.map((chk) => ({
+    const athleteCheckins = weeklyFeed.filter((checkin) => checkin.studentId === athlete.id);
+    if (athleteCheckins.length === 0) return;
+    const photos: CheckinPhotoItem[] = athleteCheckins.map((chk) => ({
       id: chk.id,
       photoUrl: chk.photoUrl,
       studentName: athlete.name,
@@ -270,18 +264,18 @@ export default function RankingLeaderboard({
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-extrabold">
                   {(activeTop5[1].displayXp ?? activeTop5[1].totalXp).toLocaleString("pt-BR")} XP
                 </p>
-                {activeTop5[1].weeklyCheckins && activeTop5[1].weeklyCheckins.length > 0 && (
+                {getPhotoCount(activeTop5[1].id) > 0 && (
                   <div className="flex items-center justify-center mt-1">
                     <button
                       type="button"
                       onClick={() => handleOpenAthletePhotos(activeTop5[1])}
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer transition-all active:scale-95 shadow-2xs"
-                      title={`Ver ${activeTop5[1].weeklyCheckins.length} ${activeTop5[1].weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                      title={`Ver ${getPhotoCount(activeTop5[1].id)} ${getPhotoCount(activeTop5[1].id) === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
                     >
                       <Camera className="w-2.5 h-2.5 text-slate-500 dark:text-slate-400" />
                       <span>
-                        {activeTop5[1].weeklyCheckins.length}{" "}
-                        {activeTop5[1].weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                        {getPhotoCount(activeTop5[1].id)}{" "}
+                        {getPhotoCount(activeTop5[1].id) === 1 ? "foto" : "fotos"}
                       </span>
                     </button>
                   </div>
@@ -317,18 +311,18 @@ export default function RankingLeaderboard({
                 <p className="text-[11px] text-amber-600 dark:text-amber-400 font-mono font-extrabold">
                   {(activeTop5[0].displayXp ?? activeTop5[0].totalXp).toLocaleString("pt-BR")} XP
                 </p>
-                {activeTop5[0].weeklyCheckins && activeTop5[0].weeklyCheckins.length > 0 && (
+                {getPhotoCount(activeTop5[0].id) > 0 && (
                   <div className="flex items-center justify-center mt-1">
                     <button
                       type="button"
                       onClick={() => handleOpenAthletePhotos(activeTop5[0])}
                       className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100/90 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border border-amber-300/90 dark:border-amber-700/80 hover:bg-amber-200 dark:hover:bg-amber-900/60 cursor-pointer transition-all active:scale-95 shadow-2xs"
-                      title={`Ver ${activeTop5[0].weeklyCheckins.length} ${activeTop5[0].weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                      title={`Ver ${getPhotoCount(activeTop5[0].id)} ${getPhotoCount(activeTop5[0].id) === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
                     >
                       <Camera className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
                       <span>
-                        {activeTop5[0].weeklyCheckins.length}{" "}
-                        {activeTop5[0].weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                        {getPhotoCount(activeTop5[0].id)}{" "}
+                        {getPhotoCount(activeTop5[0].id) === 1 ? "foto" : "fotos"}
                       </span>
                     </button>
                   </div>
@@ -364,18 +358,18 @@ export default function RankingLeaderboard({
                 <p className="text-[10px] text-[#A0522D] dark:text-orange-400 font-mono font-extrabold">
                   {(activeTop5[2].displayXp ?? activeTop5[2].totalXp).toLocaleString("pt-BR")} XP
                 </p>
-                {activeTop5[2].weeklyCheckins && activeTop5[2].weeklyCheckins.length > 0 && (
+                {getPhotoCount(activeTop5[2].id) > 0 && (
                   <div className="flex items-center justify-center mt-1">
                     <button
                       type="button"
                       onClick={() => handleOpenAthletePhotos(activeTop5[2])}
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-orange-100/80 dark:bg-orange-950/70 text-[#8C4315] dark:text-orange-200 border border-orange-200 dark:border-orange-800 hover:bg-orange-200/70 dark:hover:bg-orange-900/60 cursor-pointer transition-all active:scale-95 shadow-2xs"
-                      title={`Ver ${activeTop5[2].weeklyCheckins.length} ${activeTop5[2].weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                      title={`Ver ${getPhotoCount(activeTop5[2].id)} ${getPhotoCount(activeTop5[2].id) === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
                     >
                       <Camera className="w-2.5 h-2.5 text-orange-600 dark:text-orange-400" />
                       <span>
-                        {activeTop5[2].weeklyCheckins.length}{" "}
-                        {activeTop5[2].weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                        {getPhotoCount(activeTop5[2].id)}{" "}
+                        {getPhotoCount(activeTop5[2].id) === 1 ? "foto" : "fotos"}
                       </span>
                     </button>
                   </div>
@@ -437,18 +431,18 @@ export default function RankingLeaderboard({
                       <p className="text-[9px] text-[#94A3B8] dark:text-slate-400">
                         Lvl {user.level} • {user.levelTitle}
                       </p>
-                      {user.weeklyCheckins && user.weeklyCheckins.length > 0 && (
+                      {getPhotoCount(user.id) > 0 && (
                         <div className="mt-1">
                           <button
                             type="button"
                             onClick={() => handleOpenAthletePhotos(user)}
                             className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer transition-all active:scale-95 shadow-2xs"
-                            title={`Ver ${user.weeklyCheckins.length} ${user.weeklyCheckins.length === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
+                            title={`Ver ${getPhotoCount(user.id)} ${getPhotoCount(user.id) === 1 ? "foto de check-in" : "fotos de check-in"} desta semana`}
                           >
                             <Camera className="w-2.5 h-2.5 text-[#2563EB] dark:text-blue-400" />
                             <span>
-                              {user.weeklyCheckins.length}{" "}
-                              {user.weeklyCheckins.length === 1 ? "foto" : "fotos"}
+                              {getPhotoCount(user.id)}{" "}
+                              {getPhotoCount(user.id) === 1 ? "foto" : "fotos"}
                             </span>
                           </button>
                         </div>
@@ -543,6 +537,7 @@ export default function RankingLeaderboard({
         rankingList={activeAllRanked}
         userPosition={activeUserPos}
         totalParticipants={totalParticipants}
+        weeklyFeed={weeklyFeed}
         onOpenCheckinPhoto={onOpenCheckinPhoto}
       />
     </>

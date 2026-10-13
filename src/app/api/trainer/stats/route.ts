@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { countWeeklyPersonalRecords } from "@/lib/trainer-stat-aggregation";
 
 // GET: Retorna estatísticas dinâmicas do dashboard do trainer
 export async function GET() {
@@ -17,6 +18,7 @@ export async function GET() {
 
     const trainerProfile = await prisma.trainerProfile.findUnique({
       where: { userId: session.user.id },
+      select: { id: true },
     });
 
     if (!trainerProfile) {
@@ -45,18 +47,38 @@ export async function GET() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const sessionsLast30Days = await prisma.workoutSession.count({
-      where: {
-        studentId: { in: studentIds },
-        completed: true,
-        date: { gte: thirtyDaysAgo },
-      },
-    });
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Total de fichas ativas (meta: 1 sessão por ficha por semana = ~4.3 por mês)
-    const totalPlans = await prisma.workoutPlan.count({
-      where: { studentId: { in: studentIds } },
-    });
+    // Frequência mensal e máximos por exercício são leituras independentes.
+    const [sessionsLast30Days, totalPlans, recentMaxAggregations, previousMaxAggregations] = await Promise.all([
+      prisma.workoutSession.count({
+        where: {
+          studentId: { in: studentIds },
+          completed: true,
+          date: { gte: thirtyDaysAgo },
+        },
+      }),
+      prisma.workoutPlan.count({
+        where: { studentId: { in: studentIds } },
+      }),
+      prisma.exerciseLog.groupBy({
+        by: ["studentId", "exerciseId"],
+        _max: { weightUsed: true },
+        where: {
+          studentId: { in: studentIds },
+          session: { date: { gte: sevenDaysAgo } },
+        },
+      }),
+      prisma.exerciseLog.groupBy({
+        by: ["studentId", "exerciseId"],
+        _max: { weightUsed: true },
+        where: {
+          studentId: { in: studentIds },
+          session: { date: { lt: sevenDaysAgo } },
+        },
+      }),
+    ]);
 
     // Meta esperada: cada ficha deveria ser feita ~4x no mês (1x/semana)
     const expectedSessions = totalPlans * 4;
@@ -66,58 +88,24 @@ export async function GET() {
 
     // --- PRs da Semana ---
     // Um PR é quando um aluno registrou carga maior que todas as anteriores no mesmo exercício
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    // Logs da última semana
-    const recentLogs = await prisma.exerciseLog.findMany({
-      where: {
-        studentId: { in: studentIds },
-        session: { date: { gte: sevenDaysAgo } },
-      },
-      select: {
-        studentId: true,
-        exerciseId: true,
-        weightUsed: true,
-      },
-    });
-
-    // Agrupar carga máxima recente por (student, exercise)
     const recentMaxes = new Map<string, number>();
-    for (const log of recentLogs) {
-      const key = `${log.studentId}_${log.exerciseId}`;
-      const current = recentMaxes.get(key) || 0;
-      if (log.weightUsed > current) {
-        recentMaxes.set(key, log.weightUsed);
-      }
+    for (const recent of recentMaxAggregations) {
+      recentMaxes.set(
+        `${recent.studentId}_${recent.exerciseId}`,
+        recent._max.weightUsed ?? 0
+      );
     }
 
-    // Carga máxima ANTES dos últimos 7 dias para todos os alunos
-    const allPreviousMaxes = await prisma.exerciseLog.groupBy({
-      by: ["studentId", "exerciseId"],
-      _max: { weightUsed: true },
-      where: {
-        studentId: { in: studentIds },
-        session: { date: { lt: sevenDaysAgo } },
-      },
-    });
-
-    const prevMaxMap = new Map<string, number>();
-    for (const prev of allPreviousMaxes) {
-      const key = `${prev.studentId}_${prev.exerciseId}`;
-      prevMaxMap.set(key, prev._max.weightUsed || 0);
+    const previousMaxes = new Map<string, number>();
+    for (const previous of previousMaxAggregations) {
+      previousMaxes.set(
+        `${previous.studentId}_${previous.exerciseId}`,
+        previous._max.weightUsed ?? 0
+      );
     }
 
-    // Para cada par (student, exercise) com log recente, verificar se é PR
-    let weeklyPRs = 0;
-
-    for (const [key, recentMax] of recentMaxes) {
-      const prevMaxWeight = prevMaxMap.get(key) || 0;
-
-      if (recentMax > prevMaxWeight && prevMaxWeight > 0) {
-        weeklyPRs++;
-      }
-    }
+    // Mantém a regra atual: precisa haver carga anterior positiva e superá-la.
+    const weeklyPRs = countWeeklyPersonalRecords(recentMaxes, previousMaxes);
 
     return NextResponse.json({
       monthlyFrequency,

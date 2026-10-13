@@ -24,6 +24,7 @@ export async function GET() {
 
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
+      select: { id: true },
     });
 
     if (!studentProfile) {
@@ -33,31 +34,28 @@ export async function GET() {
       );
     }
 
-    // 1. Total de treinos realizados
-    const sessions = await prisma.workoutSession.findMany({
-      where: { studentId: studentProfile.id },
-      include: { logs: true },
-      orderBy: { date: "desc" },
-    });
-    const totalSessions = sessions.length;
-
-    // Buscar fichas de treino propostas
-    const studentPlans = await prisma.workoutPlan.findMany({
-      where: { studentId: studentProfile.id },
-      include: { exercises: true },
-    });
-
-    // 2. Total de PRs (Recordes de carga)
-    const prAggregations = await prisma.exerciseLog.groupBy({
-      by: ["exerciseId"],
-      where: { studentId: studentProfile.id },
-    });
+    const [totalSessions, sessions, studentPlans, prAggregations, measurementsCount] =
+      await Promise.all([
+        prisma.workoutSession.count({
+          where: { studentId: studentProfile.id },
+        }),
+        prisma.workoutSession.findMany({
+          where: { studentId: studentProfile.id },
+          select: { date: true },
+        }),
+        prisma.workoutPlan.findMany({
+          where: { studentId: studentProfile.id },
+          select: { weekDays: true, division: true },
+        }),
+        prisma.exerciseLog.groupBy({
+          by: ["exerciseId"],
+          where: { studentId: studentProfile.id },
+        }),
+        prisma.bodyMeasurement.count({
+          where: { studentId: studentProfile.id },
+        }),
+      ]);
     const prsCount = prAggregations.length;
-
-    // 3. Contagem de medições/peso corporal registrados
-    const measurementsCount = await prisma.bodyMeasurement.count({
-      where: { studentId: studentProfile.id },
-    });
 
     // 4. Calcular o Streak Atual e Aderência Semanal à Ficha
     const streak = calculateStreak(sessions, studentPlans);

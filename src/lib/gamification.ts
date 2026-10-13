@@ -83,7 +83,12 @@ export function getWeekStart(d: Date): string {
  */
 export function calculateStreak(
   sessions: ({ date: Date | string; logs?: { exerciseId: string }[] } | Date | string)[],
-  studentPlans: { id?: string; exercises?: { exerciseId: string }[] }[] = []
+  studentPlans: {
+    id?: string;
+    exercises?: { exerciseId: string }[];
+    weekDays?: unknown;
+    division?: string;
+  }[] = []
 ): number {
   if (!sessions || sessions.length === 0) return 0;
 
