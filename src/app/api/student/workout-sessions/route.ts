@@ -13,12 +13,17 @@ import {
   calculateXp,
   getLevelTitle,
 } from "@/lib/gamification";
+import { isWorkoutPhotoWithinLimit, MAX_WORKOUT_REQUEST_BYTES } from "@/lib/workout-photo-size";
+import { mapPreviousExerciseMaxima } from "@/lib/workout-pr-aggregation";
 
 const workoutSessionSchema = z.object({
   completionKey: z.string().uuid().optional(),
+  planId: z.string().min(1).optional(),
   durationMs: z.number().int().min(0, "A duração não pode ser negativa"),
   satisfaction: z.number().int().min(1).max(10, "Esforço geral deve ser entre 1 e 10"),
-  photoUrl: z.string().min(1, "A foto comprobatória do treino é obrigatória"),
+  photoUrl: z.string()
+    .min(1, "A foto comprobatória do treino é obrigatória")
+    .refine(isWorkoutPhotoWithinLimit, "A foto excede o limite permitido. Escolha uma imagem menor."),
   targetGroupIds: z.array(z.string()).optional(),
   logs: z.array(
     z.object({
@@ -96,6 +101,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const declaredContentLength = Number(request.headers.get("content-length"));
+    if (Number.isFinite(declaredContentLength) && declaredContentLength > MAX_WORKOUT_REQUEST_BYTES) {
+      return NextResponse.json(
+        { error: "O envio excede o tamanho máximo permitido. Escolha uma foto menor." },
+        { status: 413 }
+      );
+    }
+
     const body = await request.json();
     const validation = workoutSessionSchema.safeParse(body);
 
@@ -118,7 +131,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { completionKey, durationMs, satisfaction, photoUrl, logs, targetGroupIds } = validation.data;
+    const { completionKey, planId, durationMs, satisfaction, photoUrl, logs, targetGroupIds } = validation.data;
 
     if (completionKey) {
       const existingSession = await prisma.workoutSession.findFirst({
@@ -137,6 +150,20 @@ export async function POST(request: Request) {
       }
     }
 
+    if (planId) {
+      const ownedPlan = await prisma.workoutPlan.findFirst({
+        where: { id: planId, studentId: studentProfile.id },
+        select: { id: true },
+      });
+
+      if (!ownedPlan) {
+        return NextResponse.json(
+          { error: "Ficha de treino não encontrada para este aluno." },
+          { status: 404 }
+        );
+      }
+    }
+
     const exerciseIds = Array.from(new Set(logs.map((l: { exerciseId: string }) => l.exerciseId)));
 
     // --- CÁLCULO DE CONQUISTAS E PRS (CONSULTAS PARALELIZADAS) ---
@@ -151,16 +178,12 @@ export async function POST(request: Request) {
       // 1. Fichas de treino do aluno (campos necessários para streak)
       prisma.workoutPlan.findMany({
         where: { studentId: studentProfile.id },
-        include: { exercises: { select: { exerciseId: true } } },
+        select: { id: true },
       }),
       // 2. Histórico de sessões (seleção leve de campos para o streak)
       prisma.workoutSession.findMany({
         where: { studentId: studentProfile.id },
-        select: {
-          id: true,
-          date: true,
-          logs: { select: { exerciseId: true } },
-        },
+        select: { date: true },
         orderBy: { date: "desc" },
       }),
       // 3. Agrupamento por exercício para contagem de PRs
@@ -178,12 +201,13 @@ export async function POST(request: Request) {
         select: { id: true, name: true },
       }),
       // 6. Cargas anteriores dos exercícios presentes nesta sessão
-      prisma.exerciseLog.findMany({
+      prisma.exerciseLog.groupBy({
+        by: ["exerciseId"],
         where: {
           studentId: studentProfile.id,
           exerciseId: { in: exerciseIds },
         },
-        select: { exerciseId: true, weightUsed: true },
+        _max: { weightUsed: true },
       }),
     ]);
 
@@ -200,13 +224,7 @@ export async function POST(request: Request) {
 
     const exerciseNameMap = new Map<string, string>(exercisesInfo.map((e: { id: string; name: string }) => [e.id, e.name]));
 
-    const previousMaxMap = new Map<string, number>();
-    for (const pl of previousLogs) {
-      const curr = previousMaxMap.get(pl.exerciseId) || 0;
-      if (pl.weightUsed > curr) {
-        previousMaxMap.set(pl.exerciseId, pl.weightUsed);
-      }
-    }
+    const previousMaxMap = mapPreviousExerciseMaxima(previousLogs);
 
     // Detectar novos recordes (PRs) nesta sessão
     const currentMaxMap = new Map<string, number>();
@@ -240,6 +258,7 @@ export async function POST(request: Request) {
         const workoutSession = await tx.workoutSession.create({
           data: {
             studentId: studentProfile.id,
+            planId,
             durationMs,
             satisfaction,
             completed: true,

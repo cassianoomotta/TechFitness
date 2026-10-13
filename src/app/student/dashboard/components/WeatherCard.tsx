@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Cloud, CloudRain, Sun, Moon, Wind, MapPin } from "lucide-react";
 
 interface WeatherData {
@@ -12,26 +12,32 @@ interface WeatherData {
 
 export default function WeatherCard() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  // Local padrao / Fallback (respeitando privacidade)
-  const defaultLat = -29.8248;
-  const defaultLon = -50.5186;
-  const defaultCity = "Sua Região";
-
-  useEffect(() => {
-    const fetchWeather = async (lat: number, lon: number, cityName: string) => {
+  const fetchWeather = async (lat: number, lon: number, cityName: string) => {
+    setLoading(true);
+    setError(false);
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         if (!res.ok) throw new Error("Erro na API");
-        const data = await res.json();
+        const data = await res.json() as {
+          current_weather?: { temperature?: number; weathercode?: number; is_day?: number };
+        };
+        const currentWeather = data.current_weather;
+        if (
+          typeof currentWeather?.temperature !== "number" ||
+          typeof currentWeather.weathercode !== "number" ||
+          typeof currentWeather.is_day !== "number"
+        ) {
+          throw new Error("Resposta de clima inválida");
+        }
         
         setWeather({
-          temp: Math.round(data.current_weather.temperature),
-          code: data.current_weather.weathercode,
+          temp: Math.round(currentWeather.temperature),
+          code: currentWeather.weathercode,
           city: cityName,
-          isDay: data.current_weather.is_day
+          isDay: currentWeather.is_day
         });
       } catch (err) {
         console.error("Erro ao buscar clima:", err);
@@ -39,37 +45,27 @@ export default function WeatherCard() {
       } finally {
         setLoading(false);
       }
-    };
+  };
 
-    const tryGeolocation = async () => {
-      let hasPermission = false;
-      try {
-        if ("permissions" in navigator) {
-          const permission = await navigator.permissions.query({ name: "geolocation" });
-          hasPermission = permission.state === "granted";
-        }
-      } catch {
-        // Ignore fallback
-      }
+  const requestWeather = () => {
+    setError(false);
+    if (!("geolocation" in navigator)) {
+      setError(true);
+      return;
+    }
 
-      if (hasPermission && "geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            fetchWeather(position.coords.latitude, position.coords.longitude, "Localização Atual");
-          },
-          (err) => {
-            console.warn("Geolocalização falhou. Usando padrão.", err);
-            fetchWeather(defaultLat, defaultLon, defaultCity);
-          },
-          { timeout: 5000, maximumAge: 300000 }
-        );
-      } else {
-        fetchWeather(defaultLat, defaultLon, defaultCity);
-      }
-    };
-
-    tryGeolocation();
-  }, [defaultCity, defaultLat, defaultLon]);
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void fetchWeather(position.coords.latitude, position.coords.longitude, "Localização atual");
+      },
+      () => {
+        setLoading(false);
+        setError(true);
+      },
+      { timeout: 8000, maximumAge: 300000 }
+    );
+  };
 
   if (loading) {
     return (
@@ -80,7 +76,24 @@ export default function WeatherCard() {
     );
   }
 
-  if (error || !weather) return null; // Fallback silencioso
+  if (error || !weather) {
+    return (
+      <section className="mb-6 rounded-2xl border border-slate-200/80 bg-white/80 p-4 backdrop-blur-md dark:border-slate-800 dark:bg-[#151D2F]">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Clima perto de você</h3>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          Sua localização só será solicitada quando você tocar no botão e será usada para consultar a previsão no Open-Meteo.
+        </p>
+        {error && <p role="status" className="mt-2 text-sm text-red-600 dark:text-red-400">Não foi possível consultar o clima. Verifique a permissão de localização e tente novamente.</p>}
+        <button
+          type="button"
+          onClick={requestWeather}
+          className="mt-3 min-h-[44px] rounded-xl bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white active:scale-95"
+        >
+          Consultar clima
+        </button>
+      </section>
+    );
+  }
 
   // Determinar visual e mensagem de acordo com o código WMO
   let Icon = weather.isDay === 0 ? Moon : Sun;

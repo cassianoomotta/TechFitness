@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { resolveWorkoutPlanId } from "@/lib/workout-plan-matching";
 
 // GET: Buscar todas as fichas de treino (WorkoutPlans) do aluno logado
 export async function GET() {
@@ -144,6 +145,7 @@ export async function GET() {
       orderBy: { date: "desc" },
       select: {
         id: true,
+        planId: true,
         date: true,
         durationMs: true,
         logs: {
@@ -160,20 +162,19 @@ export async function GET() {
     }
     const weeklyCompletedMap = new Map<string, WeeklyCompletedInfo>();
 
-    for (const sessionItem of weekSessions) {
-      if (!sessionItem.logs || sessionItem.logs.length === 0) continue;
-      const sessionExerciseIds = new Set(sessionItem.logs.map((l: { exerciseId: string }) => l.exerciseId));
-      let bestMatchedPlanId: string | null = null;
-      let maxMatchesCount = 0;
+    const planMatchCandidates = plans.map((plan) => ({
+      id: plan.id,
+      exerciseIds: plan.exercises.map((exercise) => exercise.exerciseId),
+      isArchived: plan.isArchived,
+      deletionStatus: plan.deletionStatus,
+    }));
 
-      for (const p of plans) {
-        if (!p.exercises || p.exercises.length === 0) continue;
-        const matches = p.exercises.filter((pe) => sessionExerciseIds.has(pe.exerciseId)).length;
-        if (matches > maxMatchesCount && matches >= Math.min(2, p.exercises.length)) {
-          maxMatchesCount = matches;
-          bestMatchedPlanId = p.id;
-        }
-      }
+    for (const sessionItem of weekSessions) {
+      const bestMatchedPlanId = resolveWorkoutPlanId({
+        sessionPlanId: sessionItem.planId,
+        sessionExerciseIds: sessionItem.logs.map((log) => log.exerciseId),
+        plans: planMatchCandidates,
+      });
 
       if (bestMatchedPlanId && !weeklyCompletedMap.has(bestMatchedPlanId)) {
         weeklyCompletedMap.set(bestMatchedPlanId, {
@@ -195,6 +196,7 @@ export async function GET() {
           orderBy: { date: "desc" },
           select: {
             id: true,
+            planId: true,
             date: true,
             durationMs: true,
             logs: {
@@ -204,18 +206,13 @@ export async function GET() {
           },
         });
 
-    let lastCompletedPlanId: string | null = null;
-    if (lastSession && lastSession.logs.length > 0) {
-      const sessionExerciseIds = new Set(lastSession.logs.map((l: { exerciseId: string }) => l.exerciseId));
-      let maxMatches = 0;
-      for (const p of plans) {
-        const matches = p.exercises.filter((pe) => sessionExerciseIds.has(pe.exerciseId)).length;
-        if (matches > maxMatches) {
-          maxMatches = matches;
-          lastCompletedPlanId = p.id;
-        }
-      }
-    }
+    const lastCompletedPlanId = lastSession
+      ? resolveWorkoutPlanId({
+          sessionPlanId: lastSession.planId,
+          sessionExerciseIds: lastSession.logs.map((log) => log.exerciseId),
+          plans: planMatchCandidates,
+        })
+      : null;
 
     // Mapear retorno
     const formattedResponse = {

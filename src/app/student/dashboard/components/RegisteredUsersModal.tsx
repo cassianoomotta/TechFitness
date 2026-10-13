@@ -11,7 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
-import { RegisteredUserItem } from "@/app/api/student/registered-users/route";
+import { RegisteredUserItem } from "@/lib/types/registered-user";
 
 interface RegisteredUsersModalProps {
   isOpen: boolean;
@@ -54,7 +54,6 @@ export default function RegisteredUsersModal({
     return users.filter(
       (u) =>
         u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
         (u.trainerName && u.trainerName.toLowerCase().includes(q))
     );
   }, [users, searchQuery]);
@@ -116,7 +115,7 @@ export default function RegisteredUsersModal({
               <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar por nome, e-mail ou treinador..."
+                placeholder="Buscar por nome ou treinador..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 text-base md:text-sm text-[#0F172A] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -175,7 +174,6 @@ export default function RegisteredUsersModal({
                           {u.role}
                         </span>
                       </div>
-                      <p className="text-xs text-[#64748B] dark:text-slate-400 font-mono mt-0.5">{u.email}</p>
                     </div>
                   </div>
 

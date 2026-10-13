@@ -35,6 +35,7 @@ import {
   requestNotificationPermission,
 } from "@/lib/sw-utils";
 import { usePictureInPictureTimer } from "@/hooks/usePictureInPictureTimer";
+import { classifyCompletionLookup } from "@/lib/workout-completion-reconciliation";
 
 interface Exercise {
   id: string;
@@ -122,6 +123,8 @@ export default function WorkoutSessionPlayer() {
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [isReconcilingCompletion, setIsReconcilingCompletion] = useState(true);
+  const [completionConfirmationUnknown, setCompletionConfirmationUnknown] = useState(false);
+  const [completionReconciliationAttempt, setCompletionReconciliationAttempt] = useState(0);
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
   const [workoutPhoto, setWorkoutPhoto] = useState<string | null>(null);
   const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
@@ -705,6 +708,7 @@ export default function WorkoutSessionPlayer() {
       updateTimer();
       timer = setInterval(updateTimer, 1000);
       setIsReconcilingCompletion(false);
+      setCompletionConfirmationUnknown(false);
     };
 
     const reconcileAndStartTimer = async () => {
@@ -712,42 +716,54 @@ export default function WorkoutSessionPlayer() {
 
       try {
         const completionKey = localStorage.getItem(STORAGE_KEY_COMPLETION);
-        if (completionKey) {
-          const controller = new AbortController();
-          completionController = controller;
-          const timeoutId = window.setTimeout(() => controller.abort(), 8000);
-
-          try {
-            const response = await fetch(
-              `/api/student/workout-sessions?completionKey=${encodeURIComponent(completionKey)}`,
-              { cache: "no-store", signal: controller.signal }
-            );
-            if (!isActive) return;
-
-            if (response.ok) {
-              const status: { found: boolean } = await response.json();
-              if (!isActive) return;
-              if (status.found) {
-                confirmedSaved = true;
-                clearLocalWorkoutState();
-                router.replace("/student/dashboard");
-                return;
-              }
-            }
-          } catch (error) {
-            console.error("Não foi possível reconciliar a conclusão do treino:", error);
-          } finally {
-            window.clearTimeout(timeoutId);
-            if (completionController === controller) {
-              completionController = null;
-            }
-          }
+        if (!completionKey) {
+          startTimer();
+          return;
         }
 
-        startTimer();
+        const controller = new AbortController();
+        completionController = controller;
+        const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+        try {
+          const response = await fetch(
+            `/api/student/workout-sessions?completionKey=${encodeURIComponent(completionKey)}`,
+            { cache: "no-store", signal: controller.signal }
+          );
+          if (!isActive) return;
+
+          const status: { found?: unknown } | null = response.ok
+            ? await response.json() as { found?: unknown }
+            : null;
+          if (!isActive) return;
+
+          const outcome = classifyCompletionLookup({ ok: response.ok, found: status?.found });
+          if (outcome === "saved") {
+            confirmedSaved = true;
+            clearLocalWorkoutState();
+            router.replace("/student/dashboard");
+            return;
+          }
+
+          if (outcome === "not-found") {
+            startTimer();
+            return;
+          }
+
+          setCompletionConfirmationUnknown(true);
+        } catch (error) {
+          if (!isActive) return;
+          console.error("Não foi possível reconciliar a conclusão do treino:", error);
+          setCompletionConfirmationUnknown(true);
+        } finally {
+          window.clearTimeout(timeoutId);
+          if (completionController === controller) {
+            completionController = null;
+          }
+        }
       } catch (error) {
         console.error("Não foi possível restaurar o cronômetro do treino:", error);
-        startTimer();
+        setCompletionConfirmationUnknown(true);
       } finally {
         if (isActive && !confirmedSaved) {
           setIsReconcilingCompletion(false);
@@ -766,6 +782,7 @@ export default function WorkoutSessionPlayer() {
     STORAGE_KEY_COMPLETION,
     STORAGE_KEY_START,
     clearLocalWorkoutState,
+    completionReconciliationAttempt,
     planId,
     router,
   ]);
@@ -1162,6 +1179,7 @@ export default function WorkoutSessionPlayer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           completionKey,
+          planId,
           durationMs: Math.min(Math.max(0, Math.floor(totalSeconds * 1000)), 86400000),
           satisfaction: Number(satisfaction),
           photoUrl: workoutPhoto,
@@ -1285,6 +1303,39 @@ export default function WorkoutSessionPlayer() {
     );
   }
 
+  if (completionConfirmationUnknown) {
+    return (
+      <main className="min-h-[100dvh] bg-[#F8FAFC] dark:bg-[#0B0F19] flex items-center justify-center p-6 text-center">
+        <section className="max-w-sm rounded-2xl border border-slate-200/80 bg-white/90 p-6 backdrop-blur-md dark:border-slate-800 dark:bg-[#151D2F]">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white">Estamos confirmando seu treino</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            A conexão não confirmou se o treino foi salvo. Seu progresso foi mantido. Tente consultar novamente antes de continuar.
+          </p>
+          <div className="mt-5 grid gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setCompletionConfirmationUnknown(false);
+                setIsReconcilingCompletion(true);
+                setCompletionReconciliationAttempt((attempt) => attempt + 1);
+              }}
+              className="min-h-[48px] rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-bold text-white transition-all active:scale-95"
+            >
+              Tentar confirmar novamente
+            </button>
+            <button
+              type="button"
+              onClick={() => router.replace("/student/dashboard")}
+              className="min-h-[48px] rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+            >
+              Voltar aos treinos
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   if (!plan) return null;
 
   return (
@@ -1318,7 +1369,7 @@ export default function WorkoutSessionPlayer() {
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(true)}
-              className="p-1.5 px-2.5 rounded-xl border border-red-200/80 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-bold text-xs transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+              className="min-h-[44px] px-3 rounded-xl border border-red-200/80 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-bold text-sm transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
               title="Cancelar treino e descartar sessão"
             >
               <X className="w-3.5 h-3.5" />
@@ -1405,7 +1456,7 @@ export default function WorkoutSessionPlayer() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Sugestão de alternativa</p>
-                      <p className="text-xs font-bold text-[#0F172A] dark:text-white mt-0.5">{alternativeSuggestion.name}</p>
+                      <p className="text-sm font-bold text-[#0F172A] dark:text-white mt-0.5">{alternativeSuggestion.name}</p>
                       <p className="text-[9px] text-[#94A3B8] dark:text-slate-400 mt-0.5">{alternativeSuggestion.equipment}</p>
                     </div>
                     <div className="flex gap-1">
@@ -1438,13 +1489,13 @@ export default function WorkoutSessionPlayer() {
                     </div>
                   </div>
                   {alternativeSuggestion.description && (
-                    <p className="text-[10px] text-amber-800/70 dark:text-amber-300/70 leading-relaxed">{alternativeSuggestion.description}</p>
+                    <p className="text-sm text-amber-800/70 dark:text-amber-300/70 leading-relaxed">{alternativeSuggestion.description}</p>
                   )}
                 </div>
               )}
 
               {exercise.notes && (
-                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-800 p-2.5 rounded-xl">
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#1E293B]/70 border border-slate-200/80 dark:border-slate-800 p-2.5 rounded-xl">
                   <strong className="text-slate-800 dark:text-slate-100">Obs:</strong> {exercise.notes}
                 </p>
               )}
@@ -1462,7 +1513,7 @@ export default function WorkoutSessionPlayer() {
                 {(setsData[exIndex] || []).map((set, setIndex) => (
                   <div
                     key={setIndex}
-                    className={`grid grid-cols-12 gap-2 items-center text-xs p-1.5 rounded-xl transition-all ${
+                    className={`grid grid-cols-12 gap-2 items-center text-sm p-2 rounded-xl transition-all ${
                       set.completed
                         ? "bg-emerald-500/10 dark:bg-emerald-950/25 border border-emerald-500/30 dark:border-emerald-600/40"
                         : "bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/60 dark:border-slate-700/50"
@@ -1485,7 +1536,7 @@ export default function WorkoutSessionPlayer() {
                         onChange={(e) =>
                           handleUpdateSetField(exIndex, setIndex, "weight", e.target.value)
                         }
-                        className="w-full text-center py-2 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 disabled:opacity-50 text-slate-900 dark:text-white font-mono text-base sm:text-xs font-bold shadow-2xs focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/20 outline-none transition-all"
+                        className="w-full min-h-[44px] text-center py-2 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 disabled:opacity-50 text-base md:text-sm text-slate-900 dark:text-white font-mono font-bold shadow-2xs focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/20 outline-none transition-all"
                       />
                       {(() => {
                         const prevSet = exercise.previousWorkoutSets?.[setIndex];
@@ -1516,7 +1567,7 @@ export default function WorkoutSessionPlayer() {
                         onChange={(e) =>
                           handleUpdateSetField(exIndex, setIndex, "reps", e.target.value)
                         }
-                        className="w-full text-center py-2 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 disabled:opacity-50 text-slate-900 dark:text-white font-mono text-base sm:text-xs font-bold shadow-2xs focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/20 outline-none transition-all"
+                        className="w-full min-h-[44px] text-center py-2 rounded-xl bg-white dark:bg-[#0B0F19] border border-slate-200 dark:border-slate-700 disabled:opacity-50 text-base md:text-sm text-slate-900 dark:text-white font-mono font-bold shadow-2xs focus:border-[#2563EB] dark:focus:border-[#00C2FF] focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/20 outline-none transition-all"
                       />
                       {(() => {
                         const prevSet = exercise.previousWorkoutSets?.[setIndex];
@@ -1599,7 +1650,7 @@ export default function WorkoutSessionPlayer() {
               onClick={() => adjustRestTime(30)}
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
-              className="px-2.5 py-1 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-95 text-white text-[11px] font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40 cursor-pointer flex items-center gap-1 transition-transform"
+              className="min-h-[44px] px-3 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-95 text-white text-sm font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40 cursor-pointer flex items-center gap-1 transition-transform"
               title="Adicionar 30 segundos de descanso"
             >
               <span>+30s</span>
@@ -1715,7 +1766,7 @@ export default function WorkoutSessionPlayer() {
             </div>
             <div>
               <h3 className="font-bold text-base text-slate-900 dark:text-white">Cancelar Treino?</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 leading-relaxed">
                 Se cancelar agora, as cargas e séries registradas nesta sessão serão descartadas.
               </p>
             </div>
@@ -1723,14 +1774,14 @@ export default function WorkoutSessionPlayer() {
               <button
                 type="button"
                 onClick={handleCancelWorkout}
-                className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-all shadow-md shadow-red-500/20 active:scale-95 cursor-pointer"
+                className="w-full min-h-[44px] py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-all shadow-md shadow-red-500/20 active:scale-95 cursor-pointer"
               >
                 Sim, Cancelar Treino
               </button>
               <button
                 type="button"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition-all active:scale-95 cursor-pointer"
+                className="w-full min-h-[44px] py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all active:scale-95 cursor-pointer"
               >
                 Continuar Treinando
               </button>
@@ -1756,12 +1807,12 @@ export default function WorkoutSessionPlayer() {
             </div>
 
             <h3 className="font-display font-bold text-lg text-zinc-950 dark:text-white mb-1">Concluir Treino</h3>
-            <p className="text-xs text-[#94A3B8] dark:text-slate-400 mb-5 leading-relaxed">
+            <p className="text-sm text-[#64748B] dark:text-slate-300 mb-5 leading-relaxed">
               Tire sua foto de check-in para comprovar seu treino e registrar seus pontos!
             </p>
 
             {finishError && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-semibold text-left">
+              <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-sm font-semibold text-left">
                 {finishError}
               </div>
             )}
@@ -1769,7 +1820,7 @@ export default function WorkoutSessionPlayer() {
             <div className="space-y-4 text-left">
               {/* Seção 1: Foto Comprobatória (Obrigatória) */}
               <div>
-                <label className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
+                <label className="text-sm text-[#64748B] dark:text-slate-300 font-bold uppercase tracking-wider block mb-1.5">
                   1. Foto de Comprovação (Obrigatória):
                 </label>
 
@@ -1806,14 +1857,14 @@ export default function WorkoutSessionPlayer() {
                       <button
                         type="button"
                         onClick={() => cameraInputRef.current?.click()}
-                        className="flex-1 py-1.5 px-2 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-sm text-white text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                        className="flex-1 min-h-[44px] py-2 px-2 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-sm text-white text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
                       >
                         <Camera className="w-3 h-3" /> Tirar Outra
                       </button>
                       <button
                         type="button"
                         onClick={() => galleryInputRef.current?.click()}
-                        className="flex-1 py-1.5 px-2 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-sm text-white text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
+                        className="flex-1 min-h-[44px] py-2 px-2 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-sm text-white text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1"
                       >
                         <ImageIcon className="w-3 h-3" /> Trocar Foto
                       </button>
@@ -1830,8 +1881,8 @@ export default function WorkoutSessionPlayer() {
                         <Camera className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#0F172A] dark:text-white">Tirar Foto</p>
-                        <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 mt-0.5">Abrir câmera</p>
+                        <p className="text-sm font-bold text-[#0F172A] dark:text-white">Tirar Foto</p>
+                        <p className="text-sm text-[#64748B] dark:text-slate-300 mt-0.5">Abrir câmera</p>
                       </div>
                     </button>
 
@@ -1844,8 +1895,8 @@ export default function WorkoutSessionPlayer() {
                         <ImageIcon className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#0F172A] dark:text-white">Galeria</p>
-                        <p className="text-[10px] text-[#94A3B8] dark:text-slate-400 mt-0.5">Escolher arquivo</p>
+                        <p className="text-sm font-bold text-[#0F172A] dark:text-white">Galeria</p>
+                        <p className="text-sm text-[#64748B] dark:text-slate-300 mt-0.5">Escolher arquivo</p>
                       </div>
                     </button>
                   </div>
@@ -1854,7 +1905,7 @@ export default function WorkoutSessionPlayer() {
 
               {/* Seção 2: Intensidade (RPE) */}
               <div>
-                <label className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
+                <label className="text-sm text-[#64748B] dark:text-slate-300 font-bold uppercase tracking-wider block mb-1.5">
                   2. Intensidade do Treino:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1870,7 +1921,7 @@ export default function WorkoutSessionPlayer() {
                         key={option.value}
                         type="button"
                         onClick={() => handleSetSatisfaction(option.value)}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                        className={`min-h-[44px] py-2.5 px-2 rounded-xl border text-sm font-bold transition-all cursor-pointer text-center ${
                           isSelected
                             ? option.value === 3
                               ? "bg-blue-500 border-blue-500 text-white"
@@ -1892,7 +1943,7 @@ export default function WorkoutSessionPlayer() {
               {/* Seção 3: Compartilhar Check-in nos Grupos */}
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-[10px] text-[#94A3B8] dark:text-slate-400 font-bold uppercase tracking-wider block">
+                  <label className="text-sm text-[#64748B] dark:text-slate-300 font-bold uppercase tracking-wider block">
                     3. Compartilhar Check-in nos Grupos:
                   </label>
                   {userGroups.length > 0 && (
@@ -2023,7 +2074,7 @@ export default function WorkoutSessionPlayer() {
               <button
                 onClick={handleFinishWorkout}
                 disabled={finishLoading || !workoutPhoto}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-2 shadow-lg shadow-blue-500/20"
+                className="w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none mt-2 shadow-lg shadow-blue-500/20"
               >
                 {finishLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -2178,7 +2229,7 @@ export default function WorkoutSessionPlayer() {
               <button
                 type="button"
                 onClick={() => setRenamingExercise(null)}
-                className="flex-1 py-2 px-4 rounded-xl border border-[#E2E8F0] dark:border-slate-700 text-[#0F172A] dark:text-slate-300 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex-1 min-h-[44px] py-2 px-4 rounded-xl border border-[#E2E8F0] dark:border-slate-700 text-[#0F172A] dark:text-slate-300 text-sm font-semibold hover:bg-zinc-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -2186,7 +2237,7 @@ export default function WorkoutSessionPlayer() {
                 type="button"
                 onClick={handleRenameExercise}
                 disabled={savingRename}
-                className="flex-1 py-2 px-4 rounded-xl bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1E40AF] disabled:opacity-50 transition-colors"
+              className="flex-1 min-h-[44px] py-2 px-4 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-[#1E40AF] disabled:opacity-50 transition-colors"
               >
                 {savingRename ? "Salvando..." : "Salvar"}
               </button>

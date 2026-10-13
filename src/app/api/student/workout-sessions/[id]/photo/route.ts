@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { canDeleteWorkoutPhoto } from "@/lib/workout-photo-permission";
 
 export async function DELETE(
   request: Request,
@@ -19,11 +20,11 @@ export async function DELETE(
     // Buscar a sessão de treino com dados do estudante
     const workoutSession = await prisma.workoutSession.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        photoUrl: true,
         student: {
-          include: {
-            user: true,
-          },
+          select: { userId: true, trainerId: true },
         },
       },
     });
@@ -35,15 +36,22 @@ export async function DELETE(
       );
     }
 
-    // Verificar permissão: o próprio aluno dono da sessão ou seu personal trainer
-    const isOwner = workoutSession.student.userId === session.user.id;
-    const isTrainer = session.user.role === "TRAINER" || session.user.role === "ADMIN";
-    const isSameStudentName =
-      session.user.name &&
-      workoutSession.student.user.name &&
-      workoutSession.student.user.name.toLowerCase().includes(session.user.name.toLowerCase().split(" ")[0]);
+    const trainerProfile = session.user.role === "TRAINER"
+      ? await prisma.trainerProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { id: true },
+        })
+      : null;
 
-    if (!isOwner && !isTrainer && !isSameStudentName) {
+    const isAuthorized = canDeleteWorkoutPhoto({
+      role: session.user.role,
+      userId: session.user.id,
+      studentUserId: workoutSession.student.userId,
+      trainerProfileId: trainerProfile?.id,
+      studentTrainerId: workoutSession.student.trainerId,
+    });
+
+    if (!isAuthorized) {
       return NextResponse.json(
         { error: "Você não tem permissão para remover esta foto." },
         { status: 403 }

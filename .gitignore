@@ -62,6 +62,7 @@ TEST_ACCOUNTS.md
 /out/
 /build
 /coverage
+/.test-build/
 *.tsbuildinfo
 next-env.d.ts
 

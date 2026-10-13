@@ -79,6 +79,7 @@ model WorkoutPlan {
   division            String // Ex: "A", "B", "C", "Push"
   weekDays            Json? // Array de dias, ex: ["Seg", "Qua", "Sex"]
   exercises           WorkoutPlanExercise[]
+  sessions            WorkoutSession[]
   isArchived          Boolean               @default(false)
   createdByType       String                @default("TRAINER") // "TRAINER" | "STUDENT"
   deletionRequestedAt DateTime?
@@ -123,10 +124,13 @@ model WorkoutSession {
   completed      Boolean        @default(true)
   photoUrl       String? // Foto comprobatória do treino (Check-in)
   completionKey  String?        @unique // Chave idempotente para recuperar finalizações após falha de rede
+  planId         String?
+  plan           WorkoutPlan?   @relation(fields: [planId], references: [id], onDelete: SetNull)
   targetGroupIds Json?          @default("[]") // Lista de IDs de grupos selecionados para postagem (vazio ou ["ALL"] = todos)
   logs           ExerciseLog[]
 
   @@index([studentId, date])
+  @@index([studentId, planId, date])
 }
 
 model ExerciseLog {
