@@ -80,7 +80,7 @@ async function main() {
           if (retries >= 3) throw new Error("Fallback para individual");
           await new Promise(r => setTimeout(r, 600));
         }
-      } catch (err) {
+      } catch {
         retries++;
         await new Promise(r => setTimeout(r, 1000 * retries));
       }
@@ -93,7 +93,7 @@ async function main() {
           const singleRes = await translate(item.description, { to: 'pt' });
           translatedParts.push(singleRes.text.trim());
           await new Promise(r => setTimeout(r, 200));
-        } catch (e) {
+        } catch {
           translatedParts.push(null);
         }
       }
@@ -120,7 +120,7 @@ async function main() {
           }
 
           successCount++;
-        } catch (updateErr) {
+        } catch {
           failCount++;
         }
       } else {

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import BrandLogo from "@/components/BrandLogo";
 import WorkoutTab from "./components/WorkoutTab";
@@ -87,6 +88,8 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import type { PersonalRecord } from "@/lib/gamification";
+import { useMounted } from "@/hooks/useMounted";
 
 interface Achievement {
   id: string;
@@ -235,7 +238,7 @@ function sortPlansByWeekDays(plansList: WorkoutPlan[]) {
 // =========================================================================
 let cachedPlans: WorkoutPlan[] | null = null;
 let cachedTrainer: TrainerInfo | null = null;
-let cachedPrs: any[] | null = null;
+let cachedPrs: PersonalRecord[] | null = null;
 let cachedGamification: GamificationData | null = null;
 let cachedRanking: RankingData | null = null;
 
@@ -288,14 +291,10 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState<boolean>(
     () => !cachedPlans && !getDashboardSessionCache("tf_st_plans")
   );
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   // Estados da Aba e Grupos/Duelo
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<"home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso">("home");
   const [initialJoinCode, setInitialJoinCode] = useState<string | null>(null);
   const [selectedPlanForPreview, setSelectedPlanForPreview] = useState<WorkoutPlan | null>(null);
@@ -347,7 +346,7 @@ export default function StudentDashboard() {
 
   // Capturar código de convite ou aba via URL (ex: link de convite recebido via WhatsApp)
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    const timerId = window.setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
       const joinParam = params.get("join") || params.get("code");
       const tabParam = params.get("tab");
@@ -365,7 +364,8 @@ export default function StudentDashboard() {
       ) {
         setActiveTab(tabParam as "home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
       }
-    }
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, []);
 
   // Toast feedback system
@@ -457,7 +457,6 @@ export default function StudentDashboard() {
     notifications,
     unreadCount,
     markAllAsRead: handleMarkNotificationsRead,
-    refresh: fetchNotifications,
   } = useNotificationSync({ userId: session?.user?.id });
 
   // Ref para fechar notificações ao clicar fora
@@ -466,8 +465,8 @@ export default function StudentDashboard() {
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
   // Estados para Recordes Pessoais (PRs)
-  const [prs, setPrs] = useState<any[]>(
-    () => cachedPrs || getDashboardSessionCache<any[]>("tf_st_prs") || []
+  const [prs, setPrs] = useState<PersonalRecord[]>(
+    () => cachedPrs || getDashboardSessionCache<PersonalRecord[]>("tf_st_prs") || []
   );
   const [prsLoading, setPrsLoading] = useState<boolean>(
     () => !cachedPrs && !getDashboardSessionCache("tf_st_prs")
@@ -520,11 +519,12 @@ export default function StudentDashboard() {
   }, [gamification]);
 
   // Agrupamento de fotos por aluno no estilo Instagram (1 card por aluno com carrossel se houver múltiplas fotos)
+  const weeklyFeed = ranking?.weeklyFeed;
   const groupedStudentFeeds: StudentGroupedFeed[] = React.useMemo(() => {
-    if (!ranking?.weeklyFeed) return [];
+    if (!weeklyFeed) return [];
     const map = new Map<string, StudentGroupedFeed>();
 
-    for (const item of ranking.weeklyFeed) {
+    for (const item of weeklyFeed) {
       const key = item.studentId || item.studentName;
       if (!map.has(key)) {
         map.set(key, {
@@ -538,7 +538,7 @@ export default function StudentDashboard() {
     }
 
     return Array.from(map.values());
-  }, [ranking?.weeklyFeed]);
+  }, [weeklyFeed]);
 
   const [deletingPhoto, setDeletingPhoto] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -802,8 +802,6 @@ export default function StudentDashboard() {
   };
 
   useEffect(() => {
-    fetchPlans();
-
     const fetchGamification = async () => {
       try {
         const response = await fetch("/api/student/gamification");
@@ -840,9 +838,12 @@ export default function StudentDashboard() {
       }
     };
 
-    fetchPlans();
-    fetchGamification();
-    fetchRanking();
+    const timerId = window.setTimeout(() => {
+      void fetchPlans();
+      void fetchGamification();
+      void fetchRanking();
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, []);
 
   // Buscar PRs sob demanda somente quando a aba de Conquistas for aberta (otimização de TTFB na Home)
@@ -869,10 +870,13 @@ export default function StudentDashboard() {
   }, [activeTab, prs.length]);
 
   useEffect(() => {
-    const savedTab = localStorage.getItem("student_active_tab");
-    if (savedTab && ["home", "fichas", "conquistas", "grupos", "dupla", "peso"].includes(savedTab)) {
-      setActiveTab((savedTab === "dupla" ? "grupos" : savedTab) as "home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
-    }
+    const timerId = window.setTimeout(() => {
+      const savedTab = localStorage.getItem("student_active_tab");
+      if (savedTab && ["home", "fichas", "conquistas", "grupos", "dupla", "peso"].includes(savedTab)) {
+        setActiveTab((savedTab === "dupla" ? "grupos" : savedTab) as "home" | "fichas" | "conquistas" | "grupos" | "dupla" | "peso");
+      }
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, []);
 
   // Buscar lista de parceiros ao carregar a aba de grupos/dupla
@@ -987,9 +991,12 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (activeTab === "peso") {
-      fetchMeasurements();
-      const today = new Date().toISOString().split("T")[0];
-      setNewWeightDate(today);
+      const timerId = window.setTimeout(() => {
+        void fetchMeasurements();
+        const today = new Date().toISOString().split("T")[0];
+        setNewWeightDate(today);
+      }, 0);
+      return () => window.clearTimeout(timerId);
     }
   }, [activeTab]);
 
@@ -1892,7 +1899,7 @@ export default function StudentDashboard() {
                       <span className="text-xs text-zinc-400 font-medium">Carregando demonstração...</span>
                     </div>
                   )}
-                  <img
+                  <Image fill unoptimized
                     src={getMediaUrl(activeVideoUrl)}
                     alt="Execução do exercício"
                     className={`w-full h-full object-contain bg-black transition-opacity duration-300 ${mediaLoading ? 'opacity-0' : 'opacity-100'}`}
@@ -1960,7 +1967,7 @@ export default function StudentDashboard() {
             >
               <X className="w-5 h-5" />
             </button>
-            <img
+            <Image fill unoptimized
               src={selectedPhotoForZoom}
               alt="Medida Ampliada"
               className="max-w-full max-h-[75vh] rounded-2xl object-contain border border-[#E2E8F0]"
@@ -2104,7 +2111,7 @@ export default function StudentDashboard() {
               }}
             >
               <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
-                <img
+                <Image fill unoptimized
                   key={selectedPhotosList[selectedPhotoIndex]?.id}
                   src={selectedPhotosList[selectedPhotoIndex]?.photoUrl}
                   alt={`Check-in de ${selectedPhotosList[selectedPhotoIndex]?.studentName}`}

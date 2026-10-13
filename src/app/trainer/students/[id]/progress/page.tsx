@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
 
 import React, { useState, useEffect } from "react";
@@ -482,7 +483,7 @@ export default function StudentProgressPage() {
             </div>
             <div className="p-3 sm:p-4 bg-slate-950 flex items-center justify-center flex-1 overflow-hidden">
               <div className="relative w-full aspect-[3/4] max-h-[66vh] flex items-center justify-center">
-                <img
+                <Image fill unoptimized
                   src={selectedPhoto.url}
                   alt="Comprovante de Treino"
                   className="w-full h-full object-contain rounded-xl shadow-lg"

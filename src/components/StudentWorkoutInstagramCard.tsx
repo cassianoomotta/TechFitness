@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React, { useState } from "react";
 import UserAvatar from "@/components/UserAvatar";
@@ -61,7 +62,7 @@ export default function StudentWorkoutInstagramCard({
       title={`Ver check-ins de ${studentName} (${totalPhotos} ${totalPhotos === 1 ? "foto" : "fotos"})`}
     >
       {/* Imagem do Treino (com transição suave) */}
-      <img
+      <Image fill unoptimized
         key={currentPhoto.id}
         src={currentPhoto.photoUrl}
         alt={`Check-in de ${studentName}`}

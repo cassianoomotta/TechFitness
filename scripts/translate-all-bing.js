@@ -89,7 +89,7 @@ async function main() {
             await new Promise(r => setTimeout(r, 800));
           }
         }
-      } catch (err) {
+      } catch {
         retries++;
         await new Promise(r => setTimeout(r, 1200 * retries));
       }

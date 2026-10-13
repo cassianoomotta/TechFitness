@@ -1,6 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useSyncExternalStore } from "react";
+
+const subscribeToPictureInPictureSupport = () => () => {};
+
+const getPictureInPictureSupport = () =>
+  typeof document !== "undefined" && Boolean(
+    ("pictureInPictureEnabled" in document && document.pictureInPictureEnabled) ||
+    (typeof HTMLVideoElement !== "undefined" && "webkitSupportsPresentationMode" in HTMLVideoElement.prototype)
+  );
+
+const getServerPictureInPictureSupport = () => false;
 
 interface UsePictureInPictureTimerProps {
   restTime: number;
@@ -14,23 +24,16 @@ export function usePictureInPictureTimer({
   isResting,
 }: UsePictureInPictureTimerProps) {
   const [isPipActive, setIsPipActive] = useState(false);
-  const [isPipSupported, setIsPipSupported] = useState(false);
+  const isPipSupported = useSyncExternalStore(
+    subscribeToPictureInPictureSupport,
+    getPictureInPictureSupport,
+    getServerPictureInPictureSupport
+  );
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const isPipActiveRef = useRef(false);
-
-  // Verificar se o navegador suporta Picture-in-Picture (Android Chrome ou iOS WebKit)
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      const supported = Boolean(
-        ("pictureInPictureEnabled" in document && document.pictureInPictureEnabled) ||
-        (typeof HTMLVideoElement !== "undefined" && "webkitSupportsPresentationMode" in HTMLVideoElement.prototype)
-      );
-      setIsPipSupported(supported);
-    }
-  }, []);
 
   // Desenhar o cronômetro no canvas com visual premium de alta resolução
   const drawTimerOnCanvas = useCallback((seconds: number, initialSeconds: number) => {
@@ -227,8 +230,11 @@ export function usePictureInPictureTimer({
       if (typeof document !== "undefined" && document.pictureInPictureElement) {
         document.exitPictureInPicture().catch(() => {});
       }
-      setIsPipActive(false);
-      isPipActiveRef.current = false;
+      const timeoutId = window.setTimeout(() => {
+        setIsPipActive(false);
+        isPipActiveRef.current = false;
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
     }
   }, [isResting, isPipActive]);
 

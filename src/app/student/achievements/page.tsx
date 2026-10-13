@@ -7,7 +7,6 @@ import BrandLogo from "@/components/BrandLogo";
 import DumbbellLoading from "@/components/DumbbellLoading";
 import {
   ArrowLeft,
-  Loader2,
   Play,
   Award,
   Zap,
@@ -325,7 +324,7 @@ export default function AchievementsPage() {
                 <button
                   key={f.id}
                   type="button"
-                  onClick={() => setAchievementFilter(f.id as any)}
+                  onClick={() => setAchievementFilter(f.id as "all" | "unlocked" | "locked")}
                   className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                     achievementFilter === f.id
                       ? "bg-white text-[#2563EB] shadow-xs"

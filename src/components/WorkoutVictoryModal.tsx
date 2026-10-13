@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -6,12 +7,10 @@ import {
   Check,
   ArrowRight,
   Award,
-  Sparkles,
   Share2,
   RotateCw,
   Flame,
   Zap,
-  Copy,
   Info,
 } from "lucide-react";
 import type { TonnageCuriosity, TonnageCuriosityCategory } from "@/lib/gamification";
@@ -101,10 +100,6 @@ export default function WorkoutVictoryModal({
 
   useEffect(() => {
     if (!isOpen) return;
-
-    // Reiniciar estados ao abrir
-    setCuriosityIndex(0);
-    setCopiedFeedback(false);
 
     // Animação suave do XP ganho
     let start = 0;
@@ -225,7 +220,7 @@ export default function WorkoutVictoryModal({
           {/* Card da Foto de Comprovação — Formato Vertical com Sticker de Vitória */}
           {photoUrl && (
             <div className="relative w-full max-w-[240px] sm:max-w-[270px] mx-auto aspect-[3/4] rounded-2xl overflow-hidden border border-[#E2E8F0] dark:border-slate-800 bg-slate-950 shadow-md group">
-              <img
+              <Image fill unoptimized
                 src={photoUrl}
                 alt="Comprovação do Treino"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"

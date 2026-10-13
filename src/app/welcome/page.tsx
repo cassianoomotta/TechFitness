@@ -38,10 +38,13 @@ function WelcomeContent() {
 
   useEffect(() => {
     if (emailParam) {
-      setEmail(emailParam);
-      // Sugerir um nome inicial a partir da primeira parte do e-mail se desejar
-      const suggestedName = emailParam.split("@")[0].replace(/[._-]/g, " ");
-      setName(suggestedName.charAt(0).toUpperCase() + suggestedName.slice(1));
+      const timeoutId = window.setTimeout(() => {
+        setEmail(emailParam);
+        // Sugerir um nome inicial a partir da primeira parte do e-mail se desejar
+        const suggestedName = emailParam.split("@")[0].replace(/[._-]/g, " ");
+        setName(suggestedName.charAt(0).toUpperCase() + suggestedName.slice(1));
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
     }
   }, [emailParam]);
 

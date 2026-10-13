@@ -1,8 +1,10 @@
 "use client";
+import Image from "next/image";
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useMounted } from "@/hooks/useMounted";
 
 interface UserAvatarProps {
   name?: string | null;
@@ -34,12 +36,9 @@ export default function UserAvatar({
   onClick,
 }: UserAvatarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
+  const [failedImage, setFailedImage] = useState<string | null>(null);
+  const imageError = Boolean(image && failedImage === image);
 
   useEffect(() => {
     if (!isExpanded) return;
@@ -120,12 +119,12 @@ export default function UserAvatar({
               : ""
           } ${sizeClass} ${borderClass} ${className}`}
         >
-          <img
+          <Image fill unoptimized
             src={image}
             alt={name || "Avatar do usuário"}
             className="w-full h-full object-cover rounded-full"
             loading="lazy"
-            onError={() => setImageError(true)}
+            onError={() => image && setFailedImage(image)}
           />
         </div>
 
@@ -165,7 +164,7 @@ export default function UserAvatar({
 
               {/* Foto Centralizada (sem estourar resolução) */}
               <div className="relative w-full aspect-square bg-zinc-900 flex items-center justify-center overflow-hidden">
-                <img
+                <Image fill unoptimized
                   src={image}
                   alt={name || "Foto de perfil"}
                   className="w-full h-full object-cover select-none"

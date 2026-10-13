@@ -1,7 +1,7 @@
 "use client";
 import BrandLogo from "@/components/BrandLogo";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
 import Link from "next/link";
@@ -131,7 +131,7 @@ export default function TrainerDashboard() {
   const [weeklyPRs, setWeeklyPRs] = useState<number | null>(null);
 
   // Buscar alunos
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       const response = await fetch("/api/trainer/students");
       if (response.ok) {
@@ -143,9 +143,9 @@ export default function TrainerDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch("/api/trainer/stats");
       if (response.ok) {
@@ -156,12 +156,15 @@ export default function TrainerDashboard() {
     } catch (err) {
       console.error("Erro ao buscar stats:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchStudents();
-    fetchStats();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void fetchStudents();
+      void fetchStats();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchStats, fetchStudents]);
 
   // Fechar notificações ao clicar fora
   useEffect(() => {

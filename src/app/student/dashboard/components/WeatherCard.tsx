@@ -69,7 +69,7 @@ export default function WeatherCard() {
     };
 
     tryGeolocation();
-  }, []);
+  }, [defaultCity, defaultLat, defaultLon]);
 
   if (loading) {
     return (

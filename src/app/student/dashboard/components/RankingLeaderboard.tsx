@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Camera,
   Loader2,
@@ -85,7 +85,7 @@ export default function RankingLeaderboard({
   const [selectedPeriod, setSelectedPeriod] = useState<"weekly" | "monthly" | "allTime">("weekly");
   const [showFullRanking, setShowFullRanking] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fetchingAll, setFetchingAll] = useState(false);
+  const fetchingAll = false;
 
   // Dados do período ativo (Semana, Mês ou Geral)
   const currentPeriodData = React.useMemo(() => {

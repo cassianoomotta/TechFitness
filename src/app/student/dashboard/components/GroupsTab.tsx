@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -255,7 +256,9 @@ export default function GroupsTab({
   initialJoinCode,
 }: GroupsTabProps) {
   // Aba interna do componente: Feed Social vs Gerenciar Grupos vs Duelo 1-a-1
-  const [internalTab, setInternalTab] = useState<"feed" | "groups" | "duel">("feed");
+  const [internalTab, setInternalTab] = useState<"feed" | "groups" | "duel">(() =>
+    initialJoinCode ? "groups" : "feed"
+  );
 
   // Dados dos grupos e timeline com hidratação de cache imediata (0ms)
   const [groups, setGroups] = useState<GroupSummary[]>(() => cachedGroups || []);
@@ -263,28 +266,23 @@ export default function GroupsTab({
   const [timeline, setTimeline] = useState<TimelinePost[]>(() => cachedTimeline || []);
   const [timelineLoading, setTimelineLoading] = useState<boolean>(() => !cachedTimeline);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
-
-  // Auto-selecionar o grupo se o usuário fizer parte de apenas 1 grupo
-  useEffect(() => {
-    if (groups.length === 1 && selectedGroupId === "all") {
-      setSelectedGroupId(groups[0].id);
-    }
-  }, [groups, selectedGroupId]);
+  const effectiveSelectedGroupId =
+    selectedGroupId === "all" && groups.length === 1 ? groups[0].id : selectedGroupId;
 
   // Grupo ativo atualmente selecionado (ou o único grupo do usuário)
   const activeGroup = useMemo(() => {
-    if (selectedGroupId !== "all") {
-      return groups.find((g) => g.id === selectedGroupId) || null;
+    if (effectiveSelectedGroupId !== "all") {
+      return groups.find((g) => g.id === effectiveSelectedGroupId) || null;
     }
     if (groups.length === 1) {
       return groups[0];
     }
     return null;
-  }, [groups, selectedGroupId]);
+  }, [effectiveSelectedGroupId, groups]);
 
   // Modais de Criação e Entrada
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(Boolean(initialJoinCode));
   const [showMembersModal, setShowMembersModal] = useState(false);
 
   // Modais de Confirmação com Diálogo
@@ -364,7 +362,7 @@ export default function GroupsTab({
   const [createError, setCreateError] = useState("");
 
   // Estados do formulário de entrada
-  const [joinCode, setJoinCode] = useState("");
+  const [joinCode, setJoinCode] = useState(() => initialJoinCode?.trim().toUpperCase() ?? "");
   const [joinSubmitting, setJoinSubmitting] = useState(false);
   const [joinError, setJoinError] = useState("");
 
@@ -383,17 +381,17 @@ export default function GroupsTab({
   // Exibe exclusivamente check-ins com foto no Mural, eliminando cards duplicados de texto vazios
   const displayedTimeline = useMemo(() => {
     let list = timeline;
-    if (selectedGroupId !== "all") {
+    if (effectiveSelectedGroupId !== "all") {
       list = timeline.filter((post: TimelinePost) =>
-        post.groups?.some((g) => g.id === selectedGroupId)
+        post.groups?.some((g) => g.id === effectiveSelectedGroupId)
       );
     }
     return list.filter((post: TimelinePost) => !!post.photoUrl && post.photoUrl.trim() !== "");
-  }, [timeline, selectedGroupId]);
+  }, [effectiveSelectedGroupId, timeline]);
 
   // Carregar grupos do usuário (revalidação suave em segundo plano)
   const fetchUserGroups = async (forceSpinner = false) => {
-    if (forceSpinner || !cachedGroups) {
+    if (forceSpinner) {
       setGroupsLoading(true);
     }
     try {
@@ -413,7 +411,7 @@ export default function GroupsTab({
 
   // Carregar timeline centralizada (revalidação suave em segundo plano)
   const fetchTimeline = async (forceSpinner = false) => {
-    if (forceSpinner || !cachedTimeline) {
+    if (forceSpinner) {
       setTimelineLoading(true);
     }
     try {
@@ -432,23 +430,17 @@ export default function GroupsTab({
   };
 
   useEffect(() => {
-    fetchUserGroups();
-    fetchTimeline();
+    const timerId = window.setTimeout(() => {
+      void fetchUserGroups();
+      void fetchTimeline();
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, []);
 
   // Mudar filtro de grupo (instantâneo via memória)
   const handleGroupFilterChange = (groupId: string) => {
     setSelectedGroupId(groupId);
   };
-
-  // Se receber código inicial via link compartilhado (ex: link do WhatsApp)
-  useEffect(() => {
-    if (initialJoinCode) {
-      setJoinCode(initialJoinCode.trim().toUpperCase());
-      setShowJoinModal(true);
-      setInternalTab("groups");
-    }
-  }, [initialJoinCode]);
 
   // Copiar apenas o código de convite
   const handleCopyInviteCode = (group: { id: string; code: string }) => {
@@ -874,7 +866,7 @@ export default function GroupsTab({
                             type="button"
                             onClick={() => handleSelectPill("all")}
                             className={`w-full text-left p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer min-h-[50px] ${
-                              selectedGroupId === "all"
+                              effectiveSelectedGroupId === "all"
                                 ? "bg-blue-50 text-[#2563EB] ring-2 ring-blue-500/20"
                                 : "hover:bg-slate-50 text-slate-700 bg-slate-50"
                             }`}
@@ -888,11 +880,11 @@ export default function GroupsTab({
                                 <div className="text-[11px] text-slate-500 font-normal">Mural geral unificado</div>
                               </div>
                             </div>
-                            {selectedGroupId === "all" && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
+                            {effectiveSelectedGroupId === "all" && <Check className="w-5 h-5 text-blue-600 shrink-0" />}
                           </button>
 
                           {groups.map((group) => {
-                            const isSelected = selectedGroupId === group.id;
+                            const isSelected = effectiveSelectedGroupId === group.id;
                             return (
                               <button
                                 key={group.id}
@@ -941,7 +933,7 @@ export default function GroupsTab({
                           type="button"
                           onClick={() => handleSelectPill("all")}
                           className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer min-h-[44px] ${
-                            selectedGroupId === "all"
+                            effectiveSelectedGroupId === "all"
                               ? "bg-blue-50 text-[#2563EB]"
                               : "hover:bg-slate-50 text-slate-700"
                           }`}
@@ -950,11 +942,11 @@ export default function GroupsTab({
                             <Users className="w-4 h-4 text-slate-400" />
                             <span>Todos os Grupos (Mural Geral)</span>
                           </div>
-                          {selectedGroupId === "all" && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                          {effectiveSelectedGroupId === "all" && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
                         </button>
 
                         {groups.map((group) => {
-                          const isSelected = selectedGroupId === group.id;
+                          const isSelected = effectiveSelectedGroupId === group.id;
                           return (
                             <button
                               key={group.id}
@@ -998,17 +990,17 @@ export default function GroupsTab({
                     type="button"
                     onClick={() => handleSelectPill("all")}
                     className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 cursor-pointer min-h-[38px] ${
-                      selectedGroupId === "all"
+                      effectiveSelectedGroupId === "all"
                         ? "bg-[#2563EB] text-white shadow-xs font-bold ring-2 ring-blue-500/20"
                         : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs"
                     }`}
                   >
-                    <Users className={`w-3.5 h-3.5 ${selectedGroupId === "all" ? "text-white" : "text-slate-400"}`} />
+                    <Users className={`w-3.5 h-3.5 ${effectiveSelectedGroupId === "all" ? "text-white" : "text-slate-400"}`} />
                     <span>Todos os Grupos</span>
                   </button>
 
                   {groups.map((group) => {
-                    const isSelected = selectedGroupId === group.id;
+                    const isSelected = effectiveSelectedGroupId === group.id;
                     return (
                       <button
                         key={group.id}
@@ -1333,7 +1325,7 @@ export default function GroupsTab({
                         onClick={() => onOpenZoomPhoto && onOpenZoomPhoto(post.photoUrl!)}
                         className="relative w-full aspect-[4/3] bg-slate-950 overflow-hidden cursor-pointer group"
                       >
-                        <img
+                        <Image fill unoptimized
                           src={post.photoUrl}
                           alt={`Check-in de ${post.student.name}`}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

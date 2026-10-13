@@ -195,7 +195,7 @@ Gere em português, use formatação Markdown elegante e badges de impacto visua
     }
 
     // 5. Fallback Inteligente (Modo Demo Offline) - Gera relatório simulado rico em Markdown
-    let analysis = `## 🤖 Relatório Copilot IA — ${student.user.name}
+    const analysis = `## 🤖 Relatório Copilot IA — ${student.user.name}
 
 > [!NOTE]
 > Modo demonstração ativo (API Key offline). As recomendações abaixo foram calculadas dinamicamente com base nas métricas reais salvas no perfil do aluno.

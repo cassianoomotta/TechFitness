@@ -1,7 +1,7 @@
 "use client";
 import BrandLogo from "@/components/BrandLogo";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -47,6 +47,31 @@ interface WorkoutExerciseInput {
   recommendedWeight: number | null;
   notes: string;
   customName?: string | null;
+}
+
+interface GeneratedWorkoutExercise {
+  exerciseId: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+  sets: number;
+  reps: string | number;
+  restSeconds: number;
+  method?: string | null;
+  recommendedRpe?: number | null;
+  recommendedWeight?: number | null;
+  notes?: string | null;
+}
+
+interface GeneratedWorkoutResponse {
+  workoutPlan?: {
+    name?: string;
+    division?: string;
+    description?: string;
+    weekDays?: string | string[];
+    exercises: GeneratedWorkoutExercise[];
+  };
+  error?: string;
 }
 
 interface SavedPlanExercise {
@@ -143,7 +168,7 @@ export default function NewPlanPage() {
   const [generatingAi, setGeneratingAi] = useState(false);
 
   // Carregar dados do aluno
-  const fetchStudentDetails = async () => {
+  const fetchStudentDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/trainer/students/${studentId}?t=${Date.now()}`, {
         cache: "no-store",
@@ -161,13 +186,16 @@ export default function NewPlanPage() {
     } finally {
       setStudentLoading(false);
     }
-  };
+  }, [router, studentId]);
 
   useEffect(() => {
     if (studentId) {
-      fetchStudentDetails();
+      const timeoutId = window.setTimeout(() => {
+        void fetchStudentDetails();
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
     }
-  }, [studentId, router]);
+  }, [fetchStudentDetails, studentId]);
 
   // Carregar biblioteca de exercícios
   useEffect(() => {
@@ -250,10 +278,10 @@ export default function NewPlanPage() {
   };
 
   // Atualizar parâmetro de um exercício adicionado
-  const handleUpdateExerciseParam = (
+  const handleUpdateExerciseParam = <Key extends keyof WorkoutExerciseInput>(
     index: number,
-    key: keyof WorkoutExerciseInput,
-    value: any
+    key: Key,
+    value: WorkoutExerciseInput[Key]
   ) => {
     const updated = [...selectedExercises];
     updated[index] = {
@@ -409,7 +437,7 @@ export default function NewPlanPage() {
         }),
       });
 
-      const data = await response.json();
+      const data: { error?: string } = await response.json();
 
       if (!response.ok) {
         setError(data.error || `Ocorreu um erro ao ${editingPlanId ? "atualizar" : "salvar"} o treino.`);
@@ -448,7 +476,7 @@ export default function NewPlanPage() {
         }),
       });
 
-      const data = await response.json();
+      const data: GeneratedWorkoutResponse = await response.json();
 
       if (!response.ok) {
         setError(data.error || "Erro ao gerar treino por IA.");
@@ -468,7 +496,7 @@ export default function NewPlanPage() {
           setWeekDays(days.split(",").map((d: string) => d.trim()));
         }
         
-        const mappedExercises = exercises.map((ex: any) => ({
+        const mappedExercises = exercises.map((ex) => ({
           exerciseId: ex.exerciseId,
           name: ex.name,
           muscleGroup: ex.muscleGroup,

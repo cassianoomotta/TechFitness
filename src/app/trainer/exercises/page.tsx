@@ -1,7 +1,8 @@
 "use client";
+import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -123,7 +124,7 @@ export default function ExercisesPage() {
     }
   };
 
-  const fetchExercises = async () => {
+  const fetchExercises = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.append("search", searchQuery);
@@ -140,11 +141,14 @@ export default function ExercisesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedMuscle, selectedEquipment]);
 
   useEffect(() => {
-    fetchExercises();
-  }, [searchQuery, selectedMuscle, selectedEquipment]);
+    const timeoutId = window.setTimeout(() => {
+      void fetchExercises();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchExercises]);
 
   const handleOpenCreateModal = () => {
     setEditingExercise(null);
@@ -615,7 +619,7 @@ export default function ExercisesPage() {
               {(() => {
                 if (activeVideoUrl.endsWith('.gif')) {
                   return (
-                    <img src={getMediaUrl(activeVideoUrl)} alt="Execução" className="w-full h-full object-contain bg-black" />
+                    <Image fill unoptimized src={getMediaUrl(activeVideoUrl)} alt="Execução" className="w-full h-full object-contain bg-black" />
                   );
                 }
                 const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);

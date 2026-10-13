@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import {
   ALL_ACHIEVEMENTS,
@@ -14,6 +15,7 @@ import {
 } from "@/lib/gamification";
 
 const workoutSessionSchema = z.object({
+  completionKey: z.string().uuid().optional(),
   durationMs: z.number().int().min(0, "A duração não pode ser negativa"),
   satisfaction: z.number().int().min(1).max(10, "Esforço geral deve ser entre 1 e 10"),
   photoUrl: z.string().min(1, "A foto comprobatória do treino é obrigatória"),
@@ -29,6 +31,58 @@ const workoutSessionSchema = z.object({
     })
   ).min(1, "O treino deve conter pelo menos 1 série executada"),
 });
+
+// GET: Confirmar se uma tentativa de conclusão já foi persistida
+export async function GET(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "STUDENT") {
+      return NextResponse.json(
+        { error: "Não autorizado. Apenas alunos podem consultar sessões de treino." },
+        { status: 401 }
+      );
+    }
+
+    const completionKey = new URL(request.url).searchParams.get("completionKey");
+    const keyValidation = z.string().uuid().safeParse(completionKey);
+
+    if (!keyValidation.success) {
+      return NextResponse.json(
+        { error: "Chave de conclusão inválida." },
+        { status: 400 }
+      );
+    }
+
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    if (!studentProfile) {
+      return NextResponse.json(
+        { error: "Perfil de aluno não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    const savedSession = await prisma.workoutSession.findFirst({
+      where: {
+        studentId: studentProfile.id,
+        completionKey: keyValidation.data,
+      },
+      select: { id: true },
+    });
+
+    return NextResponse.json({ found: Boolean(savedSession) });
+  } catch (error) {
+    console.error("ERRO AO CONSULTAR CONCLUSÃO DE TREINO:", error);
+    return NextResponse.json(
+      { error: "Não foi possível confirmar a conclusão do treino." },
+      { status: 500 }
+    );
+  }
+}
 
 // POST: Registrar a conclusão de uma sessão de treino pelo aluno
 export async function POST(request: Request) {
@@ -64,7 +118,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const { durationMs, satisfaction, photoUrl, logs, targetGroupIds } = validation.data;
+    const { completionKey, durationMs, satisfaction, photoUrl, logs, targetGroupIds } = validation.data;
+
+    if (completionKey) {
+      const existingSession = await prisma.workoutSession.findFirst({
+        where: {
+          studentId: studentProfile.id,
+          completionKey,
+        },
+        select: { id: true },
+      });
+
+      if (existingSession) {
+        return NextResponse.json(
+          { session: existingSession, replayed: true },
+          { status: 200 }
+        );
+      }
+    }
 
     const exerciseIds = Array.from(new Set(logs.map((l: { exerciseId: string }) => l.exerciseId)));
 
@@ -163,89 +234,132 @@ export async function POST(request: Request) {
     const tonnageComparison = getTonnageComparison(sessionVolumeKg);
 
     // Salvar no banco via transação atômica
-    const result = await prisma.$transaction(async (tx) => {
-      const workoutSession = await tx.workoutSession.create({
-        data: {
+    let result: Awaited<ReturnType<typeof prisma.workoutSession.create>>;
+    try {
+      result = await prisma.$transaction(async (tx) => {
+        const workoutSession = await tx.workoutSession.create({
+          data: {
+            studentId: studentProfile.id,
+            durationMs,
+            satisfaction,
+            completed: true,
+            photoUrl,
+            completionKey,
+            targetGroupIds: targetGroupIds && targetGroupIds.length > 0 ? targetGroupIds : ["ALL"],
+          },
+        });
+
+        // Mapear logs
+        const logsPayload = logs.map((log: { exerciseId: string; setNumber: number; weightUsed: number; repsPerformed: number; rpe?: number | null; failed: boolean }) => ({
           studentId: studentProfile.id,
-          durationMs,
-          satisfaction,
-          completed: true,
-          photoUrl,
-          targetGroupIds: targetGroupIds && targetGroupIds.length > 0 ? targetGroupIds : ["ALL"],
-        },
+          sessionId: workoutSession.id,
+          exerciseId: log.exerciseId,
+          setNumber: log.setNumber,
+          weightUsed: log.weightUsed,
+          repsPerformed: log.repsPerformed,
+          rpe: log.rpe || null,
+          failed: log.failed,
+        }));
+
+        await tx.exerciseLog.createMany({
+          data: logsPayload,
+        });
+
+        return workoutSession;
       });
+    } catch (error) {
+      if (
+        completionKey &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const existingSession = await prisma.workoutSession.findFirst({
+          where: {
+            studentId: studentProfile.id,
+            completionKey,
+          },
+          select: { id: true },
+        });
 
-      // Mapear logs
-      const logsPayload = logs.map((log: { exerciseId: string; setNumber: number; weightUsed: number; repsPerformed: number; rpe?: number | null; failed: boolean }) => ({
-        studentId: studentProfile.id,
-        sessionId: workoutSession.id,
-        exerciseId: log.exerciseId,
-        setNumber: log.setNumber,
-        weightUsed: log.weightUsed,
-        repsPerformed: log.repsPerformed,
-        rpe: log.rpe || null,
-        failed: log.failed,
-      }));
+        if (existingSession) {
+          return NextResponse.json(
+            { session: existingSession, replayed: true },
+            { status: 200 }
+          );
+        }
 
-      await tx.exerciseLog.createMany({
-        data: logsPayload,
-      });
+        return NextResponse.json(
+          { error: "Não foi possível confirmar esta finalização." },
+          { status: 409 }
+        );
+      }
 
-      return workoutSession;
-    });
+      throw error;
+    }
 
     // --- CÁLCULO DE CONQUISTAS E XP DEPOIS DE SALVAR (OTIMIZADO EM MEMÓRIA - ZERO QUERIES EXTRAS) ---
-    const totalSessionsAfter = totalSessionsBefore + 1;
+    try {
+      const totalSessionsAfter = totalSessionsBefore + 1;
 
-    // Identifica se algum exercício do treino é novo para o aluno (expandindo a contagem de PRs)
-    const existingExerciseIds = new Set<string>(prAggregationsBefore.map((p: { exerciseId: string }) => p.exerciseId));
-    const newDistinctExercisesLogged = new Set<string>(
-      logs.map((l: { exerciseId: string }) => l.exerciseId).filter((id: string) => !existingExerciseIds.has(id))
-    );
-    const prsCountAfter = prsCountBefore + newDistinctExercisesLogged.size;
+      // Identifica se algum exercício do treino é novo para o aluno (expandindo a contagem de PRs)
+      const existingExerciseIds = new Set<string>(prAggregationsBefore.map((p: { exerciseId: string }) => p.exerciseId));
+      const newDistinctExercisesLogged = new Set<string>(
+        logs.map((l: { exerciseId: string }) => l.exerciseId).filter((id: string) => !existingExerciseIds.has(id))
+      );
+      const prsCountAfter = prsCountBefore + newDistinctExercisesLogged.size;
 
-    // Atualiza a lista de sessões em memória com a sessão recém-criada para o cálculo do Streak
-    const sessionLogsSimplified = logs.map((l: { exerciseId: string }) => ({ exerciseId: l.exerciseId }));
-    const sessionsAfter = [
-      { date: result.date, logs: sessionLogsSimplified },
-      ...sessionsBefore,
-    ];
-    const streakAfter = calculateStreak(sessionsAfter, studentPlans);
+      // Atualiza a lista de sessões em memória com a sessão recém-criada para o cálculo do Streak
+      const sessionLogsSimplified = logs.map((l: { exerciseId: string }) => ({ exerciseId: l.exerciseId }));
+      const sessionsAfter = [
+        { date: result.date, logs: sessionLogsSimplified },
+        ...sessionsBefore,
+      ];
+      const streakAfter = calculateStreak(sessionsAfter, studentPlans);
 
-    const unlockedAfter = getUnlockedAchievements(
-      totalSessionsAfter,
-      prsCountAfter,
-      streakAfter,
-      measurementsCount
-    );
+      const unlockedAfter = getUnlockedAchievements(
+        totalSessionsAfter,
+        prsCountAfter,
+        streakAfter,
+        measurementsCount
+      );
 
-    // Conquistas recém-desbloqueadas
-    const newlyUnlockedIds = unlockedAfter.filter((id: string) => !unlockedBefore.includes(id));
-    const newlyUnlocked = ALL_ACHIEVEMENTS.filter((ach) => newlyUnlockedIds.includes(ach.id));
+      // Conquistas recém-desbloqueadas
+      const newlyUnlockedIds = unlockedAfter.filter((id: string) => !unlockedBefore.includes(id));
+      const newlyUnlocked = ALL_ACHIEVEMENTS.filter((ach) => newlyUnlockedIds.includes(ach.id));
 
-    // Cálculo do XP ganho
-    const achievementsXp = newlyUnlocked.reduce((acc: number, ach) => acc + ach.xpReward, 0);
-    const prsXp = prsBeaten.length * 150;
-    const sessionXp = 300;
-    const totalXpEarned = sessionXp + prsXp + achievementsXp;
+      // Cálculo do XP ganho
+      const achievementsXp = newlyUnlocked.reduce((acc: number, ach) => acc + ach.xpReward, 0);
+      const prsXp = prsBeaten.length * 150;
+      const sessionXp = 300;
+      const totalXpEarned = sessionXp + prsXp + achievementsXp;
 
-    const { totalXp, level } = calculateXp(totalSessionsAfter, prsCountAfter, measurementsCount);
-    const levelTitle = getLevelTitle(level);
+      const { totalXp, level } = calculateXp(totalSessionsAfter, prsCountAfter, measurementsCount);
+      const levelTitle = getLevelTitle(level);
 
-    return NextResponse.json(
-      {
-        session: result,
-        volumeKg: sessionVolumeKg,
-        tonnageComparison,
-        prsBeaten,
-        xpEarned: totalXpEarned,
-        totalXp,
-        level,
-        levelTitle,
-        newAchievements: newlyUnlocked,
-      },
-      { status: 201 }
-    );
+      return NextResponse.json(
+        {
+          session: result,
+          volumeKg: sessionVolumeKg,
+          tonnageComparison,
+          prsBeaten,
+          xpEarned: totalXpEarned,
+          totalXp,
+          level,
+          levelTitle,
+          newAchievements: newlyUnlocked,
+        },
+        { status: 201 }
+      );
+    } catch (calculationError) {
+      console.error("ERRO AO CALCULAR RECOMPENSAS DA SESSÃO JÁ SALVA:", calculationError);
+      return NextResponse.json(
+        {
+          session: result,
+          confirmationOnly: true,
+        },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     console.error("ERRO AO SALVAR SESSÃO DE TREINO:", error);
     return NextResponse.json(

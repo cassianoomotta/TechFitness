@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import {
   Edit,
   Eye,
-  Play,
   Sparkles,
   Archive,
   RotateCcw,
@@ -11,7 +10,6 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-  AlertCircle,
   X,
   Check,
   SlidersHorizontal,
@@ -23,6 +21,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useMounted } from "@/hooks/useMounted";
 
 interface Exercise {
   id: string;
@@ -81,7 +80,7 @@ export default function WorkoutTab({
   onBulkAction,
   hasTrainer,
 }: WorkoutTabProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [isArchivedSectionOpen, setIsArchivedSectionOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<WorkoutPlan | null>(null);
   const [planToRequestDeletion, setPlanToRequestDeletion] = useState<WorkoutPlan | null>(null);
@@ -100,7 +99,6 @@ export default function WorkoutTab({
   const swapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     return () => {
       if (swapTimeoutRef.current) clearTimeout(swapTimeoutRef.current);
     };

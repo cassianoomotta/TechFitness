@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ import {
   GripHorizontal,
 } from "lucide-react";
 import WorkoutVictoryModal from "@/components/WorkoutVictoryModal";
-import type { TonnageComparison } from "@/lib/gamification";
+import type { AchievementDef, TonnageComparison } from "@/lib/gamification";
 import {
   scheduleRestNotification,
   cancelRestNotification,
@@ -68,6 +69,15 @@ interface SetState {
   completed: boolean;
 }
 
+interface WorkoutSessionLogPayload {
+  exerciseId: string;
+  setNumber: number;
+  weightUsed: number;
+  repsPerformed: number;
+  rpe: number | null;
+  failed: boolean;
+}
+
 interface UserGroupOption {
   id: string;
   name: string;
@@ -94,6 +104,16 @@ interface VictoryDataState {
   }>;
 }
 
+function safeRemoveStorageItem(storage: Storage, key: string): void {
+  try {
+    storage.removeItem(key);
+  } catch {}
+}
+
+function getCurrentTimestamp(): number {
+  return Date.now();
+}
+
 export default function WorkoutSessionPlayer() {
   const params = useParams();
   const router = useRouter();
@@ -101,17 +121,43 @@ export default function WorkoutSessionPlayer() {
 
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReconcilingCompletion, setIsReconcilingCompletion] = useState(true);
+  const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
+  const [workoutPhoto, setWorkoutPhoto] = useState<string | null>(null);
+  const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
 
   // Tempo de Treino Geral
   const [totalSeconds, setTotalSeconds] = useState(0);
 
   // Chaves de armazenamento persistente para resiliência a reloads no mobile
   const STORAGE_KEY_SETS = `workout_sets_${planId}`;
+  const STORAGE_KEY_START = `workout_start_time_${planId}`;
   const STORAGE_KEY_REST = `workout_rest_end_${planId}`;
   const STORAGE_KEY_PLAN_CACHE = `workout_plan_cache_${planId}`;
   const STORAGE_KEY_FINISH_MODAL = `workout_finish_modal_${planId}`;
   const STORAGE_KEY_PHOTO = `workout_finish_photo_${planId}`;
   const STORAGE_KEY_SATISFACTION = `workout_finish_satisfaction_${planId}`;
+  const STORAGE_KEY_COMPLETION = `workout_completion_key_${planId}`;
+
+  const clearLocalWorkoutState = useCallback(() => {
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_START);
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_SETS);
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_REST);
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_PLAN_CACHE);
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_FINISH_MODAL);
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_SATISFACTION);
+    safeRemoveStorageItem(localStorage, STORAGE_KEY_COMPLETION);
+    safeRemoveStorageItem(sessionStorage, STORAGE_KEY_PHOTO);
+  }, [
+    STORAGE_KEY_COMPLETION,
+    STORAGE_KEY_FINISH_MODAL,
+    STORAGE_KEY_PLAN_CACHE,
+    STORAGE_KEY_PHOTO,
+    STORAGE_KEY_REST,
+    STORAGE_KEY_SATISFACTION,
+    STORAGE_KEY_SETS,
+    STORAGE_KEY_START,
+  ]);
 
   // Estado das séries: Record<exerciseIndex, SetState[]>
   const [setsData, setSetsData] = useState<Record<number, SetState[]>>({});
@@ -122,7 +168,6 @@ export default function WorkoutSessionPlayer() {
   const [initialRestTime, setInitialRestTime] = useState(0);
   const [isResting, setIsResting] = useState(false);
   const [restEndTime, setRestEndTime] = useState<number | null>(null);
-  const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Mini Janela Flutuante nativa (Picture-in-Picture estilo placar esportivo sobre outros apps)
   const {
@@ -143,9 +188,6 @@ export default function WorkoutSessionPlayer() {
   const playWhistleImmediatelyRef = useRef<() => void>(() => {});
 
   // Web Audio API para agendamento de hardware do apito (garante som misturado em segundo plano no iOS)
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const whistleBufferRef = useRef<AudioBuffer | null>(null);
-  const whistleArrayBufferRef = useRef<ArrayBuffer | null>(null);
   const scheduledSourcesRef = useRef<{ stop: () => void }[]>([]);
 
   // Limpar e desmontar sons de apito
@@ -172,11 +214,6 @@ export default function WorkoutSessionPlayer() {
       if (whistleAudioRef.current) {
         whistleAudioRef.current = null;
       }
-      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
-        try {
-          audioCtxRef.current.close().catch(() => {});
-        } catch {}
-      }
     };
   }, [clearLockScreenMediaSession]);
 
@@ -189,20 +226,23 @@ export default function WorkoutSessionPlayer() {
 
   // Restaurar estado do modal de finalização caso o navegador tenha recarregado (ex: app de câmera no Android)
   useEffect(() => {
-    try {
-      const savedModal = localStorage.getItem(STORAGE_KEY_FINISH_MODAL);
-      if (savedModal === "true") {
-        setIsFinishModalOpen(true);
-      }
-      const savedPhoto = sessionStorage.getItem(STORAGE_KEY_PHOTO);
-      if (savedPhoto) {
-        setWorkoutPhoto(savedPhoto);
-      }
-      const savedSat = localStorage.getItem(STORAGE_KEY_SATISFACTION);
-      if (savedSat) {
-        setSatisfaction(Number(savedSat) || 6);
-      }
-    } catch {}
+    const timerId = window.setTimeout(() => {
+      try {
+        const savedModal = localStorage.getItem(STORAGE_KEY_FINISH_MODAL);
+        if (savedModal === "true") {
+          setIsFinishModalOpen(true);
+        }
+        const savedPhoto = sessionStorage.getItem(STORAGE_KEY_PHOTO);
+        if (savedPhoto) {
+          setWorkoutPhoto(savedPhoto);
+        }
+        const savedSat = localStorage.getItem(STORAGE_KEY_SATISFACTION);
+        if (savedSat) {
+          setSatisfaction(Number(savedSat) || 6);
+        }
+      } catch {}
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, [STORAGE_KEY_FINISH_MODAL, STORAGE_KEY_PHOTO, STORAGE_KEY_SATISFACTION]);
 
   // Posição flutuante móvel do cronômetro de descanso (Draggable)
@@ -219,22 +259,25 @@ export default function WorkoutSessionPlayer() {
 
   // Restaurar posição salva do cronômetro do localStorage
   useEffect(() => {
-    try {
-      const savedPos = localStorage.getItem("workout_timer_pos");
-      if (savedPos) {
-        const parsed = JSON.parse(savedPos);
-        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
-          const minX = 8;
-          const maxX = Math.max(minX, window.innerWidth - 84 - 8);
-          const minY = 56;
-          const maxY = Math.max(minY, window.innerHeight - 118 - 16);
-          setTimerPos({
-            x: Math.min(Math.max(parsed.x, minX), maxX),
-            y: Math.min(Math.max(parsed.y, minY), maxY),
-          });
+    const timerId = window.setTimeout(() => {
+      try {
+        const savedPos = localStorage.getItem("workout_timer_pos");
+        if (savedPos) {
+          const parsed = JSON.parse(savedPos);
+          if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
+            const minX = 8;
+            const maxX = Math.max(minX, window.innerWidth - 84 - 8);
+            const minY = 56;
+            const maxY = Math.max(minY, window.innerHeight - 118 - 16);
+            setTimerPos({
+              x: Math.min(Math.max(parsed.x, minX), maxX),
+              y: Math.min(Math.max(parsed.y, minY), maxY),
+            });
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, []);
 
   // Persistir posição quando alterada
@@ -330,48 +373,54 @@ export default function WorkoutSessionPlayer() {
   // Restaurar plano e sets salvos imediatamente do cache local (Cold Reload instantâneo 0ms)
   useEffect(() => {
     if (!planId) return;
-    try {
-      const cachedPlanRaw = localStorage.getItem(STORAGE_KEY_PLAN_CACHE);
-      if (cachedPlanRaw) {
-        const cachedPlan = JSON.parse(cachedPlanRaw) as WorkoutPlan;
-        if (cachedPlan && Array.isArray(cachedPlan.exercises) && cachedPlan.exercises.length > 0) {
-          setPlan(cachedPlan);
-          setLoading(false);
+    const timerId = window.setTimeout(() => {
+      try {
+        const cachedPlanRaw = localStorage.getItem(STORAGE_KEY_PLAN_CACHE);
+        if (cachedPlanRaw) {
+          const cachedPlan = JSON.parse(cachedPlanRaw) as WorkoutPlan;
+          if (cachedPlan && Array.isArray(cachedPlan.exercises) && cachedPlan.exercises.length > 0) {
+            setPlan(cachedPlan);
+            setLoading(false);
+          }
         }
-      }
 
-      const savedSetsRaw = localStorage.getItem(STORAGE_KEY_SETS);
-      if (savedSetsRaw) {
-        const parsedSets = JSON.parse(savedSetsRaw) as Record<number, SetState[]>;
-        if (parsedSets && typeof parsedSets === "object") {
-          setSetsData(parsedSets);
-          setsDataRef.current = parsedSets;
+        const savedSetsRaw = localStorage.getItem(STORAGE_KEY_SETS);
+        if (savedSetsRaw) {
+          const parsedSets = JSON.parse(savedSetsRaw) as Record<number, SetState[]>;
+          if (parsedSets && typeof parsedSets === "object") {
+            setSetsData(parsedSets);
+            setsDataRef.current = parsedSets;
+          }
         }
+      } catch (e) {
+        console.warn("Erro ao restaurar cache inicial da sessão:", e);
       }
-    } catch (e) {
-      console.warn("Erro ao restaurar cache inicial da sessão:", e);
-    }
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, [planId, STORAGE_KEY_PLAN_CACHE, STORAGE_KEY_SETS]);
 
   // Restaurar estado do rest timer do localStorage ao montar
   useEffect(() => {
-    try {
-      const savedRestEnd = localStorage.getItem(STORAGE_KEY_REST);
-      if (savedRestEnd) {
-        const endTime = Number(savedRestEnd);
-        const remaining = Math.max(0, Math.round((endTime - Date.now()) / 1000));
-        if (remaining > 0) {
-          setRestEndTime(endTime);
-          setInitialRestTime(remaining);
-          setRestTime(remaining);
-          setIsResting(true);
-        } else {
-          localStorage.removeItem(STORAGE_KEY_REST);
+    const timerId = window.setTimeout(() => {
+      try {
+        const savedRestEnd = localStorage.getItem(STORAGE_KEY_REST);
+        if (savedRestEnd) {
+          const endTime = Number(savedRestEnd);
+          const remaining = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+          if (remaining > 0) {
+            setRestEndTime(endTime);
+            setInitialRestTime(remaining);
+            setRestTime(remaining);
+            setIsResting(true);
+          } else {
+            localStorage.removeItem(STORAGE_KEY_REST);
+          }
         }
+      } catch {
+        // Ignorar erros de localStorage
       }
-    } catch {
-      // Ignorar erros de localStorage
-    }
+    }, 0);
+    return () => window.clearTimeout(timerId);
   }, [STORAGE_KEY_REST]);
 
   // Re-sincronizar estado e persistir imediatamente ao sair/voltar (Android/iOS)
@@ -427,7 +476,7 @@ export default function WorkoutSessionPlayer() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);
     };
-  }, [STORAGE_KEY_REST, STORAGE_KEY_SETS]);
+  }, [STORAGE_KEY_REST, STORAGE_KEY_SETS, clearLockScreenMediaSession, isResting]);
 
   // Estado para renomear exercício
   const [renamingExercise, setRenamingExercise] = useState<Exercise | null>(null);
@@ -505,12 +554,9 @@ export default function WorkoutSessionPlayer() {
   };
 
   // Modal de Finalização e Comprovação de Foto
-  const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
-  const [workoutPhoto, setWorkoutPhoto] = useState<string | null>(null);
-  const [satisfaction, setSatisfaction] = useState(6); // RPE padrão 6 (Intensa)
   const [finishLoading, setFinishLoading] = useState(false);
   const [finishError, setFinishError] = useState("");
-  const [unlockedAchievements, setUnlockedAchievements] = useState<any[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<AchievementDef[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
 
   // Abertura e fechamento resiliente do modal de conclusão
@@ -519,14 +565,14 @@ export default function WorkoutSessionPlayer() {
     try {
       localStorage.setItem(STORAGE_KEY_FINISH_MODAL, "true");
     } catch {}
-  }, [STORAGE_KEY_FINISH_MODAL]);
+  }, [STORAGE_KEY_FINISH_MODAL, setIsFinishModalOpen]);
 
   const handleCloseFinishModal = useCallback(() => {
     setIsFinishModalOpen(false);
     try {
       localStorage.removeItem(STORAGE_KEY_FINISH_MODAL);
     } catch {}
-  }, [STORAGE_KEY_FINISH_MODAL]);
+  }, [STORAGE_KEY_FINISH_MODAL, setIsFinishModalOpen]);
 
   const handleSetSatisfaction = (val: number) => {
     setSatisfaction(val);
@@ -549,15 +595,7 @@ export default function WorkoutSessionPlayer() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const handleCancelWorkout = () => {
-    try {
-      localStorage.removeItem(`workout_start_time_${planId}`);
-      localStorage.removeItem(STORAGE_KEY_SETS);
-      localStorage.removeItem(STORAGE_KEY_REST);
-      localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
-      localStorage.removeItem(STORAGE_KEY_FINISH_MODAL);
-      localStorage.removeItem(STORAGE_KEY_SATISFACTION);
-      sessionStorage.removeItem(STORAGE_KEY_PHOTO);
-    } catch {}
+    clearLocalWorkoutState();
     router.push("/student/dashboard");
   };
 
@@ -633,24 +671,104 @@ export default function WorkoutSessionPlayer() {
 
   // Cronômetro Geral do Treino (Timestamp-based)
   useEffect(() => {
-    let startTime = localStorage.getItem(`workout_start_time_${planId}`);
-    if (!startTime || startTime === "undefined" || startTime === "null") {
-      startTime = String(Date.now());
-      localStorage.setItem(`workout_start_time_${planId}`, startTime);
-    }
-    
-    const startTimestamp = Number(startTime) || Date.now();
+    let isActive = true;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let completionController: AbortController | null = null;
 
-    const updateTimer = () => {
-      const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
-      setTotalSeconds(elapsed >= 0 ? elapsed : 0);
+    const startTimer = () => {
+      if (!isActive) return;
+
+      let startTime: string | null = null;
+      try {
+        startTime = localStorage.getItem(STORAGE_KEY_START);
+        if (!startTime || startTime === "undefined" || startTime === "null") {
+          startTime = String(Date.now());
+          localStorage.setItem(STORAGE_KEY_START, startTime);
+        }
+      } catch {
+        startTime = String(Date.now());
+      }
+
+      let startTimestamp = Number(startTime) || Date.now();
+      if (Date.now() - startTimestamp > 86400000) {
+        // A sessão enviada também limita a duração a 24 horas; não contar dias de inatividade.
+        startTimestamp = Date.now();
+        try {
+          localStorage.setItem(STORAGE_KEY_START, String(startTimestamp));
+        } catch {}
+      }
+      const updateTimer = () => {
+        const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+        setTotalSeconds(elapsed >= 0 ? elapsed : 0);
+      };
+
+      updateTimer();
+      timer = setInterval(updateTimer, 1000);
+      setIsReconcilingCompletion(false);
     };
 
-    updateTimer(); // executado imediatamente
+    const reconcileAndStartTimer = async () => {
+      let confirmedSaved = false;
 
-    const timer = setInterval(updateTimer, 1000);
-    return () => clearInterval(timer);
-  }, [planId]);
+      try {
+        const completionKey = localStorage.getItem(STORAGE_KEY_COMPLETION);
+        if (completionKey) {
+          const controller = new AbortController();
+          completionController = controller;
+          const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+          try {
+            const response = await fetch(
+              `/api/student/workout-sessions?completionKey=${encodeURIComponent(completionKey)}`,
+              { cache: "no-store", signal: controller.signal }
+            );
+            if (!isActive) return;
+
+            if (response.ok) {
+              const status: { found: boolean } = await response.json();
+              if (!isActive) return;
+              if (status.found) {
+                confirmedSaved = true;
+                clearLocalWorkoutState();
+                router.replace("/student/dashboard");
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Não foi possível reconciliar a conclusão do treino:", error);
+          } finally {
+            window.clearTimeout(timeoutId);
+            if (completionController === controller) {
+              completionController = null;
+            }
+          }
+        }
+
+        startTimer();
+      } catch (error) {
+        console.error("Não foi possível restaurar o cronômetro do treino:", error);
+        startTimer();
+      } finally {
+        if (isActive && !confirmedSaved) {
+          setIsReconcilingCompletion(false);
+        }
+      }
+    };
+
+    void reconcileAndStartTimer();
+
+    return () => {
+      isActive = false;
+      completionController?.abort();
+      if (timer) clearInterval(timer);
+    };
+  }, [
+    STORAGE_KEY_COMPLETION,
+    STORAGE_KEY_START,
+    clearLocalWorkoutState,
+    planId,
+    router,
+  ]);
 
   // Buscar grupos do aluno logado
   useEffect(() => {
@@ -729,11 +847,11 @@ export default function WorkoutSessionPlayer() {
         } catch {}
 
         // Tentar obter dados salvos do localStorage
-        let savedSets: Record<number, SetState[]> = {};
+        let savedSets: Record<string, SetState[]> = {};
         try {
           const rawSets = localStorage.getItem(STORAGE_KEY_SETS);
           if (rawSets) {
-            savedSets = JSON.parse(rawSets) as Record<number, SetState[]>;
+            savedSets = JSON.parse(rawSets) as Record<string, SetState[]>;
           }
         } catch {}
 
@@ -741,7 +859,7 @@ export default function WorkoutSessionPlayer() {
         // NUNCA descartar o progresso existente com validações do tipo "all-or-nothing".
         const mergedSets: Record<number, SetState[]> = {};
         data.exercises.forEach((ex: Exercise, exIndex: number) => {
-          const savedForEx = savedSets[exIndex] || (savedSets as any)[String(exIndex)];
+          const savedForEx = savedSets[String(exIndex)];
           mergedSets[exIndex] = Array.from({ length: ex.sets }, (_, setIndex) => {
             const existingSet = savedForEx?.[setIndex];
             if (existingSet) {
@@ -787,7 +905,6 @@ export default function WorkoutSessionPlayer() {
   }, []);
 
   // Funções de áudio silenciadas a pedido do usuário (apenas vibração e notificação ativas)
-  const scheduleWhistleSequence = useCallback((_targetTime: number) => {}, []);
   const playWhistleImmediately = useCallback(() => {}, []);
 
   useEffect(() => {
@@ -860,7 +977,7 @@ export default function WorkoutSessionPlayer() {
 
   const startRestTimer = (seconds?: number | null) => {
     const validSeconds = seconds && Number(seconds) > 0 ? Number(seconds) : 60;
-    const endTime = Date.now() + validSeconds * 1000;
+    const endTime = getCurrentTimestamp() + validSeconds * 1000;
     hasPlayedAlertRef.current = false;
     setInitialRestTime(validSeconds);
     setRestTime(validSeconds);
@@ -927,9 +1044,6 @@ export default function WorkoutSessionPlayer() {
     // Se marcou como completo, inicia o descanso do exercício imediatamente com desbloqueio síncrono
     if (nextCompleted) {
       hasPlayedAlertRef.current = false;
-      if (audioCtxRef.current && audioCtxRef.current.state !== "running") {
-        try { audioCtxRef.current.resume().catch(() => {}); } catch {}
-      }
       startRestTimer(restSeconds || 60);
 
       // Se todas as séries do treino foram concluídas, abrir automaticamente o modal de conclusão
@@ -993,7 +1107,7 @@ export default function WorkoutSessionPlayer() {
     setFinishLoading(true);
     setFinishError("");
 
-    const logsPayload: any[] = [];
+    const logsPayload: WorkoutSessionLogPayload[] = [];
 
     plan.exercises.forEach((ex, exIndex) => {
       const exerciseSets = setsData[exIndex] || [];
@@ -1037,10 +1151,17 @@ export default function WorkoutSessionPlayer() {
     }
 
     try {
+      let completionKey = localStorage.getItem(STORAGE_KEY_COMPLETION);
+      if (!completionKey) {
+        completionKey = window.crypto.randomUUID();
+        localStorage.setItem(STORAGE_KEY_COMPLETION, completionKey);
+      }
+
       const response = await fetch("/api/student/workout-sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          completionKey,
           durationMs: Math.min(Math.max(0, Math.floor(totalSeconds * 1000)), 86400000),
           satisfaction: Number(satisfaction),
           photoUrl: workoutPhoto,
@@ -1061,15 +1182,15 @@ export default function WorkoutSessionPlayer() {
         return;
       }
 
-      // Limpar dados de sessão local e registrar última ficha concluída
-      localStorage.removeItem(`workout_start_time_${planId}`);
-      localStorage.removeItem(STORAGE_KEY_SETS);
-      localStorage.removeItem(STORAGE_KEY_REST);
-      localStorage.removeItem(STORAGE_KEY_PLAN_CACHE);
-      localStorage.removeItem(STORAGE_KEY_FINISH_MODAL);
-      localStorage.removeItem(STORAGE_KEY_SATISFACTION);
+      if (data.replayed || data.confirmationOnly) {
+        clearLocalWorkoutState();
+        router.replace("/student/dashboard");
+        return;
+      }
+
+      // Limpar dados locais somente após confirmação da sessão salva
+      clearLocalWorkoutState();
       try {
-        sessionStorage.removeItem(STORAGE_KEY_PHOTO);
         localStorage.setItem("tf_last_completed_plan_id", planId);
 
         // Registrar no cache local da semana atual para feedback visual instantâneo
@@ -1106,13 +1227,13 @@ export default function WorkoutSessionPlayer() {
       handleCloseFinishModal();
       setIsVictoryModalOpen(true);
     } catch {
-      setFinishError("Erro de conexão ao salvar.");
+      setFinishError("Não foi possível confirmar o salvamento. Seus dados foram mantidos; tente finalizar novamente quando a conexão voltar.");
     } finally {
       setFinishLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading || isReconcilingCompletion) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in transition-colors">
         {/* Círculo visual que se completa (Progress Ring) */}
@@ -1215,12 +1336,6 @@ export default function WorkoutSessionPlayer() {
         {/* Main Exercises List (Mobile-First scroll com folga inferior para widgets) */}
         <main
           className="flex-1 px-4 py-5 space-y-5 overflow-y-auto pb-40"
-          onFocus={() => setIsInputFocused(true)}
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-              setIsInputFocused(false);
-            }
-          }}
         >
           {plan.exercises.map((exercise, exIndex) => (
             <div
@@ -1679,7 +1794,7 @@ export default function WorkoutSessionPlayer() {
 
                 {workoutPhoto ? (
                   <div className="relative w-full max-w-[260px] sm:max-w-[300px] mx-auto aspect-[3/4] rounded-2xl overflow-hidden border-2 border-emerald-500/40 bg-slate-950 shadow-md flex items-center justify-center">
-                    <img
+                    <Image fill unoptimized
                       src={workoutPhoto}
                       alt="Foto de Comprovação"
                       className="w-full h-full object-cover"
@@ -2094,7 +2209,7 @@ export default function WorkoutSessionPlayer() {
               {(() => {
                 if (activeVideoUrl.endsWith('.gif')) {
                   return (
-                    <img src={getMediaUrl(activeVideoUrl)} alt="Execução do exercício" className="w-full h-full object-contain bg-black" />
+                    <Image fill unoptimized src={getMediaUrl(activeVideoUrl)} alt="Execução do exercício" className="w-full h-full object-contain bg-black" />
                   );
                 }
                 const embedUrl = getYouTubeEmbedUrl(activeVideoUrl);

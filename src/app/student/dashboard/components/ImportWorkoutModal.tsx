@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -676,7 +677,7 @@ export default function ImportWorkoutModal({
                   >
                     {previewUrl ? (
                       <div className="relative w-full max-h-48 rounded-2xl overflow-hidden mb-3 border border-slate-200 shadow-sm">
-                        <img
+                        <Image fill unoptimized
                           src={previewUrl}
                           alt="Prévia da ficha"
                           className="w-full h-full object-contain bg-slate-950"
@@ -952,7 +953,7 @@ export default function ImportWorkoutModal({
                       {/* Miniatura do GIF se houver */}
                       <div className="w-12 h-12 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200 shadow-inner">
                         {ex.gifUrl ? (
-                          <img
+                          <Image fill unoptimized
                             src={`/api/media/${ex.gifUrl}`}
                             alt={ex.name}
                             className="w-full h-full object-cover"
@@ -1258,7 +1259,7 @@ export default function ImportWorkoutModal({
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-11 h-11 rounded-xl bg-slate-900 shrink-0 overflow-hidden flex items-center justify-center border border-slate-200">
                           {libEx.gifUrl ? (
-                            <img
+                            <Image fill unoptimized
                               src={`/api/media/${libEx.gifUrl}`}
                               alt={libEx.name}
                               className="w-full h-full object-cover"

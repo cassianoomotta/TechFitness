@@ -122,6 +122,7 @@ model WorkoutSession {
   satisfaction   Int // RPE geral do treino (1 a 10)
   completed      Boolean        @default(true)
   photoUrl       String? // Foto comprobatória do treino (Check-in)
+  completionKey  String?        @unique // Chave idempotente para recuperar finalizações após falha de rede
   targetGroupIds Json?          @default("[]") // Lista de IDs de grupos selecionados para postagem (vazio ou ["ALL"] = todos)
   logs           ExerciseLog[]
 

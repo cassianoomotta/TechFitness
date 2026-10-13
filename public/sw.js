@@ -20,10 +20,10 @@ self.addEventListener("activate", (event) => {
             notifications.forEach((notification) => {
               try {
                 notification.close();
-              } catch (_) {}
+              } catch {}
             });
           }
-        } catch (_) {}
+        } catch {}
       })(),
       caches.keys().then((keys) => {
         return Promise.all(

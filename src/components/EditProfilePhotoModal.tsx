@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import React, { useState, useRef } from "react";
 import { X, Camera, Upload, Loader2, Check, Trash2 } from "lucide-react";
@@ -175,7 +176,7 @@ export default function EditProfilePhotoModal({
         <div className="relative inline-block mx-auto mb-6">
           <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-[#2563EB]/20 shadow-lg mx-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800">
             {preview ? (
-              <img
+              <Image fill unoptimized
                 src={preview}
                 alt="Nova Foto"
                 className="w-full h-full object-cover rounded-full"

@@ -1,7 +1,8 @@
 "use client";
+import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -15,7 +16,6 @@ import {
   CheckCircle,
   Activity,
   X,
-  TrendingUp,
 } from "lucide-react";
 import BodyMetricsChart from "@/components/BodyMetricsChart";
 import DumbbellLoading from "@/components/DumbbellLoading";
@@ -77,7 +77,7 @@ export default function StudentMeasurementsPage() {
   const [historyViewMode, setHistoryViewMode] = useState<"chart" | "cards" | "all">("all");
 
   // Carregar dados
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // 1. Detalhes do Aluno
       const studentResponse = await fetch(`/api/trainer/students/${studentId}`);
@@ -99,13 +99,16 @@ export default function StudentMeasurementsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, studentId]);
 
   useEffect(() => {
     if (studentId) {
-      fetchData();
+      const timeoutId = window.setTimeout(() => {
+        void fetchData();
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
     }
-  }, [studentId, router]);
+  }, [fetchData, studentId]);
 
   // Converter arquivo de imagem em base64 (com validação de tipo e tamanho)
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -443,7 +446,7 @@ export default function StudentMeasurementsPage() {
                     <div className="flex flex-col items-center">
                       <label className="w-full aspect-square rounded-xl bg-zinc-50 border border-[#E2E8F0] hover:border-zinc-350 transition-all flex flex-col items-center justify-center cursor-pointer relative overflow-hidden">
                         {photoFrente ? (
-                          <img src={photoFrente} alt="Frente" className="w-full h-full object-cover" />
+                          <Image fill unoptimized src={photoFrente} alt="Frente" className="w-full h-full object-cover" />
                         ) : (
                           <Camera className="w-5 h-5 text-[#94A3B8]" />
                         )}
@@ -461,7 +464,7 @@ export default function StudentMeasurementsPage() {
                     <div className="flex flex-col items-center">
                       <label className="w-full aspect-square rounded-xl bg-zinc-50 border border-[#E2E8F0] hover:border-zinc-350 transition-all flex flex-col items-center justify-center cursor-pointer relative overflow-hidden">
                         {photoLado ? (
-                          <img src={photoLado} alt="Lado" className="w-full h-full object-cover" />
+                          <Image fill unoptimized src={photoLado} alt="Lado" className="w-full h-full object-cover" />
                         ) : (
                           <Camera className="w-5 h-5 text-[#94A3B8]" />
                         )}
@@ -479,7 +482,7 @@ export default function StudentMeasurementsPage() {
                     <div className="flex flex-col items-center">
                       <label className="w-full aspect-square rounded-xl bg-zinc-50 border border-[#E2E8F0] hover:border-zinc-350 transition-all flex flex-col items-center justify-center cursor-pointer relative overflow-hidden">
                         {photoCostas ? (
-                          <img src={photoCostas} alt="Costas" className="w-full h-full object-cover" />
+                          <Image fill unoptimized src={photoCostas} alt="Costas" className="w-full h-full object-cover" />
                         ) : (
                           <Camera className="w-5 h-5 text-[#94A3B8]" />
                         )}
@@ -646,7 +649,7 @@ export default function StudentMeasurementsPage() {
                               onClick={() => setSelectedPhotoForZoom(photo)}
                               className="w-14 h-14 rounded-lg bg-zinc-50 border border-[#E2E8F0] overflow-hidden relative cursor-zoom-in hover:border-[#2563EB] transition-all"
                             >
-                              <img src={photo} alt={`Foto ${pIdx + 1}`} className="w-full h-full object-cover" />
+                              <Image fill unoptimized src={photo} alt={`Foto ${pIdx + 1}`} className="w-full h-full object-cover" />
                             </div>
                           ))}
                         </div>
@@ -671,7 +674,7 @@ export default function StudentMeasurementsPage() {
             >
               <X className="w-5 h-5" />
             </button>
-            <img
+            <Image fill unoptimized
               src={selectedPhotoForZoom}
               alt="Ampliada"
               className="max-w-full max-h-[70vh] rounded-2xl object-contain border border-[#E2E8F0]"

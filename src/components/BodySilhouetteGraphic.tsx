@@ -9,9 +9,6 @@ import {
   ChevronDown,
   ChevronUp,
   Scale,
-  Apple,
-  Dumbbell,
-  ShieldCheck,
   BicepsFlexed,
   Flame,
 } from "lucide-react";
@@ -20,7 +17,6 @@ import {
   MALE_BODY_PATH,
   FEMALE_BODY_PATH,
   SILHOUETTE_VIEWBOX,
-  SILHOUETTE_BODY_TOP,
   SILHOUETTE_BODY_BOTTOM,
   SILHOUETTE_BODY_HEIGHT,
 } from "./bodySilhouettePaths";
@@ -48,9 +44,6 @@ export default function BodySilhouetteGraphic({
   dietGoal = "maintenance",
   biotype = "meso",
   onGoalChange,
-  tmb,
-  tdee,
-  targetCalories,
 }: BodySilhouetteGraphicProps) {
   // Alternar entre visualizar Proporção de Massa Magra vs Gordura OU Água Corporal
   const [metricView, setMetricView] = useState<"lean" | "water">("lean");
@@ -86,7 +79,6 @@ export default function BodySilhouetteGraphic({
   const activePercent = metricView === "lean" ? leanPercent : waterPercent;
 
   // Dimensões exatas da silhueta anatômica proporcional
-  const bodyTop = SILHOUETTE_BODY_TOP;
   const bodyBottom = SILHOUETTE_BODY_BOTTOM;
   const bodyHeight = SILHOUETTE_BODY_HEIGHT;
   const fluidFillHeight = (activePercent / 100) * bodyHeight;

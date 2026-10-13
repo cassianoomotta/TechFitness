@@ -16,7 +16,14 @@ function cleanJsonString(str: string): string {
   return cleaned.trim();
 }
 
-function generateMockWorkout(dbExercises: any[], goal: string, notes: string) {
+interface MockWorkoutExercise {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  equipment: string;
+}
+
+function generateMockWorkout(dbExercises: MockWorkoutExercise[], goal: string, notes: string) {
   const isPernas = goal.toLowerCase().includes("perna") || goal.toLowerCase().includes("inferior");
   
   let selectedList = [];
@@ -212,7 +219,7 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
     const openAiKey = process.env.OPENAI_API_KEY;
     let workoutPlan = null;
     let providerUsed = "";
-    let apiErrors: string[] = [];
+    const apiErrors: string[] = [];
 
     // 1. Tentar Gemini primeiro
     if (geminiKey && geminiKey.trim().length > 10) {
@@ -250,9 +257,9 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
           const errText = await response.text();
           apiErrors.push(`Gemini error (${response.status}): ${errText}`);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Erro na API do Gemini:", err);
-        apiErrors.push(`Gemini exception: ${err.message || err}`);
+        apiErrors.push(`Gemini exception: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -290,9 +297,9 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
           const errText = await response.text();
           apiErrors.push(`OpenAI error (${response.status}): ${errText}`);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Erro na API do OpenAI:", err);
-        apiErrors.push(`OpenAI exception: ${err.message || err}`);
+        apiErrors.push(`OpenAI exception: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -308,7 +315,7 @@ Você DEVE retornar a resposta EXCLUSIVAMENTE em formato JSON (sem markdown de v
       provider: providerUsed,
       workoutPlan,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("ERRO NO GERADOR DE TREINOS IA:", error);
     return NextResponse.json(
       { error: "Ocorreu um erro interno ao processar a criação de treino por IA." },

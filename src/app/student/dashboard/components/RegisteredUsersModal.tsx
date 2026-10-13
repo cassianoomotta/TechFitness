@@ -29,7 +29,6 @@ export default function RegisteredUsersModal({
 
   const fetchUsers = async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/student/registered-users");
       if (res.ok) {
         const data = (await res.json()) as { users: RegisteredUserItem[] };
@@ -44,9 +43,9 @@ export default function RegisteredUsersModal({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      fetchUsers();
-    }
+    if (!isOpen) return;
+    const timerId = window.setTimeout(() => void fetchUsers(), 0);
+    return () => window.clearTimeout(timerId);
   }, [isOpen]);
 
   const filteredUsers = useMemo(() => {

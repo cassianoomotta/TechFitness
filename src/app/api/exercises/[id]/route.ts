@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const exerciseUpdateSchema = z.object({
@@ -74,7 +75,7 @@ export async function PUT(
       }
     }
 
-    const updateData: any = { ...validation.data };
+    const updateData: Prisma.ExerciseUpdateInput = { ...validation.data };
     if (validation.data.alternatives) {
       updateData.alternatives = JSON.stringify(validation.data.alternatives);
     }

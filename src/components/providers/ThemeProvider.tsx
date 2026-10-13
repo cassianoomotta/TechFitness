@@ -28,16 +28,19 @@ export default function ThemeProvider({
 
   // Ler tema salvo inicialmente. O padrão absoluto é "light".
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("tf_theme") as Theme | null;
-      if (saved === "dark") {
-        setThemeState("dark");
-      } else if (saved === "system") {
-        setThemeState("system");
-      } else {
-        setThemeState("light");
-      }
-    } catch {}
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("tf_theme") as Theme | null;
+        if (saved === "dark") {
+          setThemeState("dark");
+        } else if (saved === "system") {
+          setThemeState("system");
+        } else {
+          setThemeState("light");
+        }
+      } catch {}
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   // Aplicar tema

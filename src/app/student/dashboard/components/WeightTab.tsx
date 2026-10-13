@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React, { useState } from 'react';
 import { Loader2, TrendingUp, ChevronRight, Scale, ChevronDown } from 'lucide-react';
 import BodyMetricsChart from '@/components/BodyMetricsChart';
@@ -430,7 +431,7 @@ export default function WeightTab({
                                   onClick={() => setSelectedPhotoForZoom(photo)}
                                   className="w-14 h-14 rounded-lg bg-zinc-50 dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-700 overflow-hidden relative cursor-zoom-in hover:border-[#2563EB] transition-all hover:scale-105"
                                 >
-                                  <img src={photo} alt={`Foto ${pIdx + 1}`} className="w-full h-full object-cover" />
+                                  <Image fill unoptimized src={photo} alt={`Foto ${pIdx + 1}`} className="w-full h-full object-cover" />
                                 </div>
                               ))}
                             </div>

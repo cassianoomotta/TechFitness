@@ -55,7 +55,10 @@ export function useNotificationSync({ userId, enabled = true }: UseNotificationS
   // 1. Carga inicial
   useEffect(() => {
     if (!enabled) return;
-    fetchNotifications();
+    const timeoutId = window.setTimeout(() => {
+      void fetchNotifications();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [enabled, fetchNotifications]);
 
   // 2. Conexão WebSocket via Supabase Realtime (se userId fornecido)

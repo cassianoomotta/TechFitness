@@ -196,7 +196,7 @@ export interface XpBreakdown {
  * Se não tiver fichas, o padrão é 3 treinos por semana.
  */
 export function getWeeklyGoalFromPlans(
-  plans?: Array<{ weekDays?: string | string[] | any; division?: string }> | null
+  plans?: Array<{ weekDays?: unknown; division?: string }> | null
 ): number {
   if (!plans || plans.length === 0) return 3;
 

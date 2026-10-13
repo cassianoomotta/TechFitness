@@ -13,7 +13,6 @@ import {
   Scale,
   Award,
   CheckCircle2,
-  HelpCircle,
 } from "lucide-react";
 
 interface GamificationGuideModalProps {

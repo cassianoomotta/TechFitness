@@ -2,19 +2,13 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  Flame,
   Activity,
   Scale,
   Sparkles,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   Info,
   Apple,
-  Dumbbell,
   Loader2,
-  TrendingDown,
-  TrendingUp,
   Lock,
   AlertCircle,
   Droplets,

@@ -7,7 +7,6 @@ import {
   getLevelTitle,
   getWeeklyGoalFromPlans,
   calculatePeriodXp,
-  getWeekStart,
 } from "@/lib/gamification";
 
 export const dynamic = "force-dynamic";

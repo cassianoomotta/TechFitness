@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const duplicateSchema = z.object({
@@ -108,7 +109,7 @@ export async function POST(
             name: sourcePlan.name,
             description: sourcePlan.description,
             division: sourcePlan.division,
-            weekDays: sourcePlan.weekDays ? (sourcePlan.weekDays as any) : undefined,
+            weekDays: sourcePlan.weekDays ? (sourcePlan.weekDays as Prisma.InputJsonValue) : undefined,
             parentPlanId: sourcePlan.id,
           },
         });

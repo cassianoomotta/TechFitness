@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET: Buscar todas as fichas de treino (WorkoutPlans) do aluno logado
 export async function GET() {
@@ -105,9 +106,9 @@ export async function GET() {
       if (!a.weekDays) return 1;
       if (!b.weekDays) return -1;
 
-      const getDaysArray = (wd: any): string[] => {
+      const getDaysArray = (wd: Prisma.JsonValue): string[] => {
         if (!wd) return [];
-        if (Array.isArray(wd)) return wd;
+        if (Array.isArray(wd)) return wd.filter((day): day is string => typeof day === "string");
         if (typeof wd === 'string') return wd.split(",");
         return [];
       };

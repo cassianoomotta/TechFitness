@@ -82,7 +82,7 @@ async function main() {
     try {
       allMapped = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
       console.log(`Carregado progresso anterior: ${allMapped.length} exercícios mapeados.`);
-    } catch (e) {
+    } catch {
       console.log("Criando novo mapeamento.");
     }
   }
