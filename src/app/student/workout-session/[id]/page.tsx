@@ -1385,12 +1385,14 @@ export default function WorkoutSessionPlayer() {
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(true)}
-              className="h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 justify-center rounded-xl border border-red-200/80 bg-red-50 p-0 text-sm font-bold text-red-600 shadow-xs transition-all hover:bg-red-100 active:scale-95 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-900/50 sm:h-auto sm:w-auto sm:min-w-0 sm:gap-1 sm:px-3 sm:py-1.5"
+              className="flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl p-0 text-sm font-bold text-red-600 transition-all active:scale-95 cursor-pointer dark:text-red-400 sm:h-auto sm:w-auto sm:min-w-0 sm:gap-1 sm:border sm:border-red-200/80 sm:bg-red-50 sm:px-3 sm:py-1.5 sm:shadow-xs sm:hover:bg-red-100 dark:sm:border-red-900/60 dark:sm:bg-red-950/40 dark:sm:hover:bg-red-900/50"
               aria-label="Cancelar treino e descartar sessão"
               title="Cancelar treino e descartar sessão"
             >
-              <X className="h-4 w-4" />
-              <span className="hidden sm:inline">Cancelar</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-200/80 bg-red-50 dark:border-red-900/60 dark:bg-red-950/40 sm:h-auto sm:w-auto sm:gap-1 sm:border-0 sm:bg-transparent dark:sm:bg-transparent">
+                <X className="h-4 w-4" />
+                <span className="hidden sm:inline">Cancelar</span>
+              </span>
             </button>
 
             {/* Cronômetro Geral do Treino (à direita) */}
