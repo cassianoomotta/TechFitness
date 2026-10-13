@@ -1,12 +1,21 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { calculateLevel, calculateStreak, calculateTier } from "@/lib/gamification";
 import {
   filterVisibleTimelineGroups,
+  type TimelineGroup,
   type TimelineGroupMembership,
 } from "@/lib/group-timeline-visibility";
+import { splitCursorPage } from "@/lib/group-timeline-pagination";
+
+const TIMELINE_PAGE_SIZE = 12;
+const timelineQuerySchema = z.object({
+  groupId: z.string().min(1).max(100).optional(),
+  cursor: z.string().min(1).max(100).optional(),
+});
 
 interface GroupSummary {
   id: string;
@@ -62,27 +71,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         timeline: [],
         userGroups: [],
+        hasMore: false,
+        nextCursor: null,
         message: "Você ainda não participa de nenhum grupo.",
       });
     }
 
     // Filtro opcional por grupo específico
     const { searchParams } = new URL(req.url);
-    const filterGroupId = searchParams.get("groupId");
-
-    let targetGroupIds: string[] = [];
-    if (filterGroupId && filterGroupId !== "all") {
-      const belongs = userGroups.some((g) => g.id === filterGroupId);
-      if (!belongs) {
-        return NextResponse.json(
-          { error: "Você não tem permissão para visualizar este grupo." },
-          { status: 403 }
-        );
-      }
-      targetGroupIds = [filterGroupId];
-    } else {
-      targetGroupIds = userGroups.map((g) => g.id);
+    const parsedQuery = timelineQuerySchema.safeParse({
+      groupId: searchParams.get("groupId") || undefined,
+      cursor: searchParams.get("cursor") || undefined,
+    });
+    if (!parsedQuery.success) {
+      return NextResponse.json({ error: "Filtro inválido." }, { status: 400 });
     }
+    const { groupId: filterGroupId, cursor } = parsedQuery.data;
+    if (filterGroupId && filterGroupId !== "all" && !userGroups.some((g) => g.id === filterGroupId)) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para visualizar este grupo." },
+        { status: 403 }
+      );
+    }
+    const targetGroupIds = filterGroupId && filterGroupId !== "all"
+      ? [filterGroupId]
+      : userGroups.map((g) => g.id);
 
     // Buscar todos os membros dos grupos alvo
     const groupMembers = await prisma.groupMember.findMany({
@@ -121,55 +134,73 @@ export async function GET(req: NextRequest) {
     const targetStudentIds = Array.from(targetStudentIdsSet);
 
     // Buscar estatísticas de gamificação dos atletas participantes apenas 1 vez (redução massiva de overhead)
-    const [authorProfiles, sessions] = await Promise.all([
-      prisma.studentProfile.findMany({
-        where: { id: { in: targetStudentIds } },
-        select: {
-          id: true,
-          _count: {
-            select: {
-              sessions: true,
-              measurements: true,
-              logs: true,
-            },
-          },
-          sessions: {
-            select: { date: true },
-            orderBy: { date: "desc" },
-            take: 45,
-          },
-        },
-      }),
-      prisma.workoutSession.findMany({
-        where: {
-          studentId: { in: targetStudentIds },
-          completed: true,
-        },
-        select: {
-          id: true,
-          date: true,
-          durationMs: true,
-          satisfaction: true,
-          photoUrl: true,
-          studentId: true,
-          targetGroupIds: true,
-          student: {
-            select: {
-              id: true,
-              user: { select: { id: true, name: true, image: true } },
-            },
-          },
-          logs: {
-            select: {
-              exercise: { select: { name: true } },
-              weightUsed: true,
-            },
+    const sessionRows = await prisma.workoutSession.findMany({
+      where: {
+        studentId: { in: targetStudentIds },
+        completed: true,
+        photoUrl: { not: null },
+      },
+      select: {
+        id: true,
+        date: true,
+        durationMs: true,
+        satisfaction: true,
+        photoUrl: true,
+        studentId: true,
+        targetGroupIds: true,
+        student: {
+          select: {
+            id: true,
+            user: { select: { id: true, name: true, image: true } },
           },
         },
-        orderBy: { date: "desc" },
-        take: 40,
-      }),
-    ]);
+        logs: {
+          select: {
+            exercise: { select: { name: true } },
+            weightUsed: true,
+          },
+        },
+      },
+      orderBy: [{ date: "desc" }, { id: "desc" }],
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take: TIMELINE_PAGE_SIZE + 1,
+    });
+    const sessionPage = splitCursorPage(sessionRows, TIMELINE_PAGE_SIZE);
+
+    const visibleGroupsBySessionId = new Map<string, TimelineGroup[]>();
+    const visibleSessions = sessionPage.items.filter((sess) => {
+      const visibleGroups = filterVisibleTimelineGroups(
+        mutualGroupsMap.get(sess.studentId) || [],
+        sess.date,
+        sess.targetGroupIds,
+      );
+      if (visibleGroups.length === 0) return false;
+      visibleGroupsBySessionId.set(sess.id, visibleGroups);
+      return true;
+    });
+
+    // Carregar histórico somente dos autores que aparecem nesta página do mural.
+    const visibleAuthorIds = Array.from(new Set(visibleSessions.map((session) => session.studentId)));
+    const authorProfiles = visibleAuthorIds.length > 0
+      ? await prisma.studentProfile.findMany({
+          where: { id: { in: visibleAuthorIds } },
+          select: {
+            id: true,
+            _count: {
+              select: {
+                sessions: true,
+                measurements: true,
+                logs: true,
+              },
+            },
+            sessions: {
+              select: { date: true },
+              orderBy: { date: "desc" },
+              take: 45,
+            },
+          },
+        })
+      : [];
 
     const athleteStatsMap = new Map<
       string,
@@ -197,7 +228,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Formatar cada item da timeline respeitando os grupos selecionados pelo autor (targetGroupIds)
-    const timeline = sessions
+    const timeline = visibleSessions
       .map((sess) => {
         const stats = athleteStatsMap.get(sess.studentId) || {
           streak: 0,
@@ -223,20 +254,7 @@ export async function GET(req: NextRequest) {
         const exercisesSummary = Array.from(exerciseSummaryMap.values());
 
         // Grupos em comum entre o autor da postagem e o usuário logado
-        const mutualGroups = mutualGroupsMap.get(sess.studentId) || [];
-
-        // Regra de Isolamento: Apenas exibe o post para grupos onde o atleta já era membro no momento do treino.
-        // Ao entrar em um novo grupo, o atleta começa do zero e não carrega postagens anteriores realizadas em outros grupos.
-        const visibleGroups = filterVisibleTimelineGroups(
-          mutualGroups,
-          sess.date,
-          sess.targetGroupIds
-        );
-
-        // Se o treino foi realizado antes de ingressar no grupo ou não foi direcionado a ele, não exibe
-        if (visibleGroups.length === 0) {
-          return null;
-        }
+        const visibleGroups = visibleGroupsBySessionId.get(sess.id) || [];
 
         return {
           id: sess.id,
@@ -265,6 +283,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       timeline,
       userGroups,
+      hasMore: sessionPage.hasMore,
+      nextCursor: sessionPage.nextCursor,
     });
   } catch (error) {
     console.error("ERRO AO CARREGAR TIMELINE DOS GRUPOS:", error);

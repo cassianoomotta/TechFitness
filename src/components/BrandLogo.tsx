@@ -19,7 +19,7 @@ export default function BrandLogo({
   onClick,
 }: BrandLogoProps) {
   const content = (
-    <div className={`flex items-center gap-3 ${!href && !onClick ? className : ""}`}>
+    <div className={`flex items-center gap-3 ${className}`}>
       {/* Dynamic SVG Logo */}
       <div 
         style={{ width: size, height: size }} 

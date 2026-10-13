@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   Users,
   Plus,
@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import DumbbellLoading from "@/components/DumbbellLoading";
+import { fetchGroupTimelinePage } from "@/lib/group-timeline-request";
+import { mergeTimelinePage } from "@/lib/group-timeline-pagination";
 
 // Tipagens estritas para Grupos e Timeline
 export interface GroupSummary {
@@ -176,6 +178,7 @@ interface GroupsTabProps {
   onOpenZoomPhoto?: (photoUrl: string) => void;
   onNavigateToWorkouts?: () => void;
   initialJoinCode?: string;
+  studentUserId: string;
 }
 
 // Ícone oficial do WhatsApp em SVG limpo e escalável
@@ -239,7 +242,11 @@ function getIntensityBadge(satisfaction?: number | null): IntensityConfig | null
 // Cache em memória para alta performance (Navegação instantânea 0ms)
 // =========================================================================
 let cachedGroups: GroupSummary[] | null = null;
-let cachedTimeline: TimelinePost[] | null = null;
+const cachedTimelines = new Map<string, {
+  items: TimelinePost[];
+  hasMore: boolean;
+  nextCursor: string | null;
+}>();
 const cachedGroupDetails: Record<string, GroupFullDetail> = {};
 
 export default function GroupsTab({
@@ -254,6 +261,7 @@ export default function GroupsTab({
   onOpenZoomPhoto,
   onNavigateToWorkouts,
   initialJoinCode,
+  studentUserId,
 }: GroupsTabProps) {
   // Aba interna do componente: Feed Social vs Gerenciar Grupos vs Duelo 1-a-1
   const [internalTab, setInternalTab] = useState<"feed" | "groups" | "duel">(() =>
@@ -263,11 +271,22 @@ export default function GroupsTab({
   // Dados dos grupos e timeline com hidratação de cache imediata (0ms)
   const [groups, setGroups] = useState<GroupSummary[]>(() => cachedGroups || []);
   const [groupsLoading, setGroupsLoading] = useState<boolean>(() => !cachedGroups);
-  const [timeline, setTimeline] = useState<TimelinePost[]>(() => cachedTimeline || []);
-  const [timelineLoading, setTimelineLoading] = useState<boolean>(() => !cachedTimeline);
+  const initialTimelineCache = cachedTimelines.get(`${studentUserId}:all`);
+  const [timeline, setTimeline] = useState<TimelinePost[]>(() => initialTimelineCache?.items || []);
+  const timelineRef = useRef<TimelinePost[]>(initialTimelineCache?.items || []);
+  const [timelineLoading, setTimelineLoading] = useState<boolean>(() => !initialTimelineCache);
+  const [timelineHasMore, setTimelineHasMore] = useState<boolean>(() => initialTimelineCache?.hasMore || false);
+  const [timelineNextCursor, setTimelineNextCursor] = useState<string | null>(() => initialTimelineCache?.nextCursor || null);
+  const [timelineError, setTimelineError] = useState(false);
+  const [timelineLoadingMore, setTimelineLoadingMore] = useState(false);
+  const timelineRequestId = useRef(0);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
   const effectiveSelectedGroupId =
     selectedGroupId === "all" && groups.length === 1 ? groups[0].id : selectedGroupId;
+  const effectiveSelectedGroupIdRef = useRef(effectiveSelectedGroupId);
+  useEffect(() => {
+    effectiveSelectedGroupIdRef.current = effectiveSelectedGroupId;
+  }, [effectiveSelectedGroupId]);
 
   // Grupo ativo atualmente selecionado (ou o único grupo do usuário)
   const activeGroup = useMemo(() => {
@@ -410,36 +429,87 @@ export default function GroupsTab({
   };
 
   // Carregar timeline centralizada (revalidação suave em segundo plano)
-  const fetchTimeline = async (forceSpinner = false) => {
-    if (forceSpinner) {
-      setTimelineLoading(true);
-    }
-    try {
-      const res = await fetch("/api/student/groups/timeline");
-      if (res.ok) {
-        const data = await res.json();
-        const items: TimelinePost[] = data.timeline || [];
-        setTimeline(items);
-        cachedTimeline = items;
+  const fetchTimeline = useCallback(async (
+    forceSpinner = false,
+    groupId = effectiveSelectedGroupIdRef.current,
+    cursor: string | null = null,
+  ) => {
+    const requestId = ++timelineRequestId.current;
+    const cacheKey = `${studentUserId}:${groupId}`;
+    const cached = cachedTimelines.get(cacheKey);
+    setTimelineError(false);
+
+    if (cursor) {
+      setTimelineLoadingMore(true);
+    } else {
+      if (cached) {
+        timelineRef.current = cached.items;
+        setTimeline(cached.items);
+        setTimelineHasMore(cached.hasMore);
+        setTimelineNextCursor(cached.nextCursor);
       }
-    } catch (err) {
-      console.error("Erro ao buscar timeline dos grupos:", err);
-    } finally {
-      setTimelineLoading(false);
+      setTimelineLoading(forceSpinner ? !cached || timelineRef.current.length === 0 : !cached);
     }
-  };
+
+    try {
+      const searchParams = new URLSearchParams({ groupId });
+      if (cursor) searchParams.set("cursor", cursor);
+      const { data: responseData } = await fetchGroupTimelinePage(
+        `/api/student/groups/timeline?${searchParams.toString()}`,
+      );
+      const data = responseData as {
+        timeline?: TimelinePost[];
+        hasMore?: boolean;
+        nextCursor?: string | null;
+      };
+      if (requestId !== timelineRequestId.current) return;
+
+      const items = data.timeline || [];
+      const mergedItems = cursor ? mergeTimelinePage(timelineRef.current, items) : items;
+      const page = {
+        items: mergedItems,
+        hasMore: data.hasMore === true,
+        nextCursor: data.nextCursor || null,
+      };
+      timelineRef.current = mergedItems;
+      setTimeline(mergedItems);
+      setTimelineHasMore(page.hasMore);
+      setTimelineNextCursor(page.nextCursor);
+      cachedTimelines.set(cacheKey, page);
+    } catch (error) {
+      if (requestId === timelineRequestId.current) {
+        setTimelineError(true);
+        console.error(
+          "Erro ao buscar timeline dos grupos:",
+          error instanceof Error ? error.message : "falha desconhecida",
+        );
+      }
+    } finally {
+      if (requestId === timelineRequestId.current) {
+        setTimelineLoading(false);
+        setTimelineLoadingMore(false);
+      }
+    }
+  }, [studentUserId]);
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
       void fetchUserGroups();
-      void fetchTimeline();
     }, 0);
     return () => window.clearTimeout(timerId);
   }, []);
 
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      void fetchTimeline();
+    }, 0);
+    return () => window.clearTimeout(timerId);
+  }, [fetchTimeline]);
+
   // Mudar filtro de grupo (instantâneo via memória)
   const handleGroupFilterChange = (groupId: string) => {
     setSelectedGroupId(groupId);
+    void fetchTimeline(false, groupId);
   };
 
   // Copiar apenas o código de convite
@@ -503,10 +573,11 @@ export default function GroupsTab({
         setNewGroupDesc("");
         setNewGroupIcon("🏋️");
         cachedGroups = null;
-        cachedTimeline = null;
+        cachedTimelines.clear();
+        const groupId = data.group?.id || "all";
+        setSelectedGroupId(groupId);
         // Recarregar grupos e timeline em paralelo
-        await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
-        if (data.group?.id) setSelectedGroupId(data.group.id);
+        await Promise.all([fetchUserGroups(true), fetchTimeline(true, groupId)]);
       }
     } catch {
       setCreateError("Erro de conexão ao criar grupo.");
@@ -546,10 +617,11 @@ export default function GroupsTab({
         setShowJoinModal(false);
         setJoinCode("");
         cachedGroups = null;
-        cachedTimeline = null;
+        cachedTimelines.clear();
+        const groupId = data.group?.id || "all";
+        setSelectedGroupId(groupId);
         // Recarregar em paralelo
-        await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
-        if (data.group?.id) setSelectedGroupId(data.group.id);
+        await Promise.all([fetchUserGroups(true), fetchTimeline(true, groupId)]);
       }
     } catch {
       setJoinError("Erro de conexão ao entrar no grupo.");
@@ -645,9 +717,9 @@ export default function GroupsTab({
         setLeaveConfirmGroup(null);
         delete cachedGroupDetails[leaveConfirmGroup.id];
         cachedGroups = null;
-        cachedTimeline = null;
-        await Promise.all([fetchUserGroups(true), fetchTimeline(true)]);
+        cachedTimelines.clear();
         setSelectedGroupId("all");
+        await Promise.all([fetchUserGroups(true), fetchTimeline(true, "all")]);
       } else {
         alert(data.error || "Não foi possível sair do grupo.");
       }
@@ -1208,18 +1280,37 @@ export default function GroupsTab({
           </div>
 
           {/* Estado de Carregamento da Timeline */}
-          {timelineLoading ? (
+          {timelineLoading && displayedTimeline.length === 0 ? (
             <DumbbellLoading text="Sincronizando mural da comunidade..." subtext="Carregando check-ins fotográficos das suas turmas" />
+          ) : timelineError && displayedTimeline.length === 0 ? (
+            <div role="alert" className="bg-white border border-amber-200 rounded-3xl p-6 sm:p-8 text-center max-w-lg mx-auto shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mx-auto mb-3 border border-amber-200">
+                <Camera className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-[#0F172A] mb-1">Não foi possível carregar o mural</h3>
+              <p className="text-sm text-[#64748B] leading-relaxed mb-4">
+                A busca demorou ou encontrou uma falha. Suas fotos continuam salvas; tente novamente.
+              </p>
+              <button
+                type="button"
+                onClick={() => void fetchTimeline(true, effectiveSelectedGroupId)}
+                className="min-h-12 px-5 rounded-xl border border-amber-300 bg-white text-amber-900 font-bold text-sm hover:bg-amber-50 active:scale-95 transition-all"
+              >
+                Tentar novamente
+              </button>
+            </div>
           ) : displayedTimeline.length === 0 ? (
             <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-10 text-center max-w-lg mx-auto shadow-xs">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto mb-3.5 border border-blue-100">
                 <Camera className="w-7 h-7 text-[#2563EB]" />
               </div>
               <h3 className="text-base sm:text-lg font-bold text-[#0F172A] mb-1.5">
-                Nenhum check-in com foto postado ainda
+                {timelineHasMore ? "Busque mais fotos do mural" : "Nenhum check-in com foto postado ainda"}
               </h3>
               <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed mb-6">
-                Seja o primeiro da sua turma a postar foto: ao finalizar seu treino, tire uma foto de check-in para marcar presença no mural e inspirar seus amigos!
+                {timelineHasMore
+                  ? "Ainda há publicações anteriores para carregar nesta turma."
+                  : "Seja o primeiro da sua turma a postar foto: ao finalizar seu treino, tire uma foto de check-in para marcar presença no mural e inspirar seus amigos!"}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {onNavigateToWorkouts && (
@@ -1240,11 +1331,35 @@ export default function GroupsTab({
                     <span>Entrar com Código</span>
                   </button>
                 )}
+                {timelineHasMore && timelineNextCursor && (
+                  <button
+                    type="button"
+                    onClick={() => void fetchTimeline(false, effectiveSelectedGroupId, timelineNextCursor)}
+                    disabled={timelineLoadingMore}
+                    className="min-h-12 px-5 rounded-xl border border-[#2563EB]/20 bg-blue-50 text-[#2563EB] text-sm font-bold hover:bg-blue-100 disabled:opacity-60 transition-all active:scale-95"
+                  >
+                    {timelineLoadingMore ? "Carregando fotos..." : "Carregar mais fotos"}
+                  </button>
+                )}
               </div>
             </div>
           ) : (
-            /* Lista de Posts da Timeline (Design Limpo / Frontend Disruptivo) */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <>
+              {timelineError && (
+                <div role="alert" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-sm text-amber-900">Não foi possível atualizar o mural. As fotos já carregadas continuam disponíveis.</p>
+                  <button
+                    type="button"
+                    onClick={() => void fetchTimeline(true, effectiveSelectedGroupId)}
+                    className="min-h-11 px-4 rounded-xl border border-amber-300 bg-white text-amber-900 font-bold text-sm hover:bg-amber-100 transition-all"
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              )}
+
+              {/* Lista de Posts da Timeline */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {displayedTimeline.map((post) => {
                 const durationMin = post.durationMs ? Math.round(post.durationMs / 60000) : null;
                 const totalSets = post.exercises?.reduce((acc: number, ex) => acc + (ex.sets || 0), 0) || 0;
@@ -1448,7 +1563,21 @@ export default function GroupsTab({
                   </div>
                 );
               })}
-            </div>
+              </div>
+              {timelineHasMore && timelineNextCursor && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => void fetchTimeline(false, effectiveSelectedGroupId, timelineNextCursor)}
+                    disabled={timelineLoadingMore}
+                    className="min-h-12 min-w-48 px-6 rounded-xl bg-[#2563EB] text-white text-sm font-bold hover:bg-blue-700 disabled:opacity-70 transition-all active:scale-95 inline-flex items-center justify-center gap-2"
+                  >
+                    {timelineLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {timelineLoadingMore ? "Carregando fotos..." : "Carregar mais fotos"}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

@@ -1108,55 +1108,19 @@ export default function StudentDashboard() {
         className="border-b border-[#E2E8F0]/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md sticky top-0 z-40 pt-safe transition-colors"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-          <BrandLogo size={36} onClick={() => handleTabChange("home")} />
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
+          <BrandLogo
+            size={30}
+            className="min-w-0 [&_span]:text-base [&_span]:tracking-normal sm:[&_span]:text-2xl sm:[&_span]:tracking-wider"
+            onClick={() => handleTabChange("home")}
+          />
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Botão Especial de Administrador: Ver quem ingressou no app (exclusivo para cassianoomotta@gmail.com) */}
-            {session?.user?.email === "cassianoomotta@gmail.com" && (
-              <button
-                type="button"
-                onClick={() => setIsRegisteredUsersModalOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer border border-slate-700/60"
-                title="Ver atletas cadastrados na plataforma (Permissão Especial)"
-              >
-                <Users className="w-3.5 h-3.5 text-blue-400" />
-                <span>Atletas Ingressados</span>
-              </button>
-            )}
-
-            {/* User Avatar & Profile Click -> Redireciona para /student/profile */}
-            <Link
-              href="/student/profile"
-              className="flex items-center gap-2 group p-1 pr-1.5 sm:pr-2.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0] dark:hover:border-slate-700"
-              title="Meu Perfil e Configurações da Conta"
-            >
-              <div className="relative">
-                <UserAvatar
-                  name={session?.user?.name}
-                  image={profilePhoto || session?.user?.image}
-                  size="md"
-                  expandable={false}
-                />
-                <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white dark:border-[#1E293B]">
-                  <Camera className="w-2.5 h-2.5" />
-                </span>
-              </div>
-              <div className="text-left hidden sm:block">
-                <p className="text-xs font-bold text-[#0F172A] dark:text-white group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors leading-tight">
-                  {session?.user?.name || "Aluno"}
-                </p>
-                <p className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold uppercase tracking-wider">
-                  Minha Conta
-                </p>
-              </div>
-            </Link>
-
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Botão de Alternância Rápida de Tema (Claro / Escuro) */}
             <button
               type="button"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              className="p-2.5 min-h-[44px] min-w-[44px] rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 text-[#64748B] dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
+              className="min-h-11 min-w-11 rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/40 dark:hover:border-[#38BDF8]/40 text-[#64748B] dark:text-slate-300 hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-2xs"
               title={resolvedTheme === "dark" ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
               aria-label="Alternar tema de cores"
             >
@@ -1176,8 +1140,9 @@ export default function StudentDashboard() {
                     handleMarkNotificationsRead();
                   }
                 }}
-                className="p-2.5 rounded-xl border border-[#E2E8F0] hover:border-[#2563EB]/30 hover:bg-[#00C2FF]/5 text-[#94A3B8] hover:text-[#2563EB] transition-all cursor-pointer relative"
+                className="min-h-11 min-w-11 rounded-xl border border-[#E2E8F0] dark:border-slate-700 bg-white dark:bg-[#151D2F] hover:border-[#2563EB]/30 hover:bg-[#00C2FF]/5 text-[#94A3B8] hover:text-[#2563EB] dark:hover:text-[#38BDF8] transition-all cursor-pointer relative inline-flex items-center justify-center active:scale-95"
                 title="Notificações"
+                aria-label="Abrir notificações"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -1188,12 +1153,12 @@ export default function StudentDashboard() {
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl z-50 p-4 space-y-3">
-                  <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0]">
-                    <h4 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">Notificações</h4>
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#151D2F] border border-[#E2E8F0] dark:border-slate-700 rounded-2xl shadow-2xl z-50 p-4 space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-[#E2E8F0] dark:border-slate-700">
+                    <h4 className="text-xs font-bold text-[#0F172A] dark:text-white uppercase tracking-wider">Notificações</h4>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className="text-[#94A3B8] hover:text-[#0F172A] text-xs font-semibold"
+                      className="text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white text-xs font-semibold min-h-11 px-2"
                     >
                       Fechar
                     </button>
@@ -1238,6 +1203,33 @@ export default function StudentDashboard() {
                 </div>
               )}
             </div>
+
+            <Link
+              href="/student/profile"
+              className="min-h-11 min-w-11 flex items-center justify-center gap-2 group p-0.5 sm:px-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0] dark:hover:border-slate-700"
+              title="Meu Perfil e Configurações da Conta"
+              aria-label="Abrir meu perfil"
+            >
+              <div className="relative shrink-0">
+                <UserAvatar
+                  name={session?.user?.name}
+                  image={profilePhoto || session?.user?.image}
+                  size="md"
+                  expandable={false}
+                />
+                <span className="absolute bottom-0 right-0 p-1 rounded-full bg-[#2563EB] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-white dark:border-[#1E293B]">
+                  <Camera className="w-2.5 h-2.5" />
+                </span>
+              </div>
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-bold text-[#0F172A] dark:text-white group-hover:text-[#2563EB] dark:group-hover:text-[#38BDF8] transition-colors leading-tight">
+                  {session?.user?.name || "Aluno"}
+                </p>
+                <p className="text-[10px] text-[#2563EB] dark:text-[#38BDF8] font-bold uppercase tracking-wider">
+                  Minha Conta
+                </p>
+              </div>
+            </Link>
           </div>
         </div>
       </header>
@@ -1670,6 +1662,7 @@ export default function StudentDashboard() {
         {/* Aba 2: Grupos de Treino, Feed Social & Duelo 1v1 */}
         {(activeTab === "grupos" || activeTab === "dupla") && (
           <GroupsTab
+            studentUserId={session?.user?.id || ""}
             partnerSearchQuery={partnerSearchQuery}
             setPartnerSearchQuery={setPartnerSearchQuery}
             partners={partners}
