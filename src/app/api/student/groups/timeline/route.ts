@@ -12,6 +12,7 @@ import {
 import { splitCursorPage } from "@/lib/group-timeline-pagination";
 
 const TIMELINE_PAGE_SIZE = 12;
+const PHOTO_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 const timelineQuerySchema = z.object({
   groupId: z.string().min(1).max(100).optional(),
   cursor: z.string().min(1).max(100).optional(),
@@ -132,6 +133,7 @@ export async function GET(req: NextRequest) {
     });
 
     const targetStudentIds = Array.from(targetStudentIdsSet);
+    const photoCutoff = new Date(Date.now() - PHOTO_RETENTION_MS);
 
     // Buscar estatísticas de gamificação dos atletas participantes apenas 1 vez (redução massiva de overhead)
     const sessionRows = await prisma.workoutSession.findMany({
@@ -139,6 +141,7 @@ export async function GET(req: NextRequest) {
         studentId: { in: targetStudentIds },
         completed: true,
         photoUrl: { not: null },
+        date: { gte: photoCutoff },
       },
       select: {
         id: true,
