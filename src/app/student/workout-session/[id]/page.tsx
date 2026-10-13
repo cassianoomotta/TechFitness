@@ -92,6 +92,7 @@ interface VictoryDataState {
   volumeKg: number;
   tonnageComparison: TonnageComparison;
   photoUrl?: string | null;
+  exerciseOptions: Array<{ id: string; name: string }>;
   xpEarned: number;
   totalXp?: number;
   level: number;
@@ -1246,6 +1247,12 @@ export default function WorkoutSessionPlayer() {
         volumeKg: data.volumeKg || 0,
         tonnageComparison: data.tonnageComparison,
         photoUrl: workoutPhoto,
+        exerciseOptions: Array.from(new Set(logsPayload.map((log) => log.exerciseId)))
+          .map((exerciseId) => {
+            const exercise = plan.exercises.find((item) => item.exerciseId === exerciseId);
+            return exercise ? { id: exerciseId, name: exercise.name } : null;
+          })
+          .filter((exercise): exercise is { id: string; name: string } => exercise !== null),
         xpEarned: data.xpEarned || 300,
         totalXp: data.totalXp,
         level: data.level,
@@ -2131,6 +2138,7 @@ export default function WorkoutSessionPlayer() {
           levelTitle={victoryData.levelTitle}
           prsBeaten={victoryData.prsBeaten}
           newAchievements={victoryData.newAchievements}
+          exerciseOptions={victoryData.exerciseOptions}
         />
       )}
 

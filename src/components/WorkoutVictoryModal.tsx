@@ -14,6 +14,7 @@ import {
   Info,
 } from "lucide-react";
 import type { TonnageCuriosity, TonnageCuriosityCategory } from "@/lib/gamification";
+import ExerciseProgressChart, { type ExerciseProgressOption } from "@/components/ExerciseProgressChart";
 
 interface PRBeaten {
   exerciseName: string;
@@ -52,6 +53,7 @@ interface WorkoutVictoryModalProps {
   levelTitle: string;
   prsBeaten: PRBeaten[];
   newAchievements: NewAchievement[];
+  exerciseOptions: ExerciseProgressOption[];
 }
 
 export default function WorkoutVictoryModal({
@@ -65,6 +67,7 @@ export default function WorkoutVictoryModal({
   levelTitle,
   prsBeaten,
   newAchievements,
+  exerciseOptions,
 }: WorkoutVictoryModalProps) {
   const [animatedXp, setAnimatedXp] = useState(0);
   const [curiosityIndex, setCuriosityIndex] = useState(0);
@@ -409,6 +412,8 @@ export default function WorkoutVictoryModal({
               </div>
             </div>
           )}
+
+          <ExerciseProgressChart isOpen={isOpen} exercises={exerciseOptions} />
 
           {/* Conquistas Desbloqueadas */}
           {newAchievements && newAchievements.length > 0 && (
