@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import type { StudentRankingPeriodPayload } from "@/lib/student-ranking-payload";
 import {
   calculateXp,
   getLevelTitle,
@@ -165,21 +166,19 @@ export async function GET() {
     });
 
     // Helper para gerar ordenação e posições por período
-    const buildPeriodRanking = (xpKey: "weeklyXp" | "monthlyXp" | "totalXp") => {
+    const buildPeriodRanking = (
+      xpKey: "weeklyXp" | "monthlyXp" | "totalXp"
+    ): StudentRankingPeriodPayload => {
       const sorted = [...processedStudents]
-        .map((s) => ({
-          ...s,
-          // Para visualização, o display XP é o XP do período correspondente
-          displayXp: s[xpKey],
-        }))
-        .sort((a, b) => b.displayXp - a.displayXp);
-
-      const top5 = sorted.slice(0, 5);
+        .sort((first, second) => second[xpKey] - first[xpKey]);
       const userPosition = currentUserProfile
         ? sorted.findIndex((s) => s.id === currentUserProfile.id) + 1
         : -1;
 
-      return { top5, allRanked: sorted, userPosition };
+      return {
+        rankedStudentIds: sorted.map((student) => student.id),
+        userPosition,
+      };
     };
 
     const weeklyData = buildPeriodRanking("weeklyXp");
@@ -187,10 +186,7 @@ export async function GET() {
     const allTimeData = buildPeriodRanking("totalXp");
 
     return NextResponse.json({
-      // Padrão semanal para disputa contínua e dinâmica
-      top5: weeklyData.top5,
-      allRanked: weeklyData.allRanked,
-      userPosition: weeklyData.userPosition,
+      participants: processedStudents,
       totalParticipants: processedStudents.length,
       periods: {
         weekly: weeklyData,

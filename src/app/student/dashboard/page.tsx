@@ -6,6 +6,7 @@ import WorkoutTab from "./components/WorkoutTab";
 import type { ComparisonResult } from "./components/GroupsTab";
 import WeatherCard from "./components/WeatherCard";
 import RankingLeaderboard, { RankingData } from "./components/RankingLeaderboard";
+import { hydrateStudentRankingPayload, type StudentRankingPayload } from "@/lib/student-ranking-payload";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -532,7 +533,8 @@ export default function StudentDashboard() {
       }
 
       if (!response?.ok) throw new Error("Falha ao buscar classificação.");
-      const data: RankingData = await response.json();
+      const payload: StudentRankingPayload = await response.json();
+      const data: RankingData = hydrateStudentRankingPayload(payload);
       setRanking(data);
       if (dashboardUserId && rankingCacheKey) {
         cachedRankingByUser.set(dashboardUserId, data);
