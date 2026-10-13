@@ -7,7 +7,7 @@ import type { ComparisonResult } from "./components/GroupsTab";
 import WeatherCard from "./components/WeatherCard";
 import RankingLeaderboard, { RankingData } from "./components/RankingLeaderboard";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
@@ -486,9 +486,28 @@ export default function StudentDashboard() {
   const [rankingLoading, setRankingLoading] = useState<boolean>(
     () => !cachedRanking && !getDashboardSessionCache("tf_st_ranking")
   );
+  const [rankingError, setRankingError] = useState(false);
   const [selectedPhotosList, setSelectedPhotosList] = useState<WeeklyCheckinFeedItem[] | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const fetchRanking = useCallback(async () => {
+    setRankingLoading(true);
+    setRankingError(false);
+    try {
+      const response = await fetch("/api/student/ranking");
+      if (!response.ok) throw new Error("Falha ao buscar classificação e fotos.");
+      const data: RankingData = await response.json();
+      setRanking(data);
+      cachedRanking = data;
+      setDashboardSessionCache("tf_st_ranking", data);
+    } catch (error) {
+      console.error("Erro ao buscar ranking:", error);
+      setRankingError(true);
+    } finally {
+      setRankingLoading(false);
+    }
+  }, []);
 
   // Navegação por teclado para galeria de fotos (ArrowLeft, ArrowRight, Escape)
   useEffect(() => {
@@ -822,29 +841,13 @@ export default function StudentDashboard() {
       }
     };
 
-    const fetchRanking = async () => {
-      try {
-        const response = await fetch("/api/student/ranking");
-        if (response.ok) {
-          const data = await response.json();
-          setRanking(data);
-          cachedRanking = data;
-          setDashboardSessionCache("tf_st_ranking", data);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar ranking:", error);
-      } finally {
-        setRankingLoading(false);
-      }
-    };
-
     const timerId = window.setTimeout(() => {
       void fetchPlans();
       void fetchGamification();
       void fetchRanking();
     }, 0);
     return () => window.clearTimeout(timerId);
-  }, []);
+  }, [fetchRanking]);
 
   // Buscar PRs sob demanda somente quando a aba de Conquistas for aberta (otimização de TTFB na Home)
   useEffect(() => {
@@ -1443,6 +1446,25 @@ export default function StudentDashboard() {
             )}
 
             {/* Liga dos Titãs — Ranking Geral */}
+            {rankingError && (
+              <div
+                role="alert"
+                className="mb-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <p>
+                  Não foi possível carregar a classificação e o mural de fotos agora.
+                  {ranking ? " Os dados exibidos podem estar desatualizados." : ""}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void fetchRanking()}
+                  disabled={rankingLoading}
+                  className="min-h-[44px] rounded-xl border border-amber-300 bg-white px-4 py-2 font-bold text-amber-900 transition-colors hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-100 dark:hover:bg-amber-900/50"
+                >
+                  {rankingLoading ? "Carregando..." : "Tentar novamente"}
+                </button>
+              </div>
+            )}
             <RankingLeaderboard
               ranking={ranking}
               loading={rankingLoading}
