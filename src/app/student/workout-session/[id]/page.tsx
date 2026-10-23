@@ -37,6 +37,7 @@ import {
 } from "@/lib/sw-utils";
 import { usePictureInPictureTimer } from "@/hooks/usePictureInPictureTimer";
 import { classifyCompletionLookup } from "@/lib/workout-completion-reconciliation";
+import { shouldResetStaleWorkoutState } from "@/lib/workout-session-lifecycle";
 
 interface Exercise {
   id: string;
@@ -144,6 +145,7 @@ export default function WorkoutSessionPlayer() {
   const STORAGE_KEY_PHOTO = `workout_finish_photo_${planId}`;
   const STORAGE_KEY_SATISFACTION = `workout_finish_satisfaction_${planId}`;
   const STORAGE_KEY_COMPLETION = `workout_completion_key_${planId}`;
+  const shouldPersistWorkoutStateRef = useRef(true);
 
   const clearLocalWorkoutState = useCallback(() => {
     safeRemoveStorageItem(localStorage, STORAGE_KEY_START);
@@ -367,10 +369,12 @@ export default function WorkoutSessionPlayer() {
     setSetsData((prev) => {
       const resolved = typeof newData === "function" ? newData(prev) : newData;
       setsDataRef.current = resolved;
-      try {
-        localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(resolved));
-      } catch {
-        // localStorage pode falhar em modo privado/sem espaço
+      if (shouldPersistWorkoutStateRef.current) {
+        try {
+          localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(resolved));
+        } catch {
+          // localStorage pode falhar em modo privado/sem espaço
+        }
       }
       return resolved;
     });
@@ -434,9 +438,11 @@ export default function WorkoutSessionPlayer() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
         // Salvar imediatamente no localStorage antes que o Android congele ou mate o processo
-        try {
-          localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(setsDataRef.current));
-        } catch {}
+        if (shouldPersistWorkoutStateRef.current) {
+          try {
+            localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(setsDataRef.current));
+          } catch {}
+        }
       } else if (document.visibilityState === "visible") {
         // Re-sincronizar rest timer
         try {
@@ -471,9 +477,11 @@ export default function WorkoutSessionPlayer() {
     };
 
     const handlePageHide = () => {
-      try {
-        localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(setsDataRef.current));
-      } catch {}
+      if (shouldPersistWorkoutStateRef.current) {
+        try {
+          localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(setsDataRef.current));
+        } catch {}
+      }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -601,6 +609,7 @@ export default function WorkoutSessionPlayer() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const handleCancelWorkout = () => {
+    shouldPersistWorkoutStateRef.current = false;
     clearLocalWorkoutState();
     router.push("/student/dashboard");
   };
@@ -687,16 +696,47 @@ export default function WorkoutSessionPlayer() {
       let startTime: string | null = null;
       try {
         startTime = localStorage.getItem(STORAGE_KEY_START);
-        if (!startTime || startTime === "undefined" || startTime === "null") {
-          startTime = String(Date.now());
-          localStorage.setItem(STORAGE_KEY_START, startTime);
+        const hasSavedAttemptState = [
+          STORAGE_KEY_SETS,
+          STORAGE_KEY_REST,
+          STORAGE_KEY_FINISH_MODAL,
+          STORAGE_KEY_SATISFACTION,
+          STORAGE_KEY_COMPLETION,
+        ].some((key) => localStorage.getItem(key) !== null);
+
+        if (shouldResetStaleWorkoutState(startTime, hasSavedAttemptState, Date.now())) {
+          [
+            STORAGE_KEY_SETS,
+            STORAGE_KEY_REST,
+            STORAGE_KEY_FINISH_MODAL,
+            STORAGE_KEY_SATISFACTION,
+            STORAGE_KEY_COMPLETION,
+          ].forEach((key) => safeRemoveStorageItem(localStorage, key));
+          safeRemoveStorageItem(sessionStorage, STORAGE_KEY_PHOTO);
+          setsDataRef.current = {};
+          setSetsData({});
+          setRestTime(0);
+          setInitialRestTime(0);
+          setRestEndTime(null);
+          setIsResting(false);
+          setIsFinishModalOpen(false);
+          setWorkoutPhoto(null);
+          setSatisfaction(6);
+          startTime = null;
         }
       } catch {
+        startTime = null;
+      }
+
+      if (!startTime || startTime === "undefined" || startTime === "null") {
         startTime = String(Date.now());
+        try {
+          localStorage.setItem(STORAGE_KEY_START, startTime);
+        } catch {}
       }
 
       let startTimestamp = Number(startTime) || Date.now();
-      if (Date.now() - startTimestamp > 86400000) {
+      if (Date.now() - startTimestamp > 86400000 || startTimestamp > Date.now()) {
         // A sessão enviada também limita a duração a 24 horas; não contar dias de inatividade.
         startTimestamp = Date.now();
         try {
@@ -743,6 +783,7 @@ export default function WorkoutSessionPlayer() {
           const outcome = classifyCompletionLookup({ ok: response.ok, found: status?.found });
           if (outcome === "saved") {
             confirmedSaved = true;
+            shouldPersistWorkoutStateRef.current = false;
             clearLocalWorkoutState();
             router.replace("/student/dashboard");
             return;
@@ -783,6 +824,11 @@ export default function WorkoutSessionPlayer() {
     };
   }, [
     STORAGE_KEY_COMPLETION,
+    STORAGE_KEY_FINISH_MODAL,
+    STORAGE_KEY_PHOTO,
+    STORAGE_KEY_REST,
+    STORAGE_KEY_SATISFACTION,
+    STORAGE_KEY_SETS,
     STORAGE_KEY_START,
     clearLocalWorkoutState,
     completionReconciliationAttempt,
@@ -1218,12 +1264,14 @@ export default function WorkoutSessionPlayer() {
       }
 
       if (data.replayed || data.confirmationOnly) {
+        shouldPersistWorkoutStateRef.current = false;
         clearLocalWorkoutState();
         router.replace("/student/dashboard");
         return;
       }
 
       // Limpar dados locais somente após confirmação da sessão salva
+      shouldPersistWorkoutStateRef.current = false;
       clearLocalWorkoutState();
       try {
         localStorage.setItem("tf_last_completed_plan_id", planId);

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsc --target ES2022 --module commonjs --strict --skipLibCheck --outDir .test-build src/lib/workout-photo-permission.ts src/lib/workout-plan-matching.ts src/lib/workout-completion-reconciliation.ts src/lib/workout-photo-size.ts src/lib/workout-pr-aggregation.ts src/lib/student-exercise-notes.ts src/lib/gamification.ts src/lib/trainer-stat-aggregation.ts src/lib/student-photo-feed.ts src/lib/group-timeline-visibility.ts src/lib/group-timeline-pagination.ts src/lib/group-timeline-request.ts src/lib/student-ranking-payload.ts && node --test tests/*.test.mjs",
+    "test": "tsc --target ES2022 --module commonjs --strict --skipLibCheck --outDir .test-build src/lib/workout-photo-permission.ts src/lib/workout-plan-matching.ts src/lib/workout-completion-reconciliation.ts src/lib/workout-session-lifecycle.ts src/lib/workout-photo-size.ts src/lib/workout-pr-aggregation.ts src/lib/student-exercise-notes.ts src/lib/gamification.ts src/lib/trainer-stat-aggregation.ts src/lib/student-photo-feed.ts src/lib/group-timeline-visibility.ts src/lib/group-timeline-pagination.ts src/lib/group-timeline-request.ts src/lib/student-ranking-payload.ts && node --test tests/*.test.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
