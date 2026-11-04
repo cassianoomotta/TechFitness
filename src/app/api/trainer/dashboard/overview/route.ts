@@ -97,18 +97,12 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         user: { select: { name: true, image: true } },
-        workoutPlans: {
-          where: { isArchived: false, deletionStatus: "ACTIVE" },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          select: { id: true, name: true, createdAt: true },
-        },
       },
       orderBy: { user: { name: "asc" } },
     });
     const studentIds = students.map((student) => student.id);
 
-    const [completedSessions, sessionsInRange, lastSessions, activePlanCounts, relationshipRows, sessionRows, prRows, recentMaxes, previousMaxes] = await Promise.all([
+    const [completedSessions, sessionsInRange, lastSessions, activePlanCounts, oldestActivePlans, relationshipRows, sessionRows, prRows, recentMaxes, previousMaxes] = await Promise.all([
       studentIds.length === 0 ? Promise.resolve(0) : prisma.workoutSession.count({
         where: { studentId: { in: studentIds }, completed: true, date: { gte: since } },
       }),
@@ -124,6 +118,12 @@ export async function GET(request: NextRequest) {
         by: ["studentId"], _count: { _all: true },
         where: { studentId: { in: studentIds }, isArchived: false, deletionStatus: "ACTIVE" },
       }),
+      studentIds.length === 0 ? Promise.resolve([]) : prisma.workoutPlan.findMany({
+        where: { studentId: { in: studentIds }, isArchived: false, deletionStatus: "ACTIVE" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        take: 8,
+        select: { id: true, studentId: true, name: true, createdAt: true },
+      }),
       prisma.$queryRaw<RelationshipBucketRow[]>(Prisma.sql`
         SELECT date_trunc('month', "createdAt") AS bucket, "eventType", COUNT(*)::int AS total
         FROM "TrainerStudentLinkEvent"
@@ -138,24 +138,36 @@ export async function GET(request: NextRequest) {
         GROUP BY 1 ORDER BY 1 ASC
       `),
       studentIds.length === 0 ? Promise.resolve([]) : prisma.$queryRaw<PRBucketRow[]>(Prisma.sql`
-        WITH weekly_maxes AS (
+        WITH historical_maxes AS (
+          SELECT log."studentId", log."exerciseId", MAX(log."weightUsed") AS max_weight
+          FROM "ExerciseLog" AS log
+          INNER JOIN "WorkoutSession" AS session ON session."id" = log."sessionId"
+          WHERE log."studentId" IN (${Prisma.join(studentIds)}) AND session."date" < ${prSeriesStart}
+          GROUP BY log."studentId", log."exerciseId"
+        ),
+        weekly_maxes AS (
           SELECT log."studentId", log."exerciseId", date_trunc('week', session."date") AS bucket,
             MAX(log."weightUsed") AS max_weight
           FROM "ExerciseLog" AS log
           INNER JOIN "WorkoutSession" AS session ON session."id" = log."sessionId"
           WHERE log."studentId" IN (${Prisma.join(studentIds)})
+            AND session."date" >= ${prSeriesStart} AND session."date" <= ${now}
           GROUP BY log."studentId", log."exerciseId", date_trunc('week', session."date")
         ),
         ranked AS (
-          SELECT "studentId", "exerciseId", bucket, max_weight,
-            MAX(max_weight) OVER (PARTITION BY "studentId", "exerciseId" ORDER BY bucket
-              ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS prior_max
-          FROM weekly_maxes
+          SELECT weekly."studentId" AS "studentId", weekly."exerciseId" AS "exerciseId", weekly.bucket, weekly.max_weight,
+            GREATEST(
+              COALESCE(historical.max_weight, 0),
+              COALESCE(MAX(weekly.max_weight) OVER (PARTITION BY weekly."studentId", weekly."exerciseId" ORDER BY weekly.bucket
+                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0)
+            ) AS prior_max
+          FROM weekly_maxes AS weekly
+          LEFT JOIN historical_maxes AS historical
+            ON historical."studentId" = weekly."studentId" AND historical."exerciseId" = weekly."exerciseId"
         )
         SELECT bucket, COUNT(*)::int AS "personalRecords"
         FROM ranked
-        WHERE bucket >= ${prSeriesStart} AND bucket <= date_trunc('week', ${now})
-          AND prior_max > 0 AND max_weight > prior_max
+        WHERE prior_max > 0 AND max_weight > prior_max
         GROUP BY bucket ORDER BY bucket ASC
       `),
       studentIds.length === 0 ? Promise.resolve([]) : prisma.exerciseLog.groupBy({
@@ -183,6 +195,17 @@ export async function GET(request: NextRequest) {
     const recordsByBucket = new Map(prRows.map((row) => [dayKey(row.bucket), row.personalRecords]));
     const recentRecordMaxes = new Map(recentMaxes.map((row) => [`${row.studentId}_${row.exerciseId}`, row._max.weightUsed ?? 0]));
     const previousRecordMaxes = new Map(previousMaxes.map((row) => [`${row.studentId}_${row.exerciseId}`, row._max.weightUsed ?? 0]));
+    const plansByStudent = new Map<string, Array<{ id: string; name: string; createdAt: string; ageDays: number }>>();
+    for (const plan of oldestActivePlans) {
+      const studentPlans = plansByStudent.get(plan.studentId) ?? [];
+      studentPlans.push({
+        id: plan.id,
+        name: plan.name,
+        createdAt: plan.createdAt.toISOString(),
+        ageDays: Math.max(0, Math.floor((now.getTime() - plan.createdAt.getTime()) / 86_400_000)),
+      });
+      plansByStudent.set(plan.studentId, studentPlans);
+    }
 
     const rosterActivity = students.map((student) => ({
       studentId: student.id,
@@ -191,12 +214,7 @@ export async function GET(request: NextRequest) {
       lastSessionAt: lastSessionByStudent.get(student.id)?.toISOString() ?? null,
       sessionsInPeriod: sessionsByStudent.get(student.id) ?? 0,
       activePlanCount: activePlanCountByStudent.get(student.id) ?? 0,
-      activePlans: student.workoutPlans.map((plan) => ({
-        id: plan.id,
-        name: plan.name,
-        createdAt: plan.createdAt.toISOString(),
-        ageDays: Math.max(0, Math.floor((now.getTime() - plan.createdAt.getTime()) / 86_400_000)),
-      })),
+      activePlans: plansByStudent.get(student.id) ?? [],
     }));
 
     const overview: TrainerDashboardOverview = {
