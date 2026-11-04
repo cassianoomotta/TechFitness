@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { recordTrainerStudentLinkEvent } from "@/lib/trainer-student-link-history";
 import { z } from "zod";
 
 const linkStudentSchema = z.object({
@@ -80,20 +81,40 @@ export async function POST(request: Request) {
     }
 
     // Atualizar o trainerId do aluno para vinculá-lo ao treinador atual
-    const updatedStudent = await prisma.studentProfile.update({
-      where: { id: studentId },
-      data: {
+    const updatedStudent = await prisma.$transaction(async (tx) => {
+      const linkResult = await tx.studentProfile.updateMany({
+        where: { id: studentId, trainerId: null },
+        data: { trainerId: trainerProfile.id },
+      });
+      if (linkResult.count !== 1) return null;
+
+      const linkedStudent = await tx.studentProfile.findUniqueOrThrow({
+        where: { id: studentId },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      await recordTrainerStudentLinkEvent(tx, {
         trainerId: trainerProfile.id,
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          }
-        }
-      }
+        studentId,
+        eventType: "LINKED",
+      });
+
+      return linkedStudent;
     });
+
+    if (!updatedStudent) {
+      return NextResponse.json(
+        { error: "O vínculo do aluno foi alterado. Atualize a lista e tente novamente." },
+        { status: 409 }
+      );
+    }
 
     // Notificar o aluno
     await prisma.notification.create({

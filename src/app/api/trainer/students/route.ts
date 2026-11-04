@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { recordTrainerStudentLinkEvent } from "@/lib/trainer-student-link-history";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { sendStudentInviteEmail } from "@/lib/email";
@@ -150,6 +151,12 @@ export async function POST(request: Request) {
           userId: user.id,
           trainerId: trainerProfile.id,
         },
+      });
+
+      await recordTrainerStudentLinkEvent(tx, {
+        trainerId: trainerProfile.id,
+        studentId: profile.id,
+        eventType: "LINKED",
       });
 
       return {

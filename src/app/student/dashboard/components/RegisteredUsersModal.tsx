@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   RefreshCw,
+  Unlink,
 } from "lucide-react";
 import UserAvatar from "@/components/UserAvatar";
 import { RegisteredUserItem } from "@/lib/types/registered-user";
@@ -26,6 +27,7 @@ export default function RegisteredUsersModal({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [unlinkingUserId, setUnlinkingUserId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -39,6 +41,26 @@ export default function RegisteredUsersModal({
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const handleUnlink = async (user: RegisteredUserItem) => {
+    const confirmed = window.confirm(`Encerrar o vínculo de ${user.name} com o treinador atual? O aluno e seu histórico serão mantidos.`);
+    if (!confirmed) return;
+
+    setUnlinkingUserId(user.id);
+    try {
+      const response = await fetch(`/api/admin/students/${encodeURIComponent(user.id)}/trainer-link`, { method: "DELETE" });
+      const data = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        window.alert(data.error || "Não foi possível encerrar o vínculo.");
+        return;
+      }
+      await fetchUsers();
+    } catch {
+      window.alert("Erro de conexão ao encerrar o vínculo.");
+    } finally {
+      setUnlinkingUserId(null);
     }
   };
 
@@ -177,7 +199,7 @@ export default function RegisteredUsersModal({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs self-end sm:self-center">
+                  <div className="flex flex-wrap items-center justify-end gap-3 text-xs self-end sm:self-center">
                     {/* Treinador Vinculado */}
                     <div className="text-right">
                       <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block leading-none">
@@ -201,6 +223,17 @@ export default function RegisteredUsersModal({
                         {formattedDate}
                       </span>
                     </div>
+                    {u.trainerId && (
+                      <button
+                        type="button"
+                        onClick={() => void handleUnlink(u)}
+                        disabled={unlinkingUserId === u.id}
+                        className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition-all hover:bg-red-100 active:scale-95 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
+                      >
+                        {unlinkingUserId === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Unlink className="h-4 w-4" />}
+                        Encerrar vínculo
+                      </button>
+                    )}
                   </div>
                 </div>
               );

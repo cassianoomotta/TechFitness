@@ -32,6 +32,7 @@ export async function GET() {
         createdAt: true,
         studentProfile: {
           select: {
+            trainerId: true,
             trainer: {
               select: {
                 user: {
@@ -55,6 +56,7 @@ export async function GET() {
       image: u.image,
       role: "STUDENT",
       createdAt: u.createdAt.toISOString(),
+      trainerId: u.studentProfile?.trainerId || null,
       trainerName: u.studentProfile?.trainer?.user?.name || null,
     }));
 

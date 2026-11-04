@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LogOut,
   Search,
@@ -14,7 +15,6 @@ import {
   Loader2,
   Users,
   Activity,
-  Award,
   BookOpen,
   ArrowRight,
   TrendingUp,
@@ -32,6 +32,14 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import DumbbellLoading from "@/components/DumbbellLoading";
+import TrainerDashboardSummary from "./components/TrainerDashboardSummary";
+import TrainerDashboardCharts from "./components/TrainerDashboardCharts";
+import TrainerAttentionList from "./components/TrainerAttentionList";
+import {
+  TrainerDashboardOverview,
+  TrainerDashboardPeriod,
+  TrainerRelationshipPeriod,
+} from "@/lib/trainer-dashboard";
 
 interface Student {
   id: string;
@@ -60,6 +68,7 @@ interface DuplicateWorkoutPlan {
 }
 
 export default function TrainerDashboard() {
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const { data: session } = useSession();
   
@@ -126,9 +135,12 @@ export default function TrainerDashboard() {
   // Ref para fechar notificações ao clicar fora
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // Stats dinâmicos
-  const [monthlyFrequency, setMonthlyFrequency] = useState<number | null>(null);
-  const [weeklyPRs, setWeeklyPRs] = useState<number | null>(null);
+  const [overview, setOverview] = useState<TrainerDashboardOverview | null>(null);
+  const [overviewPeriod, setOverviewPeriod] = useState<TrainerDashboardPeriod>("30d");
+  const [relationshipPeriod, setRelationshipPeriod] = useState<TrainerRelationshipPeriod>("6m");
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const overviewRequestId = useRef(0);
 
   // Buscar alunos
   const fetchStudents = useCallback(async () => {
@@ -145,26 +157,43 @@ export default function TrainerDashboard() {
     }
   }, []);
 
-  const fetchStats = useCallback(async () => {
+  const fetchOverview = useCallback(async (period: TrainerDashboardPeriod, linksPeriod: TrainerRelationshipPeriod) => {
+    overviewRequestId.current += 1;
+    const requestId = overviewRequestId.current;
+    setOverviewLoading(true);
+    setOverviewError(null);
     try {
-      const response = await fetch("/api/trainer/stats");
-      if (response.ok) {
-        const data = await response.json();
-        setMonthlyFrequency(data.monthlyFrequency);
-        setWeeklyPRs(data.weeklyPRs);
+      const response = await fetch(`/api/trainer/dashboard/overview?period=${period}&relationshipPeriod=${linksPeriod}`, { cache: "no-store" });
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || "Não foi possível carregar a visão geral.");
       }
-    } catch (err) {
-      console.error("Erro ao buscar stats:", err);
+      const data = (await response.json()) as TrainerDashboardOverview;
+      if (requestId === overviewRequestId.current) setOverview(data);
+    } catch (error: unknown) {
+      console.error("Erro ao carregar visão geral do professor:", error);
+      if (requestId === overviewRequestId.current) {
+        setOverviewError(error instanceof Error ? error.message : "Não foi possível carregar a visão geral.");
+        setOverview(null);
+      }
+    } finally {
+      if (requestId === overviewRequestId.current) setOverviewLoading(false);
     }
   }, []);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       void fetchStudents();
-      void fetchStats();
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [fetchStats, fetchStudents]);
+  }, [fetchStudents]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchOverview(overviewPeriod, relationshipPeriod);
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchOverview, overviewPeriod, relationshipPeriod]);
 
   // Fechar notificações ao clicar fora
   useEffect(() => {
@@ -219,6 +248,7 @@ export default function TrainerDashboard() {
         setSearchResults((prev) => prev.filter((s) => s.id !== studentId));
         // Recarregar os alunos do treinador
         fetchStudents();
+        void fetchOverview(overviewPeriod, relationshipPeriod);
         setTimeout(() => {
           setModalSuccess(false);
         }, 3000);
@@ -263,6 +293,7 @@ export default function TrainerDashboard() {
       
       // Atualizar lista
       fetchStudents();
+      void fetchOverview(overviewPeriod, relationshipPeriod);
 
       setTimeout(() => {
         setIsModalOpen(false);
@@ -513,64 +544,38 @@ export default function TrainerDashboard() {
           </Link>
         </div>
 
-        {/* Info Cards */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Alunos Ativos</span>
-              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
-                <Users className="w-5 h-5" />
-              </div>
+        <div className="mb-8 space-y-6">
+          {overviewLoading && !overview ? (
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Carregando visão geral">
+              {[0, 1, 2, 3].map((item) => <div key={item} className="h-28 animate-pulse rounded-2xl border border-slate-200/80 bg-white/80 dark:border-slate-800 dark:bg-[#151D2F]/80" />)}
             </div>
-            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
-              {loading ? <Loader2 className="w-6 h-6 animate-spin text-slate-400" /> : students.length}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Vagas ocupadas no plano</p>
-          </div>
-
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Fichas Prescritas</span>
-              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
-                <BookOpen className="w-5 h-5" />
-              </div>
+          ) : overviewError ? (
+            <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/25 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-red-800 dark:text-red-200">{overviewError}</p>
+              <button type="button" onClick={() => void fetchOverview(overviewPeriod, relationshipPeriod)} className="min-h-[44px] rounded-xl bg-red-600 px-4 text-xs font-bold text-white transition hover:bg-red-700 active:scale-95">Tentar novamente</button>
             </div>
-            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-              ) : (
-                students.reduce((acc, curr) => acc + curr.workoutPlansCount, 0)
-              )}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Planos de treino ativos</p>
-          </div>
-
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Frequência Mensal</span>
-              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
-                <Activity className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
-              {monthlyFrequency === null ? <Loader2 className="w-6 h-6 animate-spin text-slate-400" /> : `${monthlyFrequency}%`}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Presença geral dos alunos</p>
-          </div>
-
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#151D2F] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-semibold">Recordes Batidos</span>
-              <div className="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-xl text-[#2563EB] dark:text-[#38BDF8] border border-blue-100 dark:border-blue-900/40">
-                <Award className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-3xl font-display font-extrabold text-slate-900 dark:text-white">
-              {weeklyPRs === null ? <Loader2 className="w-6 h-6 animate-spin text-slate-400" /> : weeklyPRs}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">PRs superados esta semana</p>
-          </div>
-        </section>
+          ) : overview ? (
+            <>
+              {overviewLoading && <p role="status" className="text-right text-[11px] font-medium text-slate-400">Atualizando indicadores…</p>}
+              <TrainerDashboardSummary
+                summary={overview.summary}
+                periodLabel={overviewPeriod === "7d" ? "7 dias" : overviewPeriod === "30d" ? "30 dias" : "90 dias"}
+              />
+              <TrainerDashboardCharts
+                overview={overview}
+                period={overviewPeriod}
+                relationshipPeriod={relationshipPeriod}
+                onPeriodChange={setOverviewPeriod}
+                onRelationshipPeriodChange={setRelationshipPeriod}
+                onStudentSelect={(studentId) => router.push(`/trainer/students/${studentId}/progress`)}
+              />
+              <TrainerAttentionList
+                overview={overview}
+                periodLabel={overviewPeriod === "7d" ? "7 dias" : overviewPeriod === "30d" ? "30 dias" : "90 dias"}
+              />
+            </>
+          ) : null}
+        </div>
 
         {/* Section Header & Search */}
         <section className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">

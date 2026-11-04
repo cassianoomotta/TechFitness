@@ -4,5 +4,6 @@ export interface RegisteredUserItem {
   image: string | null;
   role: "STUDENT";
   createdAt: string;
+  trainerId: string | null;
   trainerName: string | null;
 }

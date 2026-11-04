@@ -33,28 +33,30 @@ enum Role {
 }
 
 model TrainerProfile {
-  id               String            @id @default(cuid())
-  userId           String            @unique
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialties      Json              @default("[]")
-  cref             String?
-  students         StudentProfile[]
-  workoutTemplates WorkoutTemplate[]
+  id                String                    @id @default(cuid())
+  userId            String                    @unique
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialties       Json                      @default("[]")
+  cref              String?
+  students          StudentProfile[]
+  workoutTemplates  WorkoutTemplate[]
+  studentLinkEvents TrainerStudentLinkEvent[]
 }
 
 model StudentProfile {
-  id                    String                @id @default(cuid())
-  userId                String                @unique
-  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String                    @id @default(cuid())
+  userId                String                    @unique
+  user                  User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   trainerId             String?
-  trainer               TrainerProfile?       @relation(fields: [trainerId], references: [id])
-  weightGoal            String                @default("EMAGRECER") // EMAGRECER ou GANHAR_MASSA
+  trainer               TrainerProfile?           @relation(fields: [trainerId], references: [id])
+  weightGoal            String                    @default("EMAGRECER") // EMAGRECER ou GANHAR_MASSA
   workoutPlans          WorkoutPlan[]
   sessions              WorkoutSession[]
   measurements          BodyMeasurement[]
   logs                  ExerciseLog[]
+  trainerLinkEvents     TrainerStudentLinkEvent[]
   personalExerciseNotes StudentExerciseNote[]
-  createdGroups         WorkoutGroup[]        @relation("CreatedGroups")
+  createdGroups         WorkoutGroup[]            @relation("CreatedGroups")
   groupMemberships      GroupMember[]
 }
 
@@ -82,6 +84,24 @@ model StudentExerciseNote {
 
   @@id([studentProfileId, exerciseId])
   @@index([exerciseId])
+}
+
+enum TrainerStudentLinkEventType {
+  LINKED
+  UNLINKED
+}
+
+model TrainerStudentLinkEvent {
+  id        String                      @id @default(cuid())
+  trainerId String
+  trainer   TrainerProfile              @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  studentId String
+  student   StudentProfile              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  eventType TrainerStudentLinkEventType
+  createdAt DateTime                    @default(now())
+
+  @@index([trainerId, createdAt])
+  @@index([studentId, createdAt])
 }
 
 model WorkoutPlan {
