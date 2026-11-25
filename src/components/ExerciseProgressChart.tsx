@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Activity, Loader2, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import WorkoutHistoryChart from "./WorkoutHistoryChart";
 import type { ExerciseProgressResponse, ExerciseProgressSeries } from "@/lib/exercise-progress";
 
 export interface ExerciseProgressOption {
@@ -10,6 +11,7 @@ export interface ExerciseProgressOption {
 }
 
 interface ExerciseProgressChartProps {
+  planId: string;
   isOpen: boolean;
   exercises: ExerciseProgressOption[];
 }
@@ -136,24 +138,23 @@ function ExerciseProgressLineChart({
 
 export default function ExerciseProgressChart({
   isOpen,
+  planId,
   exercises,
 }: ExerciseProgressChartProps) {
-  const [selectedExerciseId, setSelectedExerciseId] = useState(exercises[0]?.id ?? "");
+  const [selectedExerciseId, setSelectedExerciseId] = useState("");
   const [result, setResult] = useState<{
     key: string;
-    exercises: ExerciseProgressSeries[];
+    data: ExerciseProgressResponse;
   } | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const requestKey = exercises.map((exercise) => exercise.id).join(",");
+  const general = selectedExerciseId === "";
+  const requestKey = new URLSearchParams(general ? { planId } : { exerciseId: selectedExerciseId }).toString();
 
   useEffect(() => {
-    if (!isOpen || exercises.length === 0) return;
-
+    if (!isOpen) return;
     const controller = new AbortController();
-    const query = new URLSearchParams();
-    exercises.forEach((exercise) => query.append("exerciseId", exercise.id));
-
-    fetch(`/api/student/exercise-progress?${query.toString()}`, {
+    setErrorKey(null);
+    fetch(`/api/student/exercise-progress?${requestKey}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -161,20 +162,19 @@ export default function ExerciseProgressChart({
         return response.json() as Promise<ExerciseProgressResponse>;
       })
       .then((data) => {
-        setResult({ key: requestKey, exercises: data.exercises });
+        if (!controller.signal.aborted) setResult({ key: requestKey, data });
       })
       .catch(() => {
         if (!controller.signal.aborted) setErrorKey(requestKey);
       });
 
     return () => controller.abort();
-  }, [isOpen, exercises, requestKey]);
+  }, [isOpen, requestKey]);
 
-  const series = result?.key === requestKey ? result.exercises : [];
-  const loading = isOpen && exercises.length > 0 && result?.key !== requestKey && errorKey !== requestKey;
+  const series = result?.key === requestKey ? result.data.exercises : [];
+  const loading = isOpen && result?.key !== requestKey && errorKey !== requestKey;
   const error = errorKey === requestKey;
-  const selectedExercise = exercises.find((exercise) => exercise.id === selectedExerciseId)
-    ?? exercises[0];
+  const selectedExercise = exercises.find((exercise) => exercise.id === selectedExerciseId);
   const selectedSeries = series.find((item) => item.exerciseId === selectedExercise?.id);
   const trend = useMemo(() => {
     if (!selectedSeries || selectedSeries.points.length < 3) return null;
@@ -189,7 +189,7 @@ export default function ExerciseProgressChart({
     return { label: "Estável no histórico", icon: Minus, positive: null, changePercent };
   }, [selectedSeries]);
 
-  if (exercises.length === 0) return null;
+
 
   const TrendIcon = trend?.icon;
 
@@ -201,17 +201,18 @@ export default function ExerciseProgressChart({
             <Activity className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Evolução dos exercícios</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Melhor série em cada sessão</p>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Evolução do treino</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{general ? "Todas as séries da mesma ficha" : "Melhor série em cada sessão"}</p>
           </div>
         </div>
-        {selectedExercise && exercises.length > 1 && (
+        {exercises.length > 0 && (
           <select
-            aria-label="Escolher exercício para ver a evolução"
-            value={selectedExercise.id}
+            aria-label="Escolher gráfico de evolução"
+            value={selectedExerciseId}
             onChange={(event) => setSelectedExerciseId(event.target.value)}
             className="min-h-[44px] max-w-[48%] rounded-lg border border-slate-200 bg-slate-50 px-2 text-base text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 md:text-sm"
           >
+            <option value="">Treino completo</option>
             {exercises.map((exercise) => (
               <option key={exercise.id} value={exercise.id}>{exercise.name}</option>
             ))}
@@ -222,12 +223,14 @@ export default function ExerciseProgressChart({
       {loading ? (
         <div className="mt-4 flex min-h-36 flex-col items-center justify-center gap-2 text-slate-500 dark:text-slate-400">
           <Loader2 className="h-5 w-5 animate-spin text-[#2563EB]" />
-          <span className="text-xs">Carregando histórico do exercício...</span>
+          <span className="text-xs">Carregando histórico…</span>
         </div>
       ) : error ? (
         <p className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
           Não foi possível carregar o gráfico agora. O treino foi salvo normalmente.
         </p>
+      ) : general ? (
+        <WorkoutHistoryChart points={result?.data.workout ?? []} />
       ) : selectedSeries && selectedSeries.points.length >= 2 ? (
         <>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2">

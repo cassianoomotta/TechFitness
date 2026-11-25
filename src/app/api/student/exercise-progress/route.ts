@@ -58,13 +58,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     }
 
-    const requestedExerciseIds = new URL(request.url).searchParams.getAll("exerciseId");
-    const validation = exerciseIdsSchema.safeParse(requestedExerciseIds);
-    if (!validation.success) {
-      return NextResponse.json({ error: "Lista de exercícios inválida." }, { status: 400 });
-    }
-
-    const exerciseIds = Array.from(new Set(validation.data));
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
       select: { id: true },
@@ -74,6 +67,32 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Perfil de aluno não encontrado." }, { status: 404 });
     }
 
+    const params = new URL(request.url).searchParams;
+    if (params.has("planId")) {
+      const plan = z.string().trim().min(1).max(128).safeParse(params.get("planId"));
+      if (!plan.success) return NextResponse.json({ error: "Ficha inválida." }, { status: 400 });
+      const history = await prisma.workoutSession.findMany({
+        where: { studentId: studentProfile.id, planId: plan.data, completed: true },
+        orderBy: [{ date: "desc" }, { id: "desc" }],
+        take: 6,
+        select: { id: true, date: true, logs: { select: { repsPerformed: true, weightUsed: true } } },
+      });
+      const workout = history.reverse().map(({ id, date, logs }) => ({
+        sessionId: id,
+        date: date.toISOString(),
+        reps: logs.reduce((sum, log) => sum + log.repsPerformed, 0),
+        volume: logs.reduce((sum, log) => sum + log.weightUsed * log.repsPerformed, 0),
+      }));
+      return NextResponse.json({ exercises: [], workout } satisfies ExerciseProgressResponse);
+    }
+
+    const requestedExerciseIds = params.getAll("exerciseId");
+    const validation = exerciseIdsSchema.safeParse(requestedExerciseIds);
+    if (!validation.success) {
+      return NextResponse.json({ error: "Lista de exercícios inválida." }, { status: 400 });
+    }
+
+    const exerciseIds = Array.from(new Set(validation.data));
     const sessions = await prisma.workoutSession.findMany({
       where: {
         studentId: studentProfile.id,

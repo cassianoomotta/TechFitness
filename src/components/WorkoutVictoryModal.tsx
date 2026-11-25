@@ -53,6 +53,7 @@ interface WorkoutVictoryModalProps {
   levelTitle: string;
   prsBeaten: PRBeaten[];
   newAchievements: NewAchievement[];
+  planId: string;
   exerciseOptions: ExerciseProgressOption[];
 }
 
@@ -67,6 +68,7 @@ export default function WorkoutVictoryModal({
   levelTitle,
   prsBeaten,
   newAchievements,
+  planId,
   exerciseOptions,
 }: WorkoutVictoryModalProps) {
   const [animatedXp, setAnimatedXp] = useState(0);
@@ -413,7 +415,7 @@ export default function WorkoutVictoryModal({
             </div>
           )}
 
-          <ExerciseProgressChart isOpen={isOpen} exercises={exerciseOptions} />
+          <ExerciseProgressChart planId={planId} isOpen={isOpen} exercises={exerciseOptions} />
 
           {/* Conquistas Desbloqueadas */}
           {newAchievements && newAchievements.length > 0 && (

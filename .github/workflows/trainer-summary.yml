@@ -1,7 +1,8 @@
 name: Resumo diário do treinador
 on:
   schedule:
-    - cron: "17 6 * * *"
+    # 23:59 em Brasília (02:59 UTC do dia seguinte).
+    - cron: "59 2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -16,6 +17,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Inclui os treinos finalizados no último minuto do dia.
+          read -r minute second < <(TZ=America/Sao_Paulo date '+%H%M %S')
+          if [[ "$minute" == "2359" ]]; then
+            sleep "$((60 - 10#$second))"
+          fi
           token=$(curl -fsS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=techfitness-trainer-summary" | jq -er .value)
           echo "::add-mask::$token"
           curl --fail-with-body --retry 3 --max-time 45 -X POST \

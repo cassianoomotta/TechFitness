@@ -14,6 +14,14 @@ export interface ExerciseProgressSeries {
   points: ExerciseProgressPoint[];
 }
 
+export interface WorkoutProgressPoint {
+  sessionId: string;
+  date: string;
+  reps: number;
+  volume: number;
+}
+
 export interface ExerciseProgressResponse {
+  workout?: WorkoutProgressPoint[];
   exercises: ExerciseProgressSeries[];
 }

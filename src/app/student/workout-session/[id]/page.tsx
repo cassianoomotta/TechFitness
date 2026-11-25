@@ -2186,6 +2186,7 @@ export default function WorkoutSessionPlayer() {
           levelTitle={victoryData.levelTitle}
           prsBeaten={victoryData.prsBeaten}
           newAchievements={victoryData.newAchievements}
+          planId={planId}
           exerciseOptions={victoryData.exerciseOptions}
         />
       )}
