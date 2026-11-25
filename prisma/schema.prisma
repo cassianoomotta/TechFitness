@@ -41,6 +41,7 @@ model TrainerProfile {
   students          StudentProfile[]
   workoutTemplates  WorkoutTemplate[]
   studentLinkEvents TrainerStudentLinkEvent[]
+  dailySummaries    TrainerDailySummary[]
 }
 
 model StudentProfile {
@@ -258,4 +259,18 @@ model GroupMember {
   @@unique([groupId, studentId])
   @@index([studentId])
   @@index([groupId])
+}
+
+model TrainerDailySummary {
+  trainerId        String
+  trainer          TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  day              DateTime       @db.Date
+  generatedAt      DateTime       @default(now())
+  sessions         Int
+  inactiveStudents Int
+  olderPlans       Int
+  joined           Int
+  departed         Int
+
+  @@id([trainerId, day])
 }

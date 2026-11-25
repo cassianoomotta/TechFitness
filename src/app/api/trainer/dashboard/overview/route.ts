@@ -217,7 +217,13 @@ export async function GET(request: NextRequest) {
       activePlans: plansByStudent.get(student.id) ?? [],
     }));
 
+    const reports = await prisma.trainerDailySummary.findMany({
+      where: { trainerId: trainer.id, day: { gte: new Date(now.getTime() - 31 * 86_400_000) } },
+      orderBy: { day: "desc" }, take: 30,
+      select: { day: true, sessions: true, inactiveStudents: true, olderPlans: true, joined: true, departed: true },
+    });
     const overview: TrainerDashboardOverview = {
+      dailyReports: reports.map((report) => ({ ...report, day: dayKey(report.day) })),
       period,
       relationshipPeriod,
       generatedAt: now.toISOString(),

@@ -42,7 +42,17 @@ export interface TrainerRosterActivity {
   activePlans: TrainerDashboardPlan[];
 }
 
+export interface TrainerDailyReport {
+  day: string;
+  sessions: number;
+  inactiveStudents: number;
+  olderPlans: number;
+  joined: number;
+  departed: number;
+}
+
 export interface TrainerDashboardOverview {
+  dailyReports: TrainerDailyReport[];
   period: TrainerDashboardPeriod;
   relationshipPeriod: TrainerRelationshipPeriod;
   generatedAt: string;

@@ -32,6 +32,7 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfilePhotoModal from "@/components/EditProfilePhotoModal";
 import DumbbellLoading from "@/components/DumbbellLoading";
+import TrainerDailyReports from "./components/TrainerDailyReports";
 import TrainerDashboardSummary from "./components/TrainerDashboardSummary";
 import TrainerDashboardCharts from "./components/TrainerDashboardCharts";
 import TrainerAttentionList from "./components/TrainerAttentionList";
@@ -561,6 +562,7 @@ export default function TrainerDashboard() {
                 summary={overview.summary}
                 periodLabel={overviewPeriod === "7d" ? "7 dias" : overviewPeriod === "30d" ? "30 dias" : "90 dias"}
               />
+              <TrainerDailyReports reports={overview.dailyReports} />
               <TrainerDashboardCharts
                 overview={overview}
                 period={overviewPeriod}
