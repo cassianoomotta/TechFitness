@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, Loader2, Minus, TrendingDown, TrendingUp } from "lucide-react";
-import WorkoutHistoryChart from "./WorkoutHistoryChart";
-import type { ExerciseProgressResponse, ExerciseProgressSeries } from "@/lib/exercise-progress";
+import ProgressLineChart, { type ProgressLinePoint } from "./ProgressLineChart";
+import type { ExerciseProgressPoint, ExerciseProgressResponse, WorkoutProgressPoint } from "@/lib/exercise-progress";
 
 export interface ExerciseProgressOption {
   id: string;
@@ -16,124 +16,29 @@ interface ExerciseProgressChartProps {
   exercises: ExerciseProgressOption[];
 }
 
-const CHART_WIDTH = 360;
-const CHART_HEIGHT = 170;
-const CHART_PADDING = { top: 16, right: 12, bottom: 28, left: 46 };
+const numberFormat = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
-function formatPointDate(value: string): string {
-  return new Date(value).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  });
+function workoutPoint(point: WorkoutProgressPoint): ProgressLinePoint {
+  const volume = point.volume > 0 ? ` · ${numberFormat.format(point.volume)} kg × reps` : "";
+  return { ...point, value: point.reps, detail: `${point.reps} reps${volume}` };
 }
 
-function formatValue(value: number): string {
-  return value.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+function exercisePoint(point: ExerciseProgressPoint): ProgressLinePoint {
+  const weight = point.weightKg > 0 ? `${numberFormat.format(point.weightKg)} kg × ` : "";
+  return { ...point, detail: `${weight}${point.reps} reps` };
 }
 
-function ExerciseProgressLineChart({
-  series,
-}: {
-  series: ExerciseProgressSeries;
-}) {
-  const values = series.points.map((point) => point.value);
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
-  const valueRange = maximum - minimum || Math.max(maximum * 0.1, 1);
-  const innerWidth = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
-  const innerHeight = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
-  const lowerBound = Math.max(0, minimum - valueRange * 0.2);
-  const upperBound = maximum + valueRange * 0.2;
-  const displayRange = upperBound - lowerBound || 1;
+function getTrend(points: ProgressLinePoint[]) {
+  if (points.length < 3) return null;
 
-  const coordinates = series.points.map((point, index) => {
-    const x = series.points.length === 1
-      ? CHART_PADDING.left + innerWidth / 2
-      : CHART_PADDING.left + (index / (series.points.length - 1)) * innerWidth;
-    const y = CHART_PADDING.top + ((upperBound - point.value) / displayRange) * innerHeight;
-    return { point, x, y };
-  });
+  const firstPoint = points[0];
+  const lastPoint = points[points.length - 1];
+  if (firstPoint.value <= 0) return null;
 
-  const linePath = coordinates
-    .map(({ x, y }, index) => `${index === 0 ? "M" : "L"} ${x} ${y}`)
-    .join(" ");
-  const gridValues = [upperBound, (upperBound + lowerBound) / 2, lowerBound];
-  const unitLabel = series.metric === "best_set_volume" ? "kg × reps" : "reps";
-
-  return (
-    <div className="mt-4">
-      <div className="mb-2 flex items-center justify-between gap-3 text-[10px] text-slate-500 dark:text-slate-400">
-        <span>{series.metric === "best_set_volume" ? "Volume da melhor série" : "Repetições na melhor série"}</span>
-        <span className="font-medium">{unitLabel}</span>
-      </div>
-      <svg
-        viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        className="block h-auto w-full overflow-visible"
-        role="img"
-        aria-label={`Gráfico de evolução das últimas ${series.points.length} sessões do exercício`}
-      >
-        {gridValues.map((value, index) => {
-          const y = CHART_PADDING.top + (index / 2) * innerHeight;
-          return (
-            <g key={index}>
-              <line
-                x1={CHART_PADDING.left}
-                y1={y}
-                x2={CHART_WIDTH - CHART_PADDING.right}
-                y2={y}
-                stroke="currentColor"
-                strokeDasharray="3 4"
-                className="text-slate-200 dark:text-slate-700"
-              />
-              <text
-                x={CHART_PADDING.left - 8}
-                y={y + 3}
-                textAnchor="end"
-                className="fill-slate-400 text-[9px] dark:fill-slate-500"
-              >
-                {formatValue(value)}
-              </text>
-            </g>
-          );
-        })}
-        <path
-          d={linePath}
-          fill="none"
-          stroke="#2563EB"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {coordinates.map(({ point, x, y }) => (
-          <g key={point.sessionId}>
-            <title>
-              {`${formatPointDate(point.date)}: ${point.weightKg > 0 ? `${formatValue(point.weightKg)} kg × ` : ""}${point.reps} repetições`}
-            </title>
-            <circle cx={x} cy={y} r="8" fill="#2563EB" fillOpacity="0.14" />
-            <circle cx={x} cy={y} r="4.5" fill="#2563EB" stroke="white" strokeWidth="2" />
-            <text
-              x={x}
-              y={CHART_HEIGHT - 8}
-              textAnchor="middle"
-              className="fill-slate-500 text-[9px] dark:fill-slate-400"
-            >
-              {formatPointDate(point.date)}
-            </text>
-          </g>
-        ))}
-      </svg>
-      <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
-        {series.points.map((point) => (
-          <span
-            key={point.sessionId}
-            className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-          >
-            {formatPointDate(point.date)}: {point.weightKg > 0 ? `${formatValue(point.weightKg)} kg × ` : ""}{point.reps} reps
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+  const changePercent = ((lastPoint.value - firstPoint.value) / firstPoint.value) * 100;
+  if (changePercent >= 5) return { label: "Evoluindo no histórico", icon: TrendingUp, positive: true, changePercent };
+  if (changePercent <= -5) return { label: "Variação para baixo", icon: TrendingDown, positive: false, changePercent };
+  return { label: "Estável no histórico", icon: Minus, positive: null, changePercent };
 }
 
 export default function ExerciseProgressChart({
@@ -176,21 +81,12 @@ export default function ExerciseProgressChart({
   const error = errorKey === requestKey;
   const selectedExercise = exercises.find((exercise) => exercise.id === selectedExerciseId);
   const selectedSeries = series.find((item) => item.exerciseId === selectedExercise?.id);
-  const trend = useMemo(() => {
-    if (!selectedSeries || selectedSeries.points.length < 3) return null;
-
-    const firstPoint = selectedSeries.points[0];
-    const lastPoint = selectedSeries.points[selectedSeries.points.length - 1];
-    if (firstPoint.value <= 0) return null;
-
-    const changePercent = ((lastPoint.value - firstPoint.value) / firstPoint.value) * 100;
-    if (changePercent >= 5) return { label: "Evoluindo no histórico", icon: TrendingUp, positive: true, changePercent };
-    if (changePercent <= -5) return { label: "Variação para baixo", icon: TrendingDown, positive: false, changePercent };
-    return { label: "Estável no histórico", icon: Minus, positive: null, changePercent };
-  }, [selectedSeries]);
-
-
-
+  const points = general
+    ? (result?.key === requestKey ? result.data.workout ?? [] : []).map(workoutPoint)
+    : (selectedSeries?.points ?? []).map(exercisePoint);
+  const weighted = !general && selectedSeries?.metric === "best_set_volume";
+  const metricLabel = general ? "Repetições totais por sessão" : weighted ? "Volume da melhor série" : "Repetições na melhor série";
+  const trend = getTrend(points);
   const TrendIcon = trend?.icon;
 
   return (
@@ -229,13 +125,11 @@ export default function ExerciseProgressChart({
         <p className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
           Não foi possível carregar o gráfico agora. O treino foi salvo normalmente.
         </p>
-      ) : general ? (
-        <WorkoutHistoryChart points={result?.data.workout ?? []} />
-      ) : selectedSeries && selectedSeries.points.length >= 2 ? (
+      ) : points.length >= (general ? 1 : 2) ? (
         <>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
             <p className="min-w-0 truncate text-xs font-bold text-slate-800 dark:text-slate-100">
-              {selectedExercise?.name}
+              {general ? "Treino completo" : selectedExercise?.name}
             </p>
             {trend && TrendIcon && (
               <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold ${
@@ -250,9 +144,9 @@ export default function ExerciseProgressChart({
               </span>
             )}
           </div>
-          <ExerciseProgressLineChart series={selectedSeries} />
+          <ProgressLineChart points={points} label={metricLabel} unit={weighted ? "kg × reps" : "reps"} />
           <p className="mt-2 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
-            {selectedSeries.metric === "best_set_volume"
+            {general ? "Cada ponto soma as repetições de todas as séries da ficha em uma sessão." : weighted
               ? "O gráfico compara o volume da melhor série, não a última série do treino. Cada ponto informa a carga e as repetições registradas."
               : "O gráfico compara as repetições da melhor série em exercícios sem carga externa registrada."}
           </p>
@@ -261,7 +155,7 @@ export default function ExerciseProgressChart({
         <div className="mt-4 rounded-xl bg-slate-50 p-4 text-center dark:bg-slate-800/60">
           <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Ainda falta histórico para comparar</p>
           <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-            {selectedSeries?.points.length === 1
+            {general ? "Ainda não há sessões concluídas desta ficha." : selectedSeries?.points.length === 1
               ? "Este é o primeiro registro comparável. Ao repetir o exercício, o gráfico mostrará a evolução da melhor série."
               : "Registre carga e repetições nas séries para acompanhar este exercício."}
           </p>
